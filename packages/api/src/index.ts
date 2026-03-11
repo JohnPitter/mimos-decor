@@ -1,4 +1,6 @@
 import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
@@ -10,16 +12,29 @@ import { userRouter } from "./routes/users.js";
 import { auditLogRouter } from "./routes/audit-logs.js";
 import { logger } from "./lib/logger.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const isProduction = process.env.NODE_ENV === "production";
+
 const app = express();
 const PORT = process.env.PORT ?? 3001;
 
 // Middleware pipeline
-app.use(cors({ origin: ["http://localhost:5173"], credentials: true }));
+app.use(
+  cors({
+    origin: isProduction ? true : ["http://localhost:5173"],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("short"));
 
-// Routes
+// Health check
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// API Routes
 app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
 app.use("/api/sales", saleRouter);
@@ -27,13 +42,15 @@ app.use("/api/dashboard", dashboardRouter);
 app.use("/api/users", userRouter);
 app.use("/api/audit-logs", auditLogRouter);
 
-// Health check
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
-});
-app.get("/", (_req, res) => {
-  res.json({ name: "mimos-decor-api", status: "ok" });
-});
+// In production, serve the frontend build
+if (isProduction) {
+  const webDist = path.resolve(__dirname, "../../web/dist");
+  app.use(express.static(webDist));
+  // SPA fallback: any non-API route returns index.html
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(webDist, "index.html"));
+  });
+}
 
 app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`, "server");
