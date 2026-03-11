@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Header } from "../components/layout/Header.js";
 import { useDashboardStore } from "../stores/dashboard.store.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
+import { useSettingsStore } from "../stores/settings.store.js";
 import { formatBRL } from "@mimos/shared";
 import { format } from "date-fns";
 import {
@@ -33,6 +34,7 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const { data, loading, fetchDashboard } = useDashboardStore();
   const getGatewayLabel = useGatewayStore((s) => s.getGatewayLabel);
+  const theme = useSettingsStore((s) => s.theme);
 
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
@@ -198,7 +200,7 @@ export default function Dashboard() {
             <h3 className="text-[15px] font-bold text-text-dark mb-4">{t("dashboard.salesByDay")}</h3>
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={salesByDayFormatted}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0e0e0" />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme.stroke} />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${v}`} />
@@ -214,18 +216,18 @@ export default function Dashboard() {
                   type="monotone"
                   dataKey="count"
                   name="count"
-                  stroke="#ff914d"
+                  stroke={theme.primary}
                   strokeWidth={2.5}
-                  dot={{ fill: "#ff914d", r: 4 }}
+                  dot={{ fill: theme.primary, r: 4 }}
                 />
                 <Line
                   yAxisId="right"
                   type="monotone"
                   dataKey="revenue"
                   name="revenue"
-                  stroke="#3D2C2C"
+                  stroke={theme.sidebarBg}
                   strokeWidth={2}
-                  dot={{ fill: "#3D2C2C", r: 3 }}
+                  dot={{ fill: theme.sidebarBg, r: 3 }}
                   strokeDasharray="5 5"
                 />
               </LineChart>
@@ -244,11 +246,11 @@ export default function Dashboard() {
                   })) ?? []
                 }
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0e0e0" />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme.stroke} />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(value: number) => [formatBRL(value), t("dashboard.chartRevenue")]} />
-                <Bar dataKey="revenue" name={t("dashboard.chartRevenue")} fill="#ff914d" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="revenue" name={t("dashboard.chartRevenue")} fill={theme.primary} radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -281,14 +283,14 @@ export default function Dashboard() {
                 <div className="flex-1 min-w-0">
                   <ResponsiveContainer width="100%" height={topProductsHeight}>
                     <BarChart data={topProductsFormatted} layout="vertical" margin={{ left: 10, right: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0e0e0" horizontal={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme.stroke} horizontal={false} />
                       <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => formatBRL(v)} />
                       <YAxis type="category" dataKey="shortName" width={140} tick={{ fontSize: 11 }} />
                       <Tooltip
                         formatter={(v: number) => [formatBRL(v), t("dashboard.chartRevenue")]}
                         labelFormatter={(label) => label}
                       />
-                      <Bar dataKey="revenue" name={t("dashboard.chartRevenue")} fill="#ff914d" radius={[0, 6, 6, 0]} barSize={24} />
+                      <Bar dataKey="revenue" name={t("dashboard.chartRevenue")} fill={theme.primary} radius={[0, 6, 6, 0]} barSize={24} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
