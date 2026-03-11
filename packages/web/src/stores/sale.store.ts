@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { api } from "../lib/api.js";
-import type { Sale, DeliveryStatus, GatewayId, DeliveryStatusHistoryEntry } from "@mimos/shared";
+import type { Sale, DeliveryStatus, GatewayId, DeliveryStatusHistoryEntry, CreateSaleItemInput } from "@mimos/shared";
 
 interface SaleWithHistory extends Sale {
   statusHistory?: DeliveryStatusHistoryEntry[];
@@ -31,10 +31,8 @@ interface SaleState {
     page?: number;
   }) => Promise<void>;
   createSale: (data: {
-    productId: string;
-    quantity: number;
     gateway: GatewayId;
-    salePrice: number;
+    items: CreateSaleItemInput[];
     customerName?: string;
     customerDocument?: string;
   }) => Promise<void>;

@@ -29,14 +29,23 @@ export const DELIVERY_STATUS_COLORS: Record<DeliveryStatus, string> = {
   CANCELLED: "red",
 };
 
-export interface Sale {
+export interface SaleItem {
   id: string;
+  saleId: string;
   productId: string;
   productName: string;
   quantity: number;
-  gateway: GatewayId;
   salePrice: number;
   unitCost: number;
+  totalFees: number;
+  profit: number;
+}
+
+export interface Sale {
+  id: string;
+  gateway: GatewayId;
+  salePrice: number;
+  totalCost: number;
   totalFees: number;
   netRevenue: number;
   profit: number;
@@ -45,15 +54,19 @@ export interface Sale {
   deliveryStatus: DeliveryStatus;
   trackingCode: string | null;
   importedFrom: string | null;
+  items: SaleItem[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateSaleInput {
+export interface CreateSaleItemInput {
   productId: string;
   quantity: number;
+}
+
+export interface CreateSaleInput {
   gateway: GatewayId;
-  salePrice: number;
+  items: CreateSaleItemInput[];
   customerName?: string;
   customerDocument?: string;
   trackingCode?: string;
