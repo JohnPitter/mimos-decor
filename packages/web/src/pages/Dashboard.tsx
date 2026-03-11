@@ -37,13 +37,14 @@ export default function Dashboard() {
   return (
     <div>
       <Header title="Dashboard" />
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 animate-fade-in">
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {STAT_CARDS.map((card) => (
+          {STAT_CARDS.map((card, index) => (
             <div
               key={card.key}
-              className="bg-card-bg border border-stroke rounded-xl p-5 hover:shadow-md transition-all duration-200"
+              className="bg-card-bg border border-stroke rounded-xl p-5 hover:shadow-md transition-all duration-200 animate-fade-in-up"
+              style={{ animationDelay: `${index * 80}ms` }}
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[12px] font-semibold text-text-muted uppercase tracking-wider">
@@ -62,7 +63,7 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Sales by Day Chart */}
-          <div className="bg-card-bg border border-stroke rounded-xl p-6">
+          <div className="bg-card-bg border border-stroke rounded-xl p-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
             <h3 className="text-[15px] font-bold text-text-dark mb-4">Vendas por Dia</h3>
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={data?.salesByDay ?? []}>
@@ -82,7 +83,7 @@ export default function Dashboard() {
           </div>
 
           {/* Sales by Gateway Chart */}
-          <div className="bg-card-bg border border-stroke rounded-xl p-6">
+          <div className="bg-card-bg border border-stroke rounded-xl p-6 animate-fade-in-up" style={{ animationDelay: "300ms" }}>
             <h3 className="text-[15px] font-bold text-text-dark mb-4">Vendas por Gateway</h3>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart
@@ -103,7 +104,7 @@ export default function Dashboard() {
           </div>
 
           {/* Top Products Chart */}
-          <div className="bg-card-bg border border-stroke rounded-xl p-6 lg:col-span-2">
+          <div className="bg-card-bg border border-stroke rounded-xl p-6 lg:col-span-2 animate-fade-in-up" style={{ animationDelay: "400ms" }}>
             <h3 className="text-[15px] font-bold text-text-dark mb-4">Top 5 Produtos</h3>
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>

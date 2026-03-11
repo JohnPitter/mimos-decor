@@ -37,7 +37,7 @@ export function Login() {
           <p className="text-[14px] text-text-secondary mt-1">Acesse o sistema de gestao</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-card-bg border border-stroke rounded-2xl p-8 shadow-xl shadow-rosa/10">
+        <form onSubmit={handleSubmit} className="bg-card-bg border border-stroke rounded-2xl p-8 shadow-xl shadow-rosa/10 animate-scale-in">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-[13px] mb-5">
               {error}

@@ -84,9 +84,9 @@ export default function Sales() {
   return (
     <div>
       <Header title="Vendas" />
-      <div className="p-6">
+      <div className="p-6 animate-fade-in">
         {/* Actions bar */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 animate-fade-in-down">
           {/* Tabs */}
           <div className="flex items-center gap-1 bg-page-bg border border-stroke rounded-lg p-1">
             {TABS.map((tab) => (
@@ -174,11 +174,12 @@ export default function Sales() {
                     </td>
                   </tr>
                 ) : (
-                  sales.map((sale) => (
+                  sales.map((sale, index) => (
                     <tr
                       key={sale.id}
                       onClick={() => handleRowClick(sale)}
-                      className="border-b border-stroke/50 hover:bg-rosa-light/30 transition-colors cursor-pointer"
+                      className="border-b border-stroke/50 hover:bg-rosa-light/30 transition-colors cursor-pointer animate-fade-in-up"
+                      style={{ animationDelay: `${index * 30}ms` }}
                     >
                       <td className="px-4 py-3">
                         <p className="text-[14px] font-semibold text-text-dark">

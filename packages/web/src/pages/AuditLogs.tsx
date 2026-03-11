@@ -72,9 +72,9 @@ export default function AuditLogs() {
     <div className="flex-1 flex flex-col">
       <Header title="Auditoria" />
 
-      <main className="flex-1 p-6 overflow-y-auto">
+      <main className="flex-1 p-6 overflow-y-auto animate-fade-in">
         {/* Filters */}
-        <div className="bg-card-bg rounded-xl border border-stroke p-4 mb-6">
+        <div className="bg-card-bg rounded-xl border border-stroke p-4 mb-6 animate-fade-in-down">
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-[160px]">
               <label className="block text-[11px] font-semibold text-text-muted mb-1 uppercase tracking-wider">Usuario</label>
@@ -173,10 +173,11 @@ export default function AuditLogs() {
           </div>
         ) : (
           <div className="space-y-2">
-            {logs.map((log) => (
+            {logs.map((log, index) => (
               <LogEntry
                 key={log.id}
                 log={log}
+                index={index}
                 expanded={expandedId === log.id}
                 onToggle={() => setExpandedId(expandedId === log.id ? null : log.id)}
               />
@@ -211,13 +212,13 @@ export default function AuditLogs() {
   );
 }
 
-function LogEntry({ log, expanded, onToggle }: { log: AuditLog; expanded: boolean; onToggle: () => void }) {
+function LogEntry({ log, index, expanded, onToggle }: { log: AuditLog; index: number; expanded: boolean; onToggle: () => void }) {
   const Icon = ACTION_ICONS[log.action];
   const colorClass = ACTION_COLORS[log.action];
   const hasDetails = log.oldData || log.newData;
 
   return (
-    <div className="bg-card-bg rounded-xl border border-stroke overflow-hidden hover:shadow-sm transition-all">
+    <div className="bg-card-bg rounded-xl border border-stroke overflow-hidden hover:shadow-sm transition-all animate-fade-in-up" style={{ animationDelay: `${index * 40}ms` }}>
       <button
         onClick={hasDetails ? onToggle : undefined}
         className={`w-full flex items-center gap-4 px-5 py-3.5 text-left ${hasDetails ? "cursor-pointer" : "cursor-default"}`}

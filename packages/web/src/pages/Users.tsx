@@ -76,7 +76,7 @@ export default function Users() {
     <div className="flex-1 flex flex-col">
       <Header title="Usuarios" />
 
-      <main className="flex-1 p-6 overflow-y-auto">
+      <main className="flex-1 p-6 overflow-y-auto animate-fade-in">
         {/* Top bar */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-[13px] text-text-muted">
@@ -116,8 +116,8 @@ export default function Users() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b border-stroke last:border-b-0 hover:bg-page-bg/50 transition-colors">
+                {users.map((user, index) => (
+                  <tr key={user.id} className="border-b border-stroke last:border-b-0 hover:bg-page-bg/50 transition-colors animate-fade-in-up" style={{ animationDelay: `${index * 40}ms` }}>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[13px]">
@@ -193,7 +193,7 @@ export default function Users() {
       {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setModalOpen(false)}>
-          <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-md animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-stroke">
               <h2 className="text-[18px] font-bold text-text-dark">
                 {editingId ? "Editar Usuario" : "Novo Usuario"}

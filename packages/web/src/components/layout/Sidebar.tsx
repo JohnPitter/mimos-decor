@@ -24,7 +24,7 @@ export function Sidebar() {
         <span className="text-white font-bold text-[15px] tracking-tight">Mimos Decor</span>
       </div>
 
-      <nav className="flex-1 py-4 px-3 space-y-1">
+      <nav className="flex-1 py-4 px-3 space-y-1 animate-fade-in">
         {items.map((item) => (
           <NavLink
             key={item.to}

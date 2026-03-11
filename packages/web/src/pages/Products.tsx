@@ -63,9 +63,9 @@ export default function Products() {
   return (
     <div>
       <Header title="Produtos" />
-      <div className="p-6">
+      <div className="p-6 animate-fade-in">
         {/* Actions bar */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-6 animate-fade-in-down">
           <div className="relative flex-1 max-w-sm">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
@@ -113,10 +113,10 @@ export default function Products() {
                 ) : products.length === 0 ? (
                   <tr><td colSpan={8} className="text-center py-12 text-text-muted text-[14px]">Nenhum produto encontrado</td></tr>
                 ) : (
-                  products.map((product) => {
+                  products.map((product, index) => {
                     const prices = getProductPrices(product);
                     return (
-                      <tr key={product.id} className="border-b border-stroke/50 hover:bg-rosa-light/30 transition-colors">
+                      <tr key={product.id} className="border-b border-stroke/50 hover:bg-rosa-light/30 transition-colors animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
                         <td className="px-4 py-3">
                           <p className="text-[14px] font-semibold text-text-dark">{product.name}</p>
                           {product.supplier && <p className="text-[11px] text-text-muted">{product.supplier}</p>}

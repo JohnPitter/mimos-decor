@@ -47,7 +47,7 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-scale-in" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-6 border-b border-stroke">
           <h2 className="text-[18px] font-bold text-text-dark">{product ? "Editar Produto" : "Novo Produto"}</h2>
           <button onClick={onClose} className="text-text-muted hover:text-text-dark transition-colors">
