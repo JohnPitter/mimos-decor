@@ -10,6 +10,10 @@ import { calcIdealPrice, MARKETPLACES, formatBRL } from "@mimos/shared";
 import type { Product } from "@mimos/shared";
 import type { Marketplace } from "@mimos/shared";
 import { Plus, Search, Pencil, Trash2, Package } from "lucide-react";
+import { ExportDropdown } from "../components/common/ExportDropdown.js";
+import { useSettingsStore } from "../stores/settings.store.js";
+import { exportProductsXlsx } from "../lib/export-xlsx.js";
+import { exportProductsPdf } from "../lib/export-pdf.js";
 
 interface GatewayPriceInfo {
   id: string;
@@ -34,6 +38,7 @@ export default function Products() {
   const { t } = useTranslation();
   const { products, total, loading, fetchProducts, createProduct, updateProduct, deleteProduct } = useProductStore();
   const allGateways = useGatewayStore((s) => s.getAllGateways)();
+  const theme = useSettingsStore((s) => s.theme);
   const getMarketplaceFn = useGatewayStore((s) => s.getMarketplace);
 
   const gatewayPriceInfos: GatewayPriceInfo[] = allGateways
@@ -101,12 +106,18 @@ export default function Products() {
               className="w-full pl-9 pr-4 py-2.5 border border-stroke rounded-lg text-[14px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all sm:max-w-sm"
             />
           </div>
-          <button
-            onClick={() => { setEditProduct(null); setDialogOpen(true); }}
-            className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-lg font-semibold text-[14px] transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
-          >
-            <Plus size={16} /> {t("products.newProduct")}
-          </button>
+          <div className="flex items-center gap-2">
+            <ExportDropdown
+              onExcel={() => exportProductsXlsx(products, { primaryColor: theme.primary, title: t("reports.productsReport") })}
+              onPdf={() => exportProductsPdf(products, { primaryColor: theme.primary, title: t("reports.productsReport") })}
+            />
+            <button
+              onClick={() => { setEditProduct(null); setDialogOpen(true); }}
+              className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-lg font-semibold text-[14px] transition-all hover:scale-[1.02] active:scale-[0.98] shrink-0"
+            >
+              <Plus size={16} /> {t("products.newProduct")}
+            </button>
+          </div>
         </div>
 
         {/* Table */}

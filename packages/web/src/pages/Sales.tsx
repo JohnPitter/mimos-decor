@@ -12,6 +12,10 @@ import {
 } from "@mimos/shared";
 import type { Sale, DeliveryStatus } from "@mimos/shared";
 import { Plus, Upload, ShoppingCart } from "lucide-react";
+import { ExportDropdown } from "../components/common/ExportDropdown.js";
+import { useSettingsStore } from "../stores/settings.store.js";
+import { exportSalesXlsx } from "../lib/export-xlsx.js";
+import { exportSalesPdf } from "../lib/export-pdf.js";
 
 const STATUS_BADGE_MAP: Record<string, string> = {
   yellow: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -45,6 +49,7 @@ export default function Sales() {
   const { t } = useTranslation();
   const { sales, total, loading, fetchSales, createSale } = useSaleStore();
   const getGatewayLabel = useGatewayStore((s) => s.getGatewayLabel);
+  const theme = useSettingsStore((s) => s.theme);
   const [activeTab, setActiveTab] = useState<DeliveryStatus | null>(null);
   const [page, setPage] = useState(1);
   const [saleDialogOpen, setSaleDialogOpen] = useState(false);
@@ -95,6 +100,10 @@ export default function Sales() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <ExportDropdown
+              onExcel={() => exportSalesXlsx(sales, getGatewayLabel, (s) => t(`deliveryStatus.${s}`), { primaryColor: theme.primary, title: t("reports.salesReport") })}
+              onPdf={() => exportSalesPdf(sales, getGatewayLabel, (s) => t(`deliveryStatus.${s}`), { primaryColor: theme.primary, title: t("reports.salesReport") })}
+            />
             <button
               onClick={() => setImportDialogOpen(true)}
               className="flex items-center gap-2 px-3 sm:px-4 py-2.5 border border-stroke rounded-lg text-[13px] sm:text-[14px] font-medium text-text-secondary hover:bg-page-bg transition-colors hover:scale-[1.02] active:scale-[0.98]"

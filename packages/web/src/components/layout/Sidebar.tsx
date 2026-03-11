@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, Package, ShoppingCart, Users, ScrollText, LogOut, UserCircle, Plug, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, ScrollText, LogOut, UserCircle, Plug, Settings, FileBarChart } from "lucide-react";
 import { useAuthStore } from "../../stores/auth.store.js";
 import { useSidebarStore } from "../../stores/sidebar.store.js";
 import { useEffect } from "react";
@@ -20,6 +20,7 @@ export function Sidebar() {
     { to: "/app/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
     { to: "/app/products", label: t("nav.products"), icon: Package },
     { to: "/app/sales", label: t("nav.sales"), icon: ShoppingCart },
+    { to: "/app/reports", label: t("nav.reports"), icon: FileBarChart },
   ];
 
   const ADMIN_ITEMS = [

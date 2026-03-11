@@ -18,6 +18,7 @@ const AuditLogs = lazy(() => import("./pages/AuditLogs.js"));
 const Profile = lazy(() => import("./pages/Profile.js"));
 const Gateways = lazy(() => import("./pages/Gateways.js"));
 const Settings = lazy(() => import("./pages/Settings.js"));
+const Reports = lazy(() => import("./pages/Reports.js"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-[60vh]">
@@ -59,6 +60,7 @@ export default function App() {
           <Route path="logs" element={<ProtectedRoute adminOnly><Suspense fallback={<PageLoader />}><AuditLogs /></Suspense></ProtectedRoute>} />
           <Route path="profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
           <Route path="gateways" element={<ProtectedRoute adminOnly><Suspense fallback={<PageLoader />}><Gateways /></Suspense></ProtectedRoute>} />
+          <Route path="reports" element={<Suspense fallback={<PageLoader />}><Reports /></Suspense>} />
           <Route path="settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
         </Route>
       </Routes>

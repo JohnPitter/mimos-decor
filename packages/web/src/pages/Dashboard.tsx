@@ -16,6 +16,9 @@ import {
   ChevronDown,
   CalendarDays,
 } from "lucide-react";
+import { ExportDropdown } from "../components/common/ExportDropdown.js";
+import { exportDashboardXlsx } from "../lib/export-xlsx.js";
+import { exportDashboardPdf } from "../lib/export-pdf.js";
 import {
   BarChart,
   Bar,
@@ -141,6 +144,14 @@ export default function Dashboard() {
             <span className="text-[12px] text-text-muted">
               {t(`months.${selectedMonth}`)} {selectedYear}
             </span>
+          )}
+          {data && (
+            <div className="ml-auto">
+              <ExportDropdown
+                onExcel={() => exportDashboardXlsx(data, getGatewayLabel, { primaryColor: theme.primary, title: t("reports.dashboardReport") })}
+                onPdf={() => exportDashboardPdf(data, getGatewayLabel, { primaryColor: theme.primary, title: t("reports.dashboardReport") })}
+              />
+            </div>
           )}
         </div>
 
