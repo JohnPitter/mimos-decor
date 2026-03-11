@@ -1,20 +1,41 @@
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
+import { Globe } from "lucide-react";
 import { useAuthStore } from "../../stores/auth.store.js";
-import { ROLE_LABELS } from "@mimos/shared";
 
 export function Header({ title }: { title: string }) {
   const user = useAuthStore((s) => s.user);
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+
+  const toggleLanguage = () => {
+    const next = i18n.language === "pt-BR" ? "en" : "pt-BR";
+    i18n.changeLanguage(next);
+    localStorage.setItem("language", next);
+  };
 
   return (
     <header className="h-14 bg-card-bg border-b border-stroke flex items-center justify-between px-6">
       <h1 className="text-[18px] font-bold text-text-dark tracking-tight">{title}</h1>
       <div className="flex items-center gap-3">
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[12px] font-semibold text-text-secondary hover:bg-page-bg transition-colors"
+          title={t("common.language")}
+        >
+          <Globe size={14} />
+          {i18n.language === "pt-BR" ? "PT" : "EN"}
+        </button>
         <div className="text-right">
           <p className="text-[13px] font-semibold text-text-dark">{user?.name}</p>
-          <p className="text-[11px] text-text-muted">{user?.role ? ROLE_LABELS[user.role] : ""}</p>
+          <p className="text-[11px] text-text-muted">{user?.role ? t(`roles.${user.role}`) : ""}</p>
         </div>
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-[13px]">
+        <button
+          onClick={() => navigate("/app/profile")}
+          className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-[13px] hover:brightness-110 transition-all active:scale-95"
+        >
           {user?.name?.charAt(0).toUpperCase()}
-        </div>
+        </button>
       </div>
     </header>
   );

@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Upload, FileText, CheckCircle, AlertCircle } from "lucide-react";
-import { GATEWAY_LABELS } from "@mimos/shared";
 import type { GatewayId } from "@mimos/shared";
 import { useSaleStore } from "../../stores/sale.store.js";
+import { useGatewayStore } from "../../stores/gateway.store.js";
 
 interface Props {
   open: boolean;
@@ -10,10 +11,10 @@ interface Props {
   onImported: () => void;
 }
 
-const GATEWAY_IDS: GatewayId[] = ["SHOPEE_CNPJ", "SHOPEE_CPF", "ML_CLASSICO", "ML_PREMIUM"];
-
 export function ImportCSVDialog({ open, onClose, onImported }: Props) {
+  const { t } = useTranslation();
   const { importCSV } = useSaleStore();
+  const allGateways = useGatewayStore((s) => s.getAllGateways)();
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [gateway, setGateway] = useState<GatewayId>("SHOPEE_CNPJ");
@@ -57,7 +58,7 @@ export function ImportCSVDialog({ open, onClose, onImported }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b border-stroke">
-          <h2 className="text-[18px] font-bold text-text-dark">Importar CSV</h2>
+          <h2 className="text-[18px] font-bold text-text-dark">{t("sales.importCSV")}</h2>
           <button
             onClick={handleClose}
             className="text-text-muted hover:text-text-dark transition-colors"
@@ -70,7 +71,7 @@ export function ImportCSVDialog({ open, onClose, onImported }: Props) {
           {/* File Upload */}
           <div>
             <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
-              Arquivo CSV <span className="text-red-400">*</span>
+              CSV <span className="text-red-400">*</span>
             </label>
             <input
               ref={fileRef}
@@ -95,7 +96,7 @@ export function ImportCSVDialog({ open, onClose, onImported }: Props) {
               ) : (
                 <>
                   <Upload size={20} className="text-text-muted" />
-                  <span>Clique para selecionar o arquivo</span>
+                  <span>{t("common.search")}</span>
                 </>
               )}
             </button>
@@ -112,9 +113,9 @@ export function ImportCSVDialog({ open, onClose, onImported }: Props) {
               required
               className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
             >
-              {GATEWAY_IDS.map((gid) => (
-                <option key={gid} value={gid}>
-                  {GATEWAY_LABELS[gid]}
+              {allGateways.map((gw) => (
+                <option key={gw.id} value={gw.id}>
+                  {gw.label}
                 </option>
               ))}
             </select>
@@ -156,7 +157,7 @@ export function ImportCSVDialog({ open, onClose, onImported }: Props) {
               onClick={handleClose}
               className="flex-1 py-2.5 border border-stroke rounded-lg text-[14px] font-medium text-text-secondary hover:bg-page-bg transition-colors"
             >
-              {result ? "Fechar" : "Cancelar"}
+              {result ? t("common.close") : t("common.cancel")}
             </button>
             {!result && (
               <button
@@ -164,7 +165,7 @@ export function ImportCSVDialog({ open, onClose, onImported }: Props) {
                 disabled={!file || loading}
                 className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-[14px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Importando..." : "Importar"}
+                {loading ? t("common.loading") : t("sales.importCSV")}
               </button>
             )}
           </div>

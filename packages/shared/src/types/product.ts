@@ -29,7 +29,33 @@ export interface CreateProductInput {
 
 export interface UpdateProductInput extends Partial<CreateProductInput> {}
 
-export type GatewayId = "SHOPEE_CNPJ" | "SHOPEE_CPF" | "ML_CLASSICO" | "ML_PREMIUM";
+export type BuiltInGatewayId = "SHOPEE_CNPJ" | "SHOPEE_CPF" | "ML_CLASSICO" | "ML_PREMIUM";
+
+export type GatewayId = string;
+
+export const BUILT_IN_GATEWAYS: BuiltInGatewayId[] = ["SHOPEE_CNPJ", "SHOPEE_CPF", "ML_CLASSICO", "ML_PREMIUM"];
+
+export interface CustomGateway {
+  id: string;
+  slug: string;
+  name: string;
+  color: string;
+  baseGateway: BuiltInGatewayId;
+  createdAt: string;
+}
+
+export interface CreateCustomGatewayInput {
+  slug: string;
+  name: string;
+  color?: string;
+  baseGateway: BuiltInGatewayId;
+}
+
+export interface UpdateCustomGatewayInput {
+  name?: string;
+  color?: string;
+  baseGateway?: BuiltInGatewayId;
+}
 
 export interface ProductWithPricing extends Product {
   prices: Record<GatewayId, {

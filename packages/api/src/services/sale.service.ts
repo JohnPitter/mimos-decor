@@ -1,8 +1,22 @@
 import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
 import { MARKETPLACES, calcProductCost, calcIdealPrice } from "@mimos/shared";
-import type { Prisma, DeliveryStatus, Gateway } from "@prisma/client";
+import type { Marketplace } from "@mimos/shared";
+import type { Prisma, DeliveryStatus } from "@prisma/client";
 import { parse } from "csv-parse/sync";
+
+async function resolveMarketplace(gateway: string): Promise<Marketplace> {
+  const builtin = MARKETPLACES[gateway];
+  if (builtin) return builtin;
+
+  const custom = await prisma.customGateway.findUnique({ where: { slug: gateway } });
+  if (!custom) throw new Error("Gateway inválido");
+
+  const base = MARKETPLACES[custom.baseGateway];
+  if (!base) throw new Error("Gateway base inválido");
+
+  return { ...base, id: custom.slug, name: custom.name, badge: "" };
+}
 
 const SALE_ITEMS_INCLUDE = {
   items: {
@@ -32,7 +46,7 @@ export async function listSales(params: {
   const { status, gateway, startDate, endDate, page = 1, limit = 50 } = params;
   const where: Prisma.SaleWhereInput = {};
   if (status) where.deliveryStatus = status;
-  if (gateway) where.gateway = gateway as Prisma.EnumGatewayFilter;
+  if (gateway) where.gateway = gateway;
   if (startDate || endDate) {
     where.createdAt = {};
     if (startDate) where.createdAt.gte = new Date(startDate);
@@ -83,8 +97,7 @@ export async function createSale(data: {
   customerDocument?: string;
   trackingCode?: string;
 }, userId: string) {
-  const marketplace = MARKETPLACES[data.gateway];
-  if (!marketplace) throw new Error("Gateway invalido");
+  const marketplace = await resolveMarketplace(data.gateway);
   if (!data.items.length) throw new Error("A venda deve ter pelo menos um item");
 
   const productIds = data.items.map((i) => i.productId);
@@ -149,7 +162,7 @@ export async function createSale(data: {
   const [sale] = await prisma.$transaction([
     prisma.sale.create({
       data: {
-        gateway: data.gateway as Gateway,
+        gateway: data.gateway,
         salePrice: totalSalePrice,
         totalCost,
         totalFees,

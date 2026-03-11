@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2, X, Users as UsersIcon } from "lucide-react";
 import { Header } from "../components/layout/Header.js";
 import { useUserStore } from "../stores/user.store.js";
-import { ROLE_LABELS } from "@mimos/shared";
 import type { UserRole } from "@mimos/shared";
 
 interface FormData {
@@ -15,6 +15,7 @@ interface FormData {
 const EMPTY_FORM: FormData = { name: "", email: "", password: "", role: "OPERATOR" };
 
 export default function Users() {
+  const { t } = useTranslation();
   const { users, total, loading, fetchUsers, createUser, updateUser, deleteUser } = useUserStore();
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -57,41 +58,39 @@ export default function Users() {
       }
       setModalOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar");
+      setError(err instanceof Error ? err.message : t("profile.updateError"));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Remover o usuario "${name}"? Esta acao nao pode ser desfeita.`)) return;
+    if (!confirm(t("users.deleteConfirm"))) return;
     try {
       await deleteUser(id);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro ao remover");
+      alert(err instanceof Error ? err.message : t("profile.updateError"));
     }
   };
 
   return (
     <div className="flex-1 flex flex-col">
-      <Header title="Usuarios" />
+      <Header title={t("users.title")} />
 
       <main className="flex-1 p-6 overflow-y-auto animate-fade-in">
-        {/* Top bar */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-[13px] text-text-muted">
-            {total} {total === 1 ? "usuario" : "usuarios"} cadastrado{total !== 1 ? "s" : ""}
+            {total} {t("common.items")}
           </p>
           <button
             onClick={openCreate}
             className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-[14px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] shadow-sm"
           >
             <Plus size={16} />
-            Novo Usuario
+            {t("users.newUser")}
           </button>
         </div>
 
-        {/* Table */}
         {loading && users.length === 0 ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -101,18 +100,18 @@ export default function Users() {
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-text-muted">
             <UsersIcon size={48} className="mb-4 opacity-40" />
-            <p className="text-[15px] font-medium">Nenhum usuario encontrado</p>
+            <p className="text-[15px] font-medium">{t("common.noResults")}</p>
           </div>
         ) : (
           <div className="bg-card-bg rounded-xl border border-stroke overflow-hidden">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-stroke">
-                  <th className="text-left px-5 py-3 text-[12px] font-semibold text-text-muted uppercase tracking-wider">Nome</th>
-                  <th className="text-left px-5 py-3 text-[12px] font-semibold text-text-muted uppercase tracking-wider">Email</th>
-                  <th className="text-left px-5 py-3 text-[12px] font-semibold text-text-muted uppercase tracking-wider">Permissao</th>
-                  <th className="text-left px-5 py-3 text-[12px] font-semibold text-text-muted uppercase tracking-wider">Criado em</th>
-                  <th className="text-right px-5 py-3 text-[12px] font-semibold text-text-muted uppercase tracking-wider">Acoes</th>
+                  <th className="text-left px-5 py-3 text-[12px] font-semibold text-text-muted uppercase tracking-wider">{t("users.name")}</th>
+                  <th className="text-left px-5 py-3 text-[12px] font-semibold text-text-muted uppercase tracking-wider">{t("users.email")}</th>
+                  <th className="text-left px-5 py-3 text-[12px] font-semibold text-text-muted uppercase tracking-wider">{t("users.role")}</th>
+                  <th className="text-left px-5 py-3 text-[12px] font-semibold text-text-muted uppercase tracking-wider">{t("users.createdAt")}</th>
+                  <th className="text-right px-5 py-3 text-[12px] font-semibold text-text-muted uppercase tracking-wider">{t("common.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -135,25 +134,25 @@ export default function Users() {
                             : "bg-neutral-200 text-neutral-600"
                         }`}
                       >
-                        {ROLE_LABELS[user.role]}
+                        {t(`roles.${user.role}`)}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-[13px] text-text-muted">
-                      {new Date(user.createdAt).toLocaleDateString("pt-BR")}
+                      {new Date(user.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(user)}
                           className="p-2 rounded-lg text-text-muted hover:text-primary hover:bg-primary/5 transition-all"
-                          title="Editar"
+                          title={t("common.edit")}
                         >
                           <Pencil size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(user.id, user.name)}
                           className="p-2 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50 transition-all"
-                          title="Remover"
+                          title={t("common.delete")}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -166,7 +165,6 @@ export default function Users() {
           </div>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-6">
             <button
@@ -174,17 +172,15 @@ export default function Users() {
               onClick={() => setPage(page - 1)}
               className="px-3 py-1.5 text-[13px] rounded-lg border border-stroke hover:bg-card-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Anterior
+              {t("common.previous")}
             </button>
-            <span className="text-[13px] text-text-muted px-3">
-              {page} de {totalPages}
-            </span>
+            <span className="text-[13px] text-text-muted px-3">{page} {t("common.of")} {totalPages}</span>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
               className="px-3 py-1.5 text-[13px] rounded-lg border border-stroke hover:bg-card-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Proximo
+              {t("common.next")}
             </button>
           </div>
         )}
@@ -196,20 +192,18 @@ export default function Users() {
           <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-md animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-stroke">
               <h2 className="text-[18px] font-bold text-text-dark">
-                {editingId ? "Editar Usuario" : "Novo Usuario"}
+                {editingId ? t("users.editUser") : t("users.createUser")}
               </h2>
               <button onClick={() => setModalOpen(false)} className="text-text-muted hover:text-text-dark transition-colors">
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {error && (
-                <p className="text-[13px] text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
-              )}
+              {error && <p className="text-[13px] text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
 
               <div>
                 <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
-                  Nome <span className="text-red-400">*</span>
+                  {t("users.name")} <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -222,7 +216,7 @@ export default function Users() {
 
               <div>
                 <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
-                  Email <span className="text-red-400">*</span>
+                  {t("users.email")} <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="email"
@@ -235,29 +229,28 @@ export default function Users() {
 
               <div>
                 <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
-                  Senha {!editingId && <span className="text-red-400">*</span>}
+                  {t("users.password")} {!editingId && <span className="text-red-400">*</span>}
                 </label>
                 <input
                   type="password"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   required={!editingId}
-                  placeholder={editingId ? "Deixe vazio para manter" : ""}
                   className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                 />
               </div>
 
               <div>
                 <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
-                  Permissao <span className="text-red-400">*</span>
+                  {t("users.role")} <span className="text-red-400">*</span>
                 </label>
                 <select
                   value={form.role}
                   onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}
                   className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                 >
-                  <option value="ADMIN">{ROLE_LABELS.ADMIN}</option>
-                  <option value="OPERATOR">{ROLE_LABELS.OPERATOR}</option>
+                  <option value="ADMIN">{t("roles.ADMIN")}</option>
+                  <option value="OPERATOR">{t("roles.OPERATOR")}</option>
                 </select>
               </div>
 
@@ -267,14 +260,14 @@ export default function Users() {
                   onClick={() => setModalOpen(false)}
                   className="flex-1 py-2.5 border border-stroke rounded-lg text-[14px] font-medium text-text-muted hover:bg-page-bg transition-colors"
                 >
-                  Cancelar
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
                   className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-[14px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60"
                 >
-                  {submitting ? "Salvando..." : editingId ? "Salvar" : "Criar"}
+                  {submitting ? t("common.loading") : editingId ? t("common.save") : t("common.create")}
                 </button>
               </div>
             </form>

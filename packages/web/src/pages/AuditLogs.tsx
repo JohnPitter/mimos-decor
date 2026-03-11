@@ -1,21 +1,10 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, ScrollText } from "lucide-react";
 import { Header } from "../components/layout/Header.js";
 import { useAuditStore } from "../stores/audit.store.js";
 import { useUserStore } from "../stores/user.store.js";
 import type { AuditAction, AuditEntity, AuditLog } from "@mimos/shared";
-
-const ACTION_LABELS: Record<AuditAction, string> = {
-  CREATE: "Criou",
-  UPDATE: "Editou",
-  DELETE: "Removeu",
-};
-
-const ENTITY_LABELS: Record<AuditEntity, string> = {
-  PRODUCT: "Produto",
-  SALE: "Venda",
-  USER: "Usuario",
-};
 
 const ACTION_ICONS: Record<AuditAction, typeof Plus> = {
   CREATE: Plus,
@@ -30,6 +19,7 @@ const ACTION_COLORS: Record<AuditAction, string> = {
 };
 
 export default function AuditLogs() {
+  const { t } = useTranslation();
   const { logs, total, loading, fetchLogs } = useAuditStore();
   const { users, fetchUsers } = useUserStore();
   const [page, setPage] = useState(1);
@@ -40,9 +30,7 @@ export default function AuditLogs() {
   const [endDate, setEndDate] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   useEffect(() => {
     fetchLogs({
@@ -58,32 +46,27 @@ export default function AuditLogs() {
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
   const resetFilters = () => {
-    setUserId("");
-    setAction("");
-    setEntity("");
-    setStartDate("");
-    setEndDate("");
-    setPage(1);
+    setUserId(""); setAction(""); setEntity(""); setStartDate(""); setEndDate(""); setPage(1);
   };
 
   const hasFilters = userId || action || entity || startDate || endDate;
 
   return (
     <div className="flex-1 flex flex-col">
-      <Header title="Auditoria" />
+      <Header title={t("auditLogs.title")} />
 
       <main className="flex-1 p-6 overflow-y-auto animate-fade-in">
         {/* Filters */}
         <div className="bg-card-bg rounded-xl border border-stroke p-4 mb-6 animate-fade-in-down">
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-[160px]">
-              <label className="block text-[11px] font-semibold text-text-muted mb-1 uppercase tracking-wider">Usuario</label>
+              <label className="block text-[11px] font-semibold text-text-muted mb-1 uppercase tracking-wider">{t("auditLogs.user")}</label>
               <select
                 value={userId}
                 onChange={(e) => { setUserId(e.target.value); setPage(1); }}
                 className="w-full px-3 py-2 border border-stroke rounded-lg text-[13px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               >
-                <option value="">Todos</option>
+                <option value="">{t("auditLogs.allEntities")}</option>
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>{u.name}</option>
                 ))}
@@ -91,30 +74,30 @@ export default function AuditLogs() {
             </div>
 
             <div className="min-w-[140px]">
-              <label className="block text-[11px] font-semibold text-text-muted mb-1 uppercase tracking-wider">Acao</label>
+              <label className="block text-[11px] font-semibold text-text-muted mb-1 uppercase tracking-wider">{t("auditLogs.action")}</label>
               <select
                 value={action}
                 onChange={(e) => { setAction(e.target.value); setPage(1); }}
                 className="w-full px-3 py-2 border border-stroke rounded-lg text-[13px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               >
-                <option value="">Todas</option>
-                <option value="CREATE">Criar</option>
-                <option value="UPDATE">Editar</option>
-                <option value="DELETE">Remover</option>
+                <option value="">{t("auditLogs.allActions")}</option>
+                <option value="CREATE">{t("auditLogs.actions.CREATE")}</option>
+                <option value="UPDATE">{t("auditLogs.actions.UPDATE")}</option>
+                <option value="DELETE">{t("auditLogs.actions.DELETE")}</option>
               </select>
             </div>
 
             <div className="min-w-[140px]">
-              <label className="block text-[11px] font-semibold text-text-muted mb-1 uppercase tracking-wider">Entidade</label>
+              <label className="block text-[11px] font-semibold text-text-muted mb-1 uppercase tracking-wider">{t("auditLogs.entity")}</label>
               <select
                 value={entity}
                 onChange={(e) => { setEntity(e.target.value); setPage(1); }}
                 className="w-full px-3 py-2 border border-stroke rounded-lg text-[13px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               >
-                <option value="">Todas</option>
-                <option value="PRODUCT">Produto</option>
-                <option value="SALE">Venda</option>
-                <option value="USER">Usuario</option>
+                <option value="">{t("auditLogs.allEntities")}</option>
+                <option value="PRODUCT">{t("auditLogs.entities.PRODUCT")}</option>
+                <option value="SALE">{t("auditLogs.entities.SALE")}</option>
+                <option value="USER">{t("auditLogs.entities.USER")}</option>
               </select>
             </div>
 
@@ -129,7 +112,7 @@ export default function AuditLogs() {
             </div>
 
             <div className="min-w-[140px]">
-              <label className="block text-[11px] font-semibold text-text-muted mb-1 uppercase tracking-wider">Ate</label>
+              <label className="block text-[11px] font-semibold text-text-muted mb-1 uppercase tracking-wider">Até</label>
               <input
                 type="date"
                 value={endDate}
@@ -143,18 +126,16 @@ export default function AuditLogs() {
                 onClick={resetFilters}
                 className="px-3 py-2 text-[13px] text-text-muted hover:text-text-dark border border-stroke rounded-lg hover:bg-page-bg transition-colors"
               >
-                Limpar
+                {t("common.close")}
               </button>
             )}
           </div>
         </div>
 
-        {/* Results info */}
         <p className="text-[13px] text-text-muted mb-4">
-          {total} {total === 1 ? "registro" : "registros"} encontrado{total !== 1 ? "s" : ""}
+          {total} {t("common.items")}
         </p>
 
-        {/* Timeline */}
         {loading && logs.length === 0 ? (
           <div className="space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -164,10 +145,10 @@ export default function AuditLogs() {
         ) : logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-text-muted">
             <ScrollText size={48} className="mb-4 opacity-40" />
-            <p className="text-[15px] font-medium">Nenhum registro encontrado</p>
+            <p className="text-[15px] font-medium">{t("common.noResults")}</p>
             {hasFilters && (
               <button onClick={resetFilters} className="mt-2 text-[13px] text-primary hover:underline">
-                Limpar filtros
+                {t("common.close")}
               </button>
             )}
           </div>
@@ -185,7 +166,6 @@ export default function AuditLogs() {
           </div>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-6">
             <button
@@ -193,17 +173,15 @@ export default function AuditLogs() {
               onClick={() => setPage(page - 1)}
               className="px-3 py-1.5 text-[13px] rounded-lg border border-stroke hover:bg-card-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Anterior
+              {t("common.previous")}
             </button>
-            <span className="text-[13px] text-text-muted px-3">
-              {page} de {totalPages}
-            </span>
+            <span className="text-[13px] text-text-muted px-3">{page} {t("common.of")} {totalPages}</span>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
               className="px-3 py-1.5 text-[13px] rounded-lg border border-stroke hover:bg-card-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Proximo
+              {t("common.next")}
             </button>
           </div>
         )}
@@ -213,6 +191,7 @@ export default function AuditLogs() {
 }
 
 function LogEntry({ log, index, expanded, onToggle }: { log: AuditLog; index: number; expanded: boolean; onToggle: () => void }) {
+  const { t } = useTranslation();
   const Icon = ACTION_ICONS[log.action];
   const colorClass = ACTION_COLORS[log.action];
   const hasDetails = log.oldData || log.newData;
@@ -229,13 +208,13 @@ function LogEntry({ log, index, expanded, onToggle }: { log: AuditLog; index: nu
         <div className="flex-1 min-w-0">
           <p className="text-[14px] text-text-dark">
             <span className="font-semibold">{log.userName}</span>
-            {" "}{ACTION_LABELS[log.action].toLowerCase()}{" "}
-            <span className="font-medium">{ENTITY_LABELS[log.entity]}</span>
+            {" "}{t(`auditLogs.actions.${log.action}`).toLowerCase()}{" "}
+            <span className="font-medium">{t(`auditLogs.entities.${log.entity}`)}</span>
             <span className="text-text-muted"> #{log.entityId.slice(0, 8)}</span>
           </p>
           <p className="text-[12px] text-text-muted mt-0.5">
-            {new Date(log.createdAt).toLocaleDateString("pt-BR")}{" "}
-            {new Date(log.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            {new Date(log.createdAt).toLocaleDateString()}{" "}
+            {new Date(log.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
           </p>
         </div>
         {hasDetails && (
@@ -250,13 +229,13 @@ function LogEntry({ log, index, expanded, onToggle }: { log: AuditLog; index: nu
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {log.oldData && (
               <div>
-                <p className="text-[11px] font-semibold text-red-500 uppercase tracking-wider mb-2">Dados Anteriores</p>
+                <p className="text-[11px] font-semibold text-red-500 uppercase tracking-wider mb-2">Old Data</p>
                 <DataView data={log.oldData} diffWith={log.newData} type="old" />
               </div>
             )}
             {log.newData && (
               <div>
-                <p className="text-[11px] font-semibold text-green-600 uppercase tracking-wider mb-2">Dados Novos</p>
+                <p className="text-[11px] font-semibold text-green-600 uppercase tracking-wider mb-2">New Data</p>
                 <DataView data={log.newData} diffWith={log.oldData} type="new" />
               </div>
             )}
@@ -283,9 +262,7 @@ function DataView({
       {entries.map(([key, value]) => {
         const changed = diffWith ? JSON.stringify(diffWith[key]) !== JSON.stringify(value) : false;
         const highlightClass = changed
-          ? type === "old"
-            ? "bg-red-50 text-red-700"
-            : "bg-green-50 text-green-700"
+          ? type === "old" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
           : "text-text-muted";
 
         return (

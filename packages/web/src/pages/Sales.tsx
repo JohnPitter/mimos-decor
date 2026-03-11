@@ -1,30 +1,17 @@
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Header } from "../components/layout/Header.js";
 import { SaleFormDialog } from "../components/sales/SaleFormDialog.js";
 import { SaleDetailDrawer } from "../components/sales/SaleDetailDrawer.js";
 import { ImportCSVDialog } from "../components/sales/ImportCSVDialog.js";
 import { useSaleStore } from "../stores/sale.store.js";
+import { useGatewayStore } from "../stores/gateway.store.js";
 import {
   formatBRL,
-  GATEWAY_LABELS,
-  DELIVERY_STATUS_LABELS,
   DELIVERY_STATUS_COLORS,
 } from "@mimos/shared";
 import type { Sale, DeliveryStatus } from "@mimos/shared";
 import { Plus, Upload, ShoppingCart } from "lucide-react";
-
-interface StatusTab {
-  label: string;
-  status: DeliveryStatus | null;
-}
-
-const TABS: StatusTab[] = [
-  { label: "Todas", status: null },
-  { label: "Pendentes", status: "PENDING" },
-  { label: "Preparando", status: "PREPARING" },
-  { label: "Em Trânsito", status: "IN_TRANSIT" },
-  { label: "Entregues", status: "DELIVERED" },
-];
 
 const STATUS_BADGE_MAP: Record<string, string> = {
   yellow: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -41,8 +28,23 @@ function getStatusBadgeClass(status: DeliveryStatus): string {
   return STATUS_BADGE_MAP[color] ?? "bg-gray-100 text-gray-800 border-gray-200";
 }
 
+interface StatusTab {
+  labelKey: string;
+  status: DeliveryStatus | null;
+}
+
+const TABS: StatusTab[] = [
+  { labelKey: "all", status: null },
+  { labelKey: "PENDING", status: "PENDING" },
+  { labelKey: "PREPARING", status: "PREPARING" },
+  { labelKey: "IN_TRANSIT", status: "IN_TRANSIT" },
+  { labelKey: "DELIVERED", status: "DELIVERED" },
+];
+
 export default function Sales() {
+  const { t } = useTranslation();
   const { sales, total, loading, fetchSales, createSale } = useSaleStore();
+  const getGatewayLabel = useGatewayStore((s) => s.getGatewayLabel);
   const [activeTab, setActiveTab] = useState<DeliveryStatus | null>(null);
   const [page, setPage] = useState(1);
   const [saleDialogOpen, setSaleDialogOpen] = useState(false);
@@ -57,10 +59,7 @@ export default function Sales() {
   }, [fetchSales, activeTab, page]);
 
   useEffect(() => { setPage(1); }, [activeTab]);
-
-  useEffect(() => {
-    loadSales();
-  }, [loadSales]);
+  useEffect(() => { loadSales(); }, [loadSales]);
 
   const handleCreateSale = async (data: Parameters<typeof createSale>[0]) => {
     await createSale(data);
@@ -73,25 +72,16 @@ export default function Sales() {
     setDrawerOpen(true);
   };
 
-  const handleStatusUpdated = () => {
-    loadSales();
-  };
-
-  const handleImported = () => {
-    loadSales();
-  };
-
   return (
     <div>
-      <Header title="Vendas" />
+      <Header title={t("sales.title")} />
       <div className="p-6 animate-fade-in">
         {/* Actions bar */}
         <div className="flex items-center justify-between mb-6 animate-fade-in-down">
-          {/* Tabs */}
           <div className="flex items-center gap-1 bg-page-bg border border-stroke rounded-lg p-1">
             {TABS.map((tab) => (
               <button
-                key={tab.label}
+                key={tab.labelKey}
                 onClick={() => setActiveTab(tab.status)}
                 className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all duration-200 ${
                   activeTab === tab.status
@@ -99,24 +89,23 @@ export default function Sales() {
                     : "text-text-secondary hover:text-text-dark hover:bg-card-bg"
                 }`}
               >
-                {tab.label}
+                {tab.labelKey === "all" ? t("common.total") : t(`deliveryStatus.${tab.labelKey}`)}
               </button>
             ))}
           </div>
 
-          {/* Buttons */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setImportDialogOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 border border-stroke rounded-lg text-[14px] font-medium text-text-secondary hover:bg-page-bg transition-colors hover:scale-[1.02] active:scale-[0.98]"
             >
-              <Upload size={16} /> Importar CSV
+              <Upload size={16} /> {t("sales.importCSV")}
             </button>
             <button
               onClick={() => setSaleDialogOpen(true)}
               className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-lg font-semibold text-[14px] transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              <Plus size={16} /> Nova Venda
+              <Plus size={16} /> {t("sales.newSale")}
             </button>
           </div>
         </div>
@@ -127,27 +116,13 @@ export default function Sales() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-stroke bg-page-bg">
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                    Produto
-                  </th>
-                  <th className="text-center px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                    Qtd
-                  </th>
-                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                    Gateway
-                  </th>
-                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                    Valor
-                  </th>
-                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                    Lucro
-                  </th>
-                  <th className="text-center px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                    Data
-                  </th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.product")}</th>
+                  <th className="text-center px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.quantity")}</th>
+                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.gateway")}</th>
+                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.salePrice")}</th>
+                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.profit")}</th>
+                  <th className="text-center px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.status")}</th>
+                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.date")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -155,22 +130,15 @@ export default function Sales() {
                   Array.from({ length: 8 }).map((_, i) => (
                     <tr key={i} className="border-b border-stroke/50">
                       {Array.from({ length: 7 }).map((_, j) => (
-                        <td key={j} className="px-4 py-3">
-                          <div className="h-4 bg-page-bg rounded animate-pulse" />
-                        </td>
+                        <td key={j} className="px-4 py-3"><div className="h-4 bg-page-bg rounded animate-pulse" /></td>
                       ))}
                     </tr>
                   ))
                 ) : sales.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="text-center py-16">
-                      <ShoppingCart
-                        size={48}
-                        className="mx-auto text-text-muted/40 mb-3"
-                      />
-                      <p className="text-text-muted text-[14px]">
-                        Nenhuma venda encontrada
-                      </p>
+                      <ShoppingCart size={48} className="mx-auto text-text-muted/40 mb-3" />
+                      <p className="text-text-muted text-[14px]">{t("common.noResults")}</p>
                     </td>
                   </tr>
                 ) : (
@@ -184,45 +152,32 @@ export default function Sales() {
                       <td className="px-4 py-3">
                         <p className="text-[14px] font-semibold text-text-dark">
                           {sale.items.length > 0
-                            ? sale.items[0].productName +
-                              (sale.items.length > 1
-                                ? ` +${sale.items.length - 1}`
-                                : "")
+                            ? sale.items[0].productName + (sale.items.length > 1 ? ` +${sale.items.length - 1}` : "")
                             : "—"}
                         </p>
-                        {sale.customerName && (
-                          <p className="text-[11px] text-text-muted">
-                            {sale.customerName}
-                          </p>
-                        )}
+                        {sale.customerName && <p className="text-[11px] text-text-muted">{sale.customerName}</p>}
                       </td>
                       <td className="text-center px-3 py-3 text-[13px] font-semibold text-text-dark">
                         {sale.items.reduce((sum, i) => sum + i.quantity, 0)}
                       </td>
                       <td className="px-3 py-3">
-                        <span className="text-[12px] font-semibold text-text-secondary">
-                          {GATEWAY_LABELS[sale.gateway]}
-                        </span>
+                        <span className="text-[12px] font-semibold text-text-secondary">{getGatewayLabel(sale.gateway)}</span>
                       </td>
                       <td className="text-right px-3 py-3 text-[13px] font-semibold text-text-dark">
                         {formatBRL(sale.salePrice)}
                       </td>
                       <td className="text-right px-3 py-3">
-                        <span
-                          className={`text-[13px] font-bold ${sale.profit >= 0 ? "text-green-600" : "text-red-500"}`}
-                        >
+                        <span className={`text-[13px] font-bold ${sale.profit >= 0 ? "text-green-600" : "text-red-500"}`}>
                           {formatBRL(sale.profit)}
                         </span>
                       </td>
                       <td className="text-center px-3 py-3">
-                        <span
-                          className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadgeClass(sale.deliveryStatus)}`}
-                        >
-                          {DELIVERY_STATUS_LABELS[sale.deliveryStatus]}
+                        <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadgeClass(sale.deliveryStatus)}`}>
+                          {t(`deliveryStatus.${sale.deliveryStatus}`)}
                         </span>
                       </td>
                       <td className="text-right px-3 py-3 text-[12px] text-text-muted">
-                        {new Date(sale.createdAt).toLocaleDateString("pt-BR")}
+                        {new Date(sale.createdAt).toLocaleDateString()}
                       </td>
                     </tr>
                   ))
@@ -231,11 +186,10 @@ export default function Sales() {
             </table>
           </div>
 
-          {/* Footer with total count */}
           {!loading && sales.length > 0 && (
             <div className="px-4 py-3 border-t border-stroke bg-page-bg/50">
               <p className="text-[12px] text-text-muted">
-                Mostrando {sales.length} de {total} venda{total !== 1 ? "s" : ""}
+                {sales.length} {t("common.of")} {total} {t("common.items")}
               </p>
             </div>
           )}
@@ -248,42 +202,23 @@ export default function Sales() {
               onClick={() => setPage(page - 1)}
               className="px-3 py-1.5 text-xs rounded-lg border border-stroke hover:bg-neutral-bg2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Anterior
+              {t("common.previous")}
             </button>
-            <span className="text-xs text-text-muted">{page} de {totalPages}</span>
+            <span className="text-xs text-text-muted">{page} {t("common.of")} {totalPages}</span>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
               className="px-3 py-1.5 text-xs rounded-lg border border-stroke hover:bg-neutral-bg2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Próximo
+              {t("common.next")}
             </button>
           </div>
         )}
       </div>
 
-      {/* Dialogs */}
-      <SaleFormDialog
-        open={saleDialogOpen}
-        onClose={() => setSaleDialogOpen(false)}
-        onSubmit={handleCreateSale}
-      />
-
-      <ImportCSVDialog
-        open={importDialogOpen}
-        onClose={() => setImportDialogOpen(false)}
-        onImported={handleImported}
-      />
-
-      <SaleDetailDrawer
-        sale={selectedSale}
-        open={drawerOpen}
-        onClose={() => {
-          setDrawerOpen(false);
-          setSelectedSale(null);
-        }}
-        onStatusUpdated={handleStatusUpdated}
-      />
+      <SaleFormDialog open={saleDialogOpen} onClose={() => setSaleDialogOpen(false)} onSubmit={handleCreateSale} />
+      <ImportCSVDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} onImported={() => loadSales()} />
+      <SaleDetailDrawer sale={selectedSale} open={drawerOpen} onClose={() => { setDrawerOpen(false); setSelectedSale(null); }} onStatusUpdated={() => loadSales()} />
     </div>
   );
 }

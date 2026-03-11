@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { X, ChevronDown, Clock, ArrowRight } from "lucide-react";
 import {
   formatBRL,
-  GATEWAY_LABELS,
-  DELIVERY_STATUS_LABELS,
   DELIVERY_STATUS_COLORS,
 } from "@mimos/shared";
 import type { Sale, DeliveryStatus, DeliveryStatusHistoryEntry } from "@mimos/shared";
 import { useSaleStore } from "../../stores/sale.store.js";
+import { useGatewayStore } from "../../stores/gateway.store.js";
 
 interface Props {
   sale: Sale | null;
@@ -56,7 +56,9 @@ function getTimelineDotClass(status: DeliveryStatus): string {
 }
 
 export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props) {
+  const { t } = useTranslation();
   const { updateSaleStatus, getSaleDetail } = useSaleStore();
+  const getGatewayLabel = useGatewayStore((s) => s.getGatewayLabel);
   const [statusHistory, setStatusHistory] = useState<DeliveryStatusHistoryEntry[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -104,7 +106,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
       <div className="fixed right-0 top-0 h-screen w-[480px] z-50 bg-card-bg border-l border-stroke shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-stroke sticky top-0 bg-card-bg z-10">
-          <h2 className="text-[18px] font-bold text-text-dark">Detalhes da Venda</h2>
+          <h2 className="text-[18px] font-bold text-text-dark">{t("sales.saleDetails")}</h2>
           <button
             onClick={onClose}
             className="text-text-muted hover:text-text-dark transition-colors"
@@ -119,23 +121,23 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">
-                  Gateway
+                  {t("sales.gateway")}
                 </p>
                 <p className="text-[16px] font-bold text-text-dark">
-                  {GATEWAY_LABELS[sale.gateway]}
+                  {getGatewayLabel(sale.gateway)}
                 </p>
               </div>
               <span
                 className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadgeClass(sale.deliveryStatus)}`}
               >
-                {DELIVERY_STATUS_LABELS[sale.deliveryStatus]}
+                {t(`deliveryStatus.${sale.deliveryStatus}`)}
               </span>
             </div>
 
             {/* Items list */}
             <div>
               <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">
-                Itens ({sale.items.length})
+                {t("sales.items")} ({sale.items.length})
               </p>
               <div className="space-y-2">
                 {sale.items.map((item) => (
@@ -170,7 +172,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
             <div className="grid grid-cols-2 gap-4 pt-3 border-t border-stroke/50">
               <div>
                 <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                  Valor de Venda
+                  {t("sales.salePrice")}
                 </p>
                 <p className="text-[15px] font-bold text-text-dark">
                   {formatBRL(sale.salePrice)}
@@ -178,7 +180,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
               </div>
               <div>
                 <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                  Lucro
+                  {t("sales.profit")}
                 </p>
                 <p
                   className={`text-[15px] font-bold ${sale.profit >= 0 ? "text-green-600" : "text-red-500"}`}
@@ -188,7 +190,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
               </div>
               <div>
                 <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                  Taxas Totais
+                  {t("sales.totalFees")}
                 </p>
                 <p className="text-[13px] font-medium text-text-secondary">
                   {formatBRL(sale.totalFees)}
@@ -196,7 +198,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
               </div>
               <div>
                 <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                  Receita Líquida
+                  {t("sales.netRevenue")}
                 </p>
                 <p className="text-[13px] font-medium text-text-secondary">
                   {formatBRL(sale.netRevenue)}
@@ -204,7 +206,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
               </div>
               <div>
                 <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                  Custo Total
+                  {t("sales.totalCost")}
                 </p>
                 <p className="text-[13px] font-medium text-text-secondary">
                   {formatBRL(sale.totalCost)}
@@ -212,10 +214,10 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
               </div>
               <div>
                 <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                  Data
+                  {t("sales.date")}
                 </p>
                 <p className="text-[13px] font-medium text-text-secondary">
-                  {new Date(sale.createdAt).toLocaleDateString("pt-BR")}
+                  {new Date(sale.createdAt).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -225,7 +227,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                 {sale.customerName && (
                   <div className="mb-2">
                     <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                      Cliente
+                      {t("sales.customer")}
                     </p>
                     <p className="text-[13px] font-medium text-text-dark">
                       {sale.customerName}
@@ -235,7 +237,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                 {sale.customerDocument && (
                   <div>
                     <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                      CPF/CNPJ
+                      {t("sales.customerDocument")}
                     </p>
                     <p className="text-[13px] font-medium text-text-dark">
                       {sale.customerDocument}
@@ -249,7 +251,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
           {/* Status Update */}
           <div>
             <p className="text-[12px] font-semibold text-text-secondary mb-2 uppercase tracking-wider">
-              Atualizar Status
+              {t("sales.updateStatus")}
             </p>
             <div className="relative">
               <button
@@ -257,7 +259,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                 disabled={updatingStatus}
                 className="w-full flex items-center justify-between px-4 py-2.5 border border-stroke rounded-lg text-[14px] font-medium text-text-dark bg-card-bg hover:bg-page-bg transition-colors disabled:opacity-50"
               >
-                <span>{DELIVERY_STATUS_LABELS[sale.deliveryStatus]}</span>
+                <span>{t(`deliveryStatus.${sale.deliveryStatus}`)}</span>
                 <ChevronDown size={16} className={`text-text-muted transition-transform ${showStatusDropdown ? "rotate-180" : ""}`} />
               </button>
               {showStatusDropdown && (
@@ -271,7 +273,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                       <span
                         className={`w-2 h-2 rounded-full ${getTimelineDotClass(status)}`}
                       />
-                      {DELIVERY_STATUS_LABELS[status]}
+                      {t(`deliveryStatus.${status}`)}
                     </button>
                   ))}
                 </div>
@@ -282,7 +284,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
           {/* Delivery Timeline */}
           <div>
             <p className="text-[12px] font-semibold text-text-secondary mb-3 uppercase tracking-wider">
-              Histórico de Status
+              {t("sales.statusHistory")}
             </p>
             {loadingHistory ? (
               <div className="space-y-3">
@@ -292,7 +294,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
               </div>
             ) : statusHistory.length === 0 ? (
               <p className="text-[13px] text-text-muted text-center py-6">
-                Nenhuma alteração de status registrada
+                {t("sales.noStatusHistory")}
               </p>
             ) : (
               <div className="relative pl-6">
@@ -311,22 +313,22 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                           <span
                             className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getStatusBadgeClass(entry.fromStatus)}`}
                           >
-                            {DELIVERY_STATUS_LABELS[entry.fromStatus]}
+                            {t(`deliveryStatus.${entry.fromStatus}`)}
                           </span>
                           <ArrowRight size={12} className="text-text-muted" />
                           <span
                             className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold border ${getStatusBadgeClass(entry.toStatus)}`}
                           >
-                            {DELIVERY_STATUS_LABELS[entry.toStatus]}
+                            {t(`deliveryStatus.${entry.toStatus}`)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-1.5 text-[11px] text-text-muted">
                           <Clock size={11} />
                           <span>
-                            {new Date(entry.changedAt).toLocaleString("pt-BR")}
+                            {new Date(entry.changedAt).toLocaleString()}
                           </span>
                           <span className="text-text-secondary font-medium">
-                            por {entry.changedByName}
+                            {t("sales.by")} {entry.changedByName}
                           </span>
                         </div>
                       </div>

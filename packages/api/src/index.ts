@@ -10,6 +10,7 @@ import { saleRouter } from "./routes/sales.js";
 import { dashboardRouter } from "./routes/dashboard.js";
 import { userRouter } from "./routes/users.js";
 import { auditLogRouter } from "./routes/audit-logs.js";
+import { gatewayRouter } from "./routes/gateways.js";
 import { logger } from "./lib/logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -41,6 +42,7 @@ app.use("/api/sales", saleRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/users", userRouter);
 app.use("/api/audit-logs", auditLogRouter);
+app.use("/api/gateways", gatewayRouter);
 
 // In production, serve the frontend build
 if (isProduction) {

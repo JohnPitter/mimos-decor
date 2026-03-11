@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { X, Plus, Trash2, ShoppingBag } from "lucide-react";
 import {
-  GATEWAY_LABELS,
   MARKETPLACES,
   calcIdealPrice,
   formatBRL,
 } from "@mimos/shared";
 import type { Product, GatewayId, ProductCosts } from "@mimos/shared";
 import { api } from "../../lib/api.js";
+import { useGatewayStore } from "../../stores/gateway.store.js";
 
 interface ItemRow {
   key: number;
@@ -26,8 +27,6 @@ interface Props {
   }) => void;
 }
 
-const GATEWAY_IDS: GatewayId[] = ["SHOPEE_CNPJ", "SHOPEE_CPF", "ML_CLASSICO", "ML_PREMIUM"];
-
 let nextKey = 0;
 
 function buildCosts(product: Product): ProductCosts {
@@ -42,6 +41,9 @@ function buildCosts(product: Product): ProductCosts {
 }
 
 export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const allGateways = useGatewayStore((s) => s.getAllGateways)();
+  const getMarketplace = useGatewayStore((s) => s.getMarketplace);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [gateway, setGateway] = useState<GatewayId>("SHOPEE_CNPJ");
@@ -72,9 +74,10 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
     return map;
   }, [products]);
 
-  const marketplace = MARKETPLACES[gateway];
+  const marketplace = getMarketplace(gateway) ?? MARKETPLACES[gateway];
 
   const itemPricing = useMemo(() => {
+    if (!marketplace) return items.map(() => ({ unitPrice: 0, subtotal: 0, profit: 0 }));
     return items.map((item) => {
       const product = productMap.get(item.productId);
       if (!product || item.quantity <= 0) {
@@ -142,7 +145,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b border-stroke">
-          <h2 className="text-[18px] font-bold text-text-dark">Nova Venda</h2>
+          <h2 className="text-[18px] font-bold text-text-dark">{t("sales.newSale")}</h2>
           <button
             onClick={onClose}
             className="text-text-muted hover:text-text-dark transition-colors"
@@ -155,7 +158,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
           {/* Gateway */}
           <div>
             <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
-              Gateway <span className="text-red-400">*</span>
+              {t("sales.gateway")} <span className="text-red-400">*</span>
             </label>
             <select
               value={gateway}
@@ -163,9 +166,9 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               required
               className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
             >
-              {GATEWAY_IDS.map((gid) => (
-                <option key={gid} value={gid}>
-                  {GATEWAY_LABELS[gid]}
+              {allGateways.map((gw) => (
+                <option key={gw.id} value={gw.id}>
+                  {gw.label}
                 </option>
               ))}
             </select>
@@ -174,7 +177,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
           {/* Items */}
           <div>
             <label className="block text-[12px] font-semibold text-text-secondary mb-2 uppercase tracking-wider">
-              Itens <span className="text-red-400">*</span>
+              {t("sales.items")} <span className="text-red-400">*</span>
             </label>
 
             {loadingProducts ? (
@@ -200,7 +203,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
                           onChange={(e) => updateItem(item.key, { productId: e.target.value })}
                           className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                         >
-                          <option value="">Selecione um produto</option>
+                          <option value="">{t("sales.selectProduct")}</option>
                           {products.map((p) => (
                             <option
                               key={p.id}
@@ -262,7 +265,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               className="mt-2 flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium text-primary hover:text-primary-hover transition-colors hover:bg-primary/5 rounded-lg"
             >
               <Plus size={14} />
-              Adicionar Item
+              {t("sales.addItem")}
             </button>
           </div>
 
@@ -272,18 +275,18 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               <div className="flex items-center gap-2 text-text-secondary">
                 <ShoppingBag size={18} />
                 <span className="text-[13px] font-medium">
-                  {validItems.length} {validItems.length === 1 ? "item" : "itens"}
+                  {validItems.length} {t("common.items")}
                 </span>
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <p className="text-[11px] text-text-muted uppercase tracking-wider">Total</p>
+                  <p className="text-[11px] text-text-muted uppercase tracking-wider">{t("common.total")}</p>
                   <p className="text-[16px] font-bold text-text-dark">
                     {formatBRL(totals.totalPrice)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[11px] text-text-muted uppercase tracking-wider">Lucro Est.</p>
+                  <p className="text-[11px] text-text-muted uppercase tracking-wider">{t("sales.profit")}</p>
                   <p
                     className={`text-[16px] font-bold ${totals.totalProfit >= 0 ? "text-green-600" : "text-red-500"}`}
                   >
@@ -298,7 +301,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
-                Nome do Cliente
+                {t("sales.customerName")}
               </label>
               <input
                 type="text"
@@ -310,7 +313,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
             </div>
             <div>
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
-                CPF/CNPJ do Cliente
+                {t("sales.customerDocument")}
               </label>
               <input
                 type="text"
@@ -329,14 +332,14 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               onClick={onClose}
               className="flex-1 py-2.5 border border-stroke rounded-lg text-[14px] font-medium text-text-secondary hover:bg-page-bg transition-colors"
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
             <button
               type="submit"
               disabled={!canSubmit}
               className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-[14px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Criar Venda
+              {t("sales.newSale")}
             </button>
           </div>
         </form>

@@ -85,6 +85,13 @@ export interface DeliveryStatusHistoryEntry {
   changedAt: string;
 }
 
+export interface LowStockProduct {
+  id: string;
+  name: string;
+  quantity: number;
+  supplier: string | null;
+}
+
 export interface SaleDashboard {
   totalSalesToday: number;
   totalSalesMonth: number;
@@ -94,4 +101,5 @@ export interface SaleDashboard {
   salesByGateway: { gateway: GatewayId; count: number; revenue: number }[];
   salesByDay: { date: string; count: number; revenue: number }[];
   topProducts: { productName: string; count: number; revenue: number }[];
+  lowStockProducts: LowStockProduct[];
 }

@@ -12,11 +12,15 @@ enum UserRole {
   OPERATOR
 }
 
-enum Gateway {
-  SHOPEE_CNPJ
-  SHOPEE_CPF
-  ML_CLASSICO
-  ML_PREMIUM
+model CustomGateway {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  color       String   @default("#6B5E5E")
+  baseGateway String   @map("base_gateway")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("custom_gateways")
 }
 
 enum DeliveryStatus {
@@ -78,7 +82,7 @@ model Product {
 
 model Sale {
   id               String         @id @default(cuid())
-  gateway          Gateway
+  gateway          String
   salePrice        Float          @map("sale_price")
   totalCost        Float          @map("total_cost")
   totalFees        Float          @map("total_fees")

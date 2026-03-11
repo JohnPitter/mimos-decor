@@ -42,3 +42,53 @@ authRouter.post("/logout", (_req, res) => {
 authRouter.get("/me", authMiddleware, (req, res) => {
   res.json({ user: req.user });
 });
+
+authRouter.put("/profile", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const { name, email, currentPassword, newPassword } = req.body;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(404).json({ error: "Usuário não encontrado" });
+      return;
+    }
+
+    if (newPassword) {
+      if (!currentPassword) {
+        res.status(400).json({ error: "Senha atual é obrigatória para alterar a senha" });
+        return;
+      }
+      const validPassword = await bcrypt.compare(currentPassword, user.password);
+      if (!validPassword) {
+        res.status(400).json({ error: "Senha atual incorreta" });
+        return;
+      }
+    }
+
+    if (email && email !== user.email) {
+      const exists = await prisma.user.findUnique({ where: { email } });
+      if (exists) {
+        res.status(400).json({ error: "Email já está em uso" });
+        return;
+      }
+    }
+
+    const updateData: Record<string, unknown> = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (newPassword) updateData.password = await bcrypt.hash(newPassword, 10);
+
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: { id: true, name: true, email: true, role: true, createdAt: true, updatedAt: true },
+    });
+
+    logger.info(`User ${updated.email} updated profile`, "auth");
+    res.json({ user: updated });
+  } catch (err) {
+    logger.error("Profile update error", "auth", { error: String(err) });
+    res.status(500).json({ error: "Erro interno" });
+  }
+});

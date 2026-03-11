@@ -23,6 +23,13 @@ export interface UpdateUserInput {
   role?: UserRole;
 }
 
+export interface UpdateProfileInput {
+  name?: string;
+  email?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}
+
 export interface LoginInput {
   email: string;
   password: string;

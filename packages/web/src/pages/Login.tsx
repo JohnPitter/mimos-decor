@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../stores/auth.store.js";
 import { Eye, EyeOff } from "lucide-react";
 
 export function Login() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +22,7 @@ export function Login() {
       await login(email, password);
       navigate("/app/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao fazer login");
+      setError(err instanceof Error ? err.message : t("auth.invalidCredentials"));
     } finally {
       setLoading(false);
     }
@@ -33,8 +35,8 @@ export function Login() {
           <Link to="/">
             <img src="/logo.png" alt="Mimos Decor" className="w-20 h-20 mx-auto mb-4 drop-shadow-md" />
           </Link>
-          <h1 className="text-[24px] font-extrabold text-text-dark tracking-tight">Bem-vindo de volta</h1>
-          <p className="text-[14px] text-text-secondary mt-1">Acesse o sistema de gestao</p>
+          <h1 className="text-[24px] font-extrabold text-text-dark tracking-tight">{t("auth.loginTitle")}</h1>
+          <p className="text-[14px] text-text-secondary mt-1">{t("auth.loginSubtitle")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-card-bg border border-stroke rounded-2xl p-8 shadow-xl shadow-rosa/10 animate-scale-in">
@@ -46,7 +48,7 @@ export function Login() {
 
           <div className="space-y-5">
             <div>
-              <label className="block text-[12px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">Email</label>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">{t("auth.email")}</label>
               <input
                 type="email"
                 value={email}
@@ -58,14 +60,13 @@ export function Login() {
             </div>
 
             <div>
-              <label className="block text-[12px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">Senha</label>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">{t("auth.password")}</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 border border-stroke rounded-xl text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all pr-12"
-                  placeholder="Sua senha"
                   required
                 />
                 <button
@@ -84,7 +85,7 @@ export function Login() {
             disabled={loading}
             className="w-full mt-6 bg-primary hover:bg-primary-hover text-white py-3 rounded-xl font-bold text-[15px] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
           >
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? t("common.loading") : t("auth.loginButton")}
           </button>
         </form>
       </div>

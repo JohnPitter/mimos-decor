@@ -29,4 +29,5 @@ export const API_ROUTES = {
   DASHBOARD: "/api/dashboard",
   USERS: "/api/users",
   AUDIT_LOGS: "/api/audit-logs",
+  GATEWAYS: "/api/gateways",
 } as const;
