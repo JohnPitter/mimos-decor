@@ -1,8 +1,25 @@
 import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
-import { MARKETPLACES, calcProductCost } from "@mimos/shared";
-import type { Prisma, DeliveryStatus } from "@prisma/client";
+import { MARKETPLACES, calcProductCost, calcIdealPrice } from "@mimos/shared";
+import type { Prisma, DeliveryStatus, Gateway } from "@prisma/client";
 import { parse } from "csv-parse/sync";
+
+const SALE_ITEMS_INCLUDE = {
+  items: {
+    include: { product: { select: { name: true } } },
+  },
+} as const;
+
+function mapSaleItems(sale: { items: { product: { name: string }; [k: string]: unknown }[]; [k: string]: unknown }) {
+  return {
+    ...sale,
+    items: sale.items.map((item) => ({
+      ...item,
+      productName: item.product.name,
+      product: undefined,
+    })),
+  };
+}
 
 export async function listSales(params: {
   status?: DeliveryStatus;
@@ -25,7 +42,7 @@ export async function listSales(params: {
   const [sales, total] = await Promise.all([
     prisma.sale.findMany({
       where,
-      include: { product: { select: { name: true } } },
+      include: SALE_ITEMS_INCLUDE,
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { createdAt: "desc" },
@@ -33,7 +50,7 @@ export async function listSales(params: {
     prisma.sale.count({ where }),
   ]);
 
-  const mapped = sales.map((s) => ({ ...s, productName: s.product.name, product: undefined }));
+  const mapped = sales.map(mapSaleItems);
   return { sales: mapped, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
@@ -41,7 +58,7 @@ export async function getSale(id: string) {
   const sale = await prisma.sale.findUnique({
     where: { id },
     include: {
-      product: { select: { name: true } },
+      ...SALE_ITEMS_INCLUDE,
       statusHistory: {
         include: { changedBy: { select: { name: true } } },
         orderBy: { changedAt: "desc" },
@@ -50,68 +67,104 @@ export async function getSale(id: string) {
   });
   if (!sale) return null;
   return {
-    ...sale,
-    productName: sale.product.name,
+    ...mapSaleItems(sale),
     statusHistory: sale.statusHistory.map((h) => ({
       ...h,
       changedByName: h.changedBy.name,
       changedBy: undefined,
     })),
-    product: undefined,
   };
 }
 
 export async function createSale(data: {
-  productId: string;
-  quantity: number;
   gateway: string;
-  salePrice: number;
+  items: { productId: string; quantity: number }[];
   customerName?: string;
   customerDocument?: string;
   trackingCode?: string;
 }, userId: string) {
-  const product = await prisma.product.findUnique({ where: { id: data.productId } });
-  if (!product) throw new Error("Produto não encontrado");
-  if (product.quantity < data.quantity) throw new Error("Estoque insuficiente");
-
   const marketplace = MARKETPLACES[data.gateway];
-  if (!marketplace) throw new Error("Gateway inválido");
+  if (!marketplace) throw new Error("Gateway invalido");
+  if (!data.items.length) throw new Error("A venda deve ter pelo menos um item");
 
-  const costs = {
-    productCost: product.unitPrice,
-    packaging: product.packagingCost,
-    labor: product.laborCost,
-    shipping: product.shippingCost,
-    otherCosts: product.otherCosts,
-    taxRate: product.taxRate,
-  };
-  const { total: unitCost } = calcProductCost(costs);
-  const fees = marketplace.calculate(data.salePrice);
-  const totalFeesFinal = fees.totalFees * data.quantity;
-  const netRevenue = data.salePrice * data.quantity - totalFeesFinal;
-  const profit = netRevenue - unitCost * data.quantity;
+  const productIds = data.items.map((i) => i.productId);
+  const products = await prisma.product.findMany({ where: { id: { in: productIds } } });
+  const productMap = new Map(products.map((p) => [p.id, p]));
+
+  const saleItems: {
+    productId: string;
+    quantity: number;
+    salePrice: number;
+    unitCost: number;
+    totalFees: number;
+    profit: number;
+  }[] = [];
+
+  for (const item of data.items) {
+    const product = productMap.get(item.productId);
+    if (!product) throw new Error(`Produto ${item.productId} nao encontrado`);
+    if (product.quantity < item.quantity) {
+      throw new Error(`Estoque insuficiente para "${product.name}" (disponivel: ${product.quantity}, solicitado: ${item.quantity})`);
+    }
+
+    const costs = {
+      productCost: product.unitPrice,
+      packaging: product.packagingCost,
+      labor: product.laborCost,
+      shipping: product.shippingCost,
+      otherCosts: product.otherCosts,
+      taxRate: product.taxRate,
+    };
+
+    const pricing = calcIdealPrice(costs, product.desiredMargin, marketplace);
+    const fees = marketplace.calculate(pricing.salePrice);
+    const { total: unitCost } = calcProductCost(costs);
+    const itemTotalFees = fees.totalFees * item.quantity;
+    const itemNetRevenue = pricing.salePrice * item.quantity - itemTotalFees;
+    const itemProfit = itemNetRevenue - unitCost * item.quantity;
+
+    saleItems.push({
+      productId: item.productId,
+      quantity: item.quantity,
+      salePrice: pricing.salePrice,
+      unitCost,
+      totalFees: itemTotalFees,
+      profit: itemProfit,
+    });
+  }
+
+  const totalSalePrice = saleItems.reduce((sum, i) => sum + i.salePrice * i.quantity, 0);
+  const totalCost = saleItems.reduce((sum, i) => sum + i.unitCost * i.quantity, 0);
+  const totalFees = saleItems.reduce((sum, i) => sum + i.totalFees, 0);
+  const netRevenue = totalSalePrice - totalFees;
+  const profit = saleItems.reduce((sum, i) => sum + i.profit, 0);
+
+  const stockDecrements = data.items.map((item) =>
+    prisma.product.update({
+      where: { id: item.productId },
+      data: { quantity: { decrement: item.quantity } },
+    }),
+  );
 
   const [sale] = await prisma.$transaction([
     prisma.sale.create({
       data: {
-        productId: data.productId,
-        quantity: data.quantity,
-        gateway: data.gateway as any,
-        salePrice: data.salePrice,
-        unitCost,
-        totalFees: totalFeesFinal,
+        gateway: data.gateway as Gateway,
+        salePrice: totalSalePrice,
+        totalCost,
+        totalFees,
         netRevenue,
         profit,
         customerName: data.customerName,
         customerDocument: data.customerDocument,
         trackingCode: data.trackingCode,
         createdById: userId,
+        items: {
+          create: saleItems,
+        },
       },
     }),
-    prisma.product.update({
-      where: { id: data.productId },
-      data: { quantity: { decrement: data.quantity } },
-    }),
+    ...stockDecrements,
   ]);
 
   await createAuditLog({ userId, action: "CREATE", entity: "SALE", entityId: sale.id, newData: sale as unknown as Record<string, unknown> });
@@ -141,20 +194,19 @@ export async function importSalesFromCSV(csvBuffer: Buffer, gateway: string, use
     try {
       const productName = record["produto"] || record["product"] || record["nome"];
       const quantity = Number(record["quantidade"] || record["qty"] || "1");
-      const salePrice = Number((record["valor"] || record["price"] || "0").replace(",", "."));
 
-      if (!productName || !salePrice) {
+      if (!productName) {
         results.errors.push(`Linha ${i + 2}: dados incompletos`);
         continue;
       }
 
       const product = await prisma.product.findFirst({ where: { name: { contains: productName, mode: "insensitive" } } });
       if (!product) {
-        results.errors.push(`Linha ${i + 2}: produto "${productName}" não encontrado`);
+        results.errors.push(`Linha ${i + 2}: produto "${productName}" nao encontrado`);
         continue;
       }
 
-      await createSale({ productId: product.id, quantity, gateway, salePrice }, userId);
+      await createSale({ gateway, items: [{ productId: product.id, quantity }] }, userId);
       results.success++;
     } catch (err) {
       results.errors.push(`Linha ${i + 2}: ${err instanceof Error ? err.message : "erro desconhecido"}`);

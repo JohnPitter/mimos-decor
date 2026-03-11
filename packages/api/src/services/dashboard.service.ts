@@ -38,14 +38,15 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       GROUP BY DATE(created_at)
       ORDER BY date
     ` as Promise<{ date: string; count: number; revenue: number }[]>,
-    prisma.sale.groupBy({
-      by: ["productId"],
-      where: { createdAt: { gte: startOfMonth }, ...dateFilter },
-      _count: true,
-      _sum: { salePrice: true },
-      orderBy: { _count: { productId: "desc" } },
-      take: 5,
-    }),
+    prisma.$queryRaw`
+      SELECT si.product_id as "productId", COUNT(*)::int as count, SUM(si.sale_price * si.quantity) as revenue
+      FROM sale_items si
+      JOIN sales s ON si.sale_id = s.id
+      WHERE s.created_at >= ${startOfMonth}
+      GROUP BY si.product_id
+      ORDER BY count DESC
+      LIMIT 5
+    ` as Promise<{ productId: string; count: number; revenue: number }[]>,
   ]);
 
   const topProductIds = topProducts.map((p) => p.productId);
@@ -69,8 +70,8 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
     salesByDay,
     topProducts: topProducts.map((p) => ({
       productName: productMap.get(p.productId) ?? "Desconhecido",
-      count: p._count,
-      revenue: p._sum.salePrice ?? 0,
+      count: p.count,
+      revenue: Number(p.revenue) || 0,
     })),
   };
 }
