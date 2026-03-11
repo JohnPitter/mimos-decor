@@ -28,8 +28,11 @@ app.use("/api/users", userRouter);
 app.use("/api/audit-logs", auditLogRouter);
 
 // Health check
-app.get("/api/health", (_req, res) => {
+app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+app.get("/", (_req, res) => {
+  res.json({ name: "mimos-decor-api", status: "ok" });
 });
 
 app.listen(PORT, () => {
