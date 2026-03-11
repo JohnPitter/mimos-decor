@@ -36,7 +36,8 @@ app.get("/health", (_req, res) => {
 });
 
 // Serve uploaded files
-app.use("/uploads", express.static(path.resolve("uploads")));
+const storagePath = process.env.STORAGE_PATH || path.resolve("uploads");
+app.use("/uploads", express.static(storagePath));
 
 // API Routes
 app.use("/api/auth", authRouter);

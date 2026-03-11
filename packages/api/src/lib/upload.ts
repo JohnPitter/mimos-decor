@@ -2,7 +2,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const UPLOAD_DIR = path.resolve("uploads/products");
+const STORAGE_BASE = process.env.STORAGE_PATH || path.resolve("uploads");
+const UPLOAD_DIR = path.join(STORAGE_BASE, "products");
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
