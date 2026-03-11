@@ -183,7 +183,12 @@ export default function Sales() {
                     >
                       <td className="px-4 py-3">
                         <p className="text-[14px] font-semibold text-text-dark">
-                          {sale.productName}
+                          {sale.items.length > 0
+                            ? sale.items[0].productName +
+                              (sale.items.length > 1
+                                ? ` +${sale.items.length - 1}`
+                                : "")
+                            : "—"}
                         </p>
                         {sale.customerName && (
                           <p className="text-[11px] text-text-muted">
@@ -192,7 +197,7 @@ export default function Sales() {
                         )}
                       </td>
                       <td className="text-center px-3 py-3 text-[13px] font-semibold text-text-dark">
-                        {sale.quantity}
+                        {sale.items.reduce((sum, i) => sum + i.quantity, 0)}
                       </td>
                       <td className="px-3 py-3">
                         <span className="text-[12px] font-semibold text-text-secondary">

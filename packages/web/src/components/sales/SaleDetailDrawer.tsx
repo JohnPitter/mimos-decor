@@ -115,14 +115,16 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Product Info */}
-          <div className="bg-page-bg rounded-xl p-5 space-y-3">
+          {/* Header info */}
+          <div className="bg-page-bg rounded-xl p-5 space-y-4">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">
-                  Produto
+                  Gateway
                 </p>
-                <p className="text-[16px] font-bold text-text-dark">{sale.productName}</p>
+                <p className="text-[16px] font-bold text-text-dark">
+                  {GATEWAY_LABELS[sale.gateway]}
+                </p>
               </div>
               <span
                 className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadgeClass(sale.deliveryStatus)}`}
@@ -131,21 +133,42 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                  Quantidade
-                </p>
-                <p className="text-[15px] font-bold text-text-dark">{sale.quantity}</p>
+            {/* Items list */}
+            <div>
+              <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">
+                Itens ({sale.items.length})
+              </p>
+              <div className="space-y-2">
+                {sale.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between bg-card-bg rounded-lg p-3 border border-stroke/50"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-semibold text-text-dark truncate">
+                        {item.productName}
+                      </p>
+                      <p className="text-[11px] text-text-muted">
+                        {item.quantity}x {formatBRL(item.salePrice)}
+                      </p>
+                    </div>
+                    <div className="text-right ml-3">
+                      <p className="text-[13px] font-bold text-text-dark">
+                        {formatBRL(item.salePrice * item.quantity)}
+                      </p>
+                      <p
+                        className={`text-[11px] font-semibold ${item.profit >= 0 ? "text-green-600" : "text-red-500"}`}
+                      >
+                        {formatBRL(item.profit)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div>
-                <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                  Gateway
-                </p>
-                <p className="text-[15px] font-bold text-text-dark">
-                  {GATEWAY_LABELS[sale.gateway]}
-                </p>
-              </div>
+            </div>
+
+            {/* Totals */}
+            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-stroke/50">
               <div>
                 <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
                   Valor de Venda
@@ -164,17 +187,6 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                   {formatBRL(sale.profit)}
                 </p>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-stroke/50">
-              <div>
-                <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                  Custo Unitário
-                </p>
-                <p className="text-[13px] font-medium text-text-secondary">
-                  {formatBRL(sale.unitCost)}
-                </p>
-              </div>
               <div>
                 <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
                   Taxas Totais
@@ -189,6 +201,14 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                 </p>
                 <p className="text-[13px] font-medium text-text-secondary">
                   {formatBRL(sale.netRevenue)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
+                  Custo Total
+                </p>
+                <p className="text-[13px] font-medium text-text-secondary">
+                  {formatBRL(sale.totalCost)}
                 </p>
               </div>
               <div>
