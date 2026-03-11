@@ -72,18 +72,16 @@ model Product {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  sales Sale[]
+  saleItems SaleItem[]
 
   @@map("products")
 }
 
 model Sale {
   id               String         @id @default(cuid())
-  productId        String         @map("product_id")
-  quantity         Int
   gateway          Gateway
   salePrice        Float          @map("sale_price")
-  unitCost         Float          @map("unit_cost")
+  totalCost        Float          @map("total_cost")
   totalFees        Float          @map("total_fees")
   netRevenue       Float          @map("net_revenue")
   profit           Float
@@ -96,15 +94,32 @@ model Sale {
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
 
-  product          Product        @relation(fields: [productId], references: [id])
+  items            SaleItem[]
   createdBy        User           @relation(fields: [createdById], references: [id])
   statusHistory    DeliveryStatusHistory[]
 
-  @@index([productId])
   @@index([gateway])
   @@index([deliveryStatus])
   @@index([createdAt])
   @@map("sales")
+}
+
+model SaleItem {
+  id        String @id @default(cuid())
+  saleId    String @map("sale_id")
+  productId String @map("product_id")
+  quantity  Int
+  salePrice Float  @map("sale_price")
+  unitCost  Float  @map("unit_cost")
+  totalFees Float  @map("total_fees")
+  profit    Float
+
+  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("sale_items")
 }
 
 model DeliveryStatusHistory {
