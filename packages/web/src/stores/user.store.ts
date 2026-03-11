@@ -21,8 +21,8 @@ export const useUserStore = create<UserState>((set, get) => ({
     if (get().loading) return;
     set({ loading: true });
     try {
-      const data = await api.get<{ data: User[]; total: number }>(`/users?page=${page}&limit=20`);
-      set({ users: data.data, total: data.total });
+      const data = await api.get<{ users: User[]; total: number }>(`/users?page=${page}&limit=20`);
+      set({ users: data.users, total: data.total });
     } finally {
       set({ loading: false });
     }

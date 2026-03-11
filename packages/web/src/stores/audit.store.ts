@@ -34,8 +34,8 @@ export const useAuditStore = create<AuditState>((set, get) => ({
       params.set("page", String(filters.page ?? 1));
       params.set("limit", "20");
 
-      const data = await api.get<{ data: AuditLog[]; total: number }>(`/audit-logs?${params.toString()}`);
-      set({ logs: data.data, total: data.total });
+      const data = await api.get<{ logs: AuditLog[]; total: number }>(`/audit-logs?${params.toString()}`);
+      set({ logs: data.logs, total: data.total });
     } finally {
       set({ loading: false });
     }
