@@ -55,7 +55,8 @@ export const useSaleStore = create<SaleState>((set) => ({
       if (params?.gateway) qs.set("gateway", params.gateway);
       if (params?.startDate) qs.set("startDate", params.startDate);
       if (params?.endDate) qs.set("endDate", params.endDate);
-      if (params?.page) qs.set("page", String(params.page));
+      qs.set("page", String(params?.page ?? 1));
+      qs.set("limit", "20");
       const data = await api.get<SaleListResponse>(`/sales?${qs}`);
       set({ sales: data.sales, total: data.total, loading: false });
     } catch {

@@ -21,8 +21,9 @@ export const useProductStore = create<ProductState>((set) => ({
     try {
       const qs = new URLSearchParams();
       if (params?.search) qs.set("search", params.search);
-      if (params?.page) qs.set("page", String(params.page));
-      const data = await api.get<{ products: Product[]; total: number }>(`/products?${qs}`);
+      qs.set("page", String(params?.page ?? 1));
+      qs.set("limit", "20");
+      const data = await api.get<{ products: Product[]; total: number; page: number; limit: number; totalPages: number }>(`/products?${qs}`);
       set({ products: data.products, total: data.total, loading: false });
     } catch {
       set({ loading: false });

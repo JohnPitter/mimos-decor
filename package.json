@@ -6,7 +6,8 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "test": "turbo test",
-    "lint": "turbo lint"
+    "lint": "turbo lint",
+    "seed": "cd packages/api && node dist/seed.js"
   },
   "devDependencies": {
     "turbo": "^2.4.0",

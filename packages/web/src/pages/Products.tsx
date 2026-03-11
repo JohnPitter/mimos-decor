@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Header } from "../components/layout/Header.js";
 import { ProductFormDialog } from "../components/products/ProductFormDialog.js";
 import { useProductStore } from "../stores/product.store.js";
@@ -27,17 +27,21 @@ function getProductPrices(product: Product) {
 }
 
 export default function Products() {
-  const { products, loading, fetchProducts, createProduct, updateProduct, deleteProduct } = useProductStore();
+  const { products, total, loading, fetchProducts, createProduct, updateProduct, deleteProduct } = useProductStore();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
 
-  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+  const totalPages = Math.max(1, Math.ceil(total / 20));
 
-  const filteredProducts = useMemo(
-    () => products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())),
-    [products, search],
-  );
+  const loadProducts = useCallback(() => {
+    fetchProducts({ search: search || undefined, page });
+  }, [fetchProducts, search, page]);
+
+  useEffect(() => { loadProducts(); }, [loadProducts]);
+
+  useEffect(() => { setPage(1); }, [search]);
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     if (editProduct) {
@@ -47,13 +51,13 @@ export default function Products() {
     }
     setDialogOpen(false);
     setEditProduct(null);
-    fetchProducts();
+    loadProducts();
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Deseja excluir este produto?")) return;
     await deleteProduct(id);
-    fetchProducts();
+    loadProducts();
   };
 
   return (
@@ -106,10 +110,10 @@ export default function Products() {
                       ))}
                     </tr>
                   ))
-                ) : filteredProducts.length === 0 ? (
+                ) : products.length === 0 ? (
                   <tr><td colSpan={8} className="text-center py-12 text-text-muted text-[14px]">Nenhum produto encontrado</td></tr>
                 ) : (
-                  filteredProducts.map((product) => {
+                  products.map((product) => {
                     const prices = getProductPrices(product);
                     return (
                       <tr key={product.id} className="border-b border-stroke/50 hover:bg-rosa-light/30 transition-colors">
@@ -149,6 +153,26 @@ export default function Products() {
             </table>
           </div>
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-6">
+            <button
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
+              className="px-3 py-1.5 text-xs rounded-lg border border-stroke hover:bg-neutral-bg2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Anterior
+            </button>
+            <span className="text-xs text-text-muted">{page} de {totalPages}</span>
+            <button
+              disabled={page >= totalPages}
+              onClick={() => setPage(page + 1)}
+              className="px-3 py-1.5 text-xs rounded-lg border border-stroke hover:bg-neutral-bg2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Próximo
+            </button>
+          </div>
+        )}
       </div>
 
       <ProductFormDialog open={dialogOpen} product={editProduct} onClose={() => { setDialogOpen(false); setEditProduct(null); }} onSubmit={handleSubmit} />

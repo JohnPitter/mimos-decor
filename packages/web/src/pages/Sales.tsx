@@ -44,14 +44,19 @@ function getStatusBadgeClass(status: DeliveryStatus): string {
 export default function Sales() {
   const { sales, total, loading, fetchSales, createSale } = useSaleStore();
   const [activeTab, setActiveTab] = useState<DeliveryStatus | null>(null);
+  const [page, setPage] = useState(1);
   const [saleDialogOpen, setSaleDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  const totalPages = Math.max(1, Math.ceil(total / 20));
+
   const loadSales = useCallback(() => {
-    fetchSales({ status: activeTab ?? undefined });
-  }, [fetchSales, activeTab]);
+    fetchSales({ status: activeTab ?? undefined, page });
+  }, [fetchSales, activeTab, page]);
+
+  useEffect(() => { setPage(1); }, [activeTab]);
 
   useEffect(() => {
     loadSales();
@@ -229,6 +234,26 @@ export default function Sales() {
             </div>
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-6">
+            <button
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
+              className="px-3 py-1.5 text-xs rounded-lg border border-stroke hover:bg-neutral-bg2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Anterior
+            </button>
+            <span className="text-xs text-text-muted">{page} de {totalPages}</span>
+            <button
+              disabled={page >= totalPages}
+              onClick={() => setPage(page + 1)}
+              className="px-3 py-1.5 text-xs rounded-lg border border-stroke hover:bg-neutral-bg2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Próximo
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Dialogs */}
