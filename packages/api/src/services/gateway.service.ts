@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
-import { BUILT_IN_GATEWAYS } from "@mimos/shared";
-import type { BuiltInGatewayId } from "@mimos/shared";
+import type { Prisma } from "@prisma/client";
+import { BUILT_IN_GATEWAYS, BUILT_IN_PARAMS } from "@mimos/shared";
+import type { BuiltInGatewayId, CommissionTier, PixTier } from "@mimos/shared";
 
 export async function listGateways() {
   return prisma.customGateway.findMany({ orderBy: { createdAt: "asc" } });
@@ -15,6 +16,9 @@ export async function createGateway(data: {
   name: string;
   color?: string;
   baseGateway: string;
+  tiers?: CommissionTier[];
+  pixTiers?: PixTier[];
+  extraFixed?: number;
 }) {
   if (!BUILT_IN_GATEWAYS.includes(data.baseGateway as BuiltInGatewayId)) {
     throw new Error("Gateway base inválido");
@@ -34,12 +38,17 @@ export async function createGateway(data: {
     throw new Error("Já existe um gateway com esse slug");
   }
 
+  const baseParams = BUILT_IN_PARAMS[data.baseGateway];
+
   return prisma.customGateway.create({
     data: {
       slug: data.slug,
       name: data.name,
       color: data.color ?? "#6B5E5E",
       baseGateway: data.baseGateway,
+      tiers: serializeTiers(data.tiers ?? baseParams.tiers) as unknown as Prisma.InputJsonValue,
+      pixTiers: (data.pixTiers ?? baseParams.pixTiers) as unknown as Prisma.InputJsonValue,
+      extraFixed: data.extraFixed ?? baseParams.extraFixed,
     },
   });
 }
@@ -47,16 +56,21 @@ export async function createGateway(data: {
 export async function updateGateway(id: string, data: {
   name?: string;
   color?: string;
-  baseGateway?: string;
+  tiers?: CommissionTier[];
+  pixTiers?: PixTier[];
+  extraFixed?: number;
 }) {
   const existing = await prisma.customGateway.findUnique({ where: { id } });
   if (!existing) return null;
 
-  if (data.baseGateway && !BUILT_IN_GATEWAYS.includes(data.baseGateway as BuiltInGatewayId)) {
-    throw new Error("Gateway base inválido");
-  }
+  const updateData: Record<string, unknown> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.color !== undefined) updateData.color = data.color;
+  if (data.tiers !== undefined) updateData.tiers = serializeTiers(data.tiers) as unknown as Prisma.InputJsonValue;
+  if (data.pixTiers !== undefined) updateData.pixTiers = data.pixTiers as unknown as Prisma.InputJsonValue;
+  if (data.extraFixed !== undefined) updateData.extraFixed = data.extraFixed;
 
-  return prisma.customGateway.update({ where: { id }, data });
+  return prisma.customGateway.update({ where: { id }, data: updateData });
 }
 
 export async function deleteGateway(id: string) {
@@ -69,4 +83,12 @@ export async function deleteGateway(id: string) {
   }
 
   return prisma.customGateway.delete({ where: { id } });
+}
+
+function serializeTiers(tiers: CommissionTier[]): unknown[] {
+  return tiers.map((t) => ({
+    maxPrice: t.maxPrice === Infinity ? 999999999 : t.maxPrice,
+    pct: t.pct,
+    fixed: t.fixed,
+  }));
 }

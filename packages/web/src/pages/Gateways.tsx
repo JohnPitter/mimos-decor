@@ -3,17 +3,64 @@ import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2, X, Plug } from "lucide-react";
 import { Header } from "../components/layout/Header.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
-import { BUILT_IN_GATEWAYS, GATEWAY_LABELS } from "@mimos/shared";
-import type { CustomGateway, BuiltInGatewayId } from "@mimos/shared";
+import { BUILT_IN_GATEWAYS, BUILT_IN_PARAMS, GATEWAY_LABELS } from "@mimos/shared";
+import type { CustomGateway, BuiltInGatewayId, CommissionTier, PixTier } from "@mimos/shared";
+
+interface TierRow { maxPrice: string; pct: string; fixed: string }
+interface PixTierRow { maxPrice: string; pct: string }
 
 interface FormData {
   slug: string;
   name: string;
   color: string;
   baseGateway: BuiltInGatewayId;
+  tiers: TierRow[];
+  pixTiers: PixTierRow[];
+  extraFixed: string;
 }
 
-const EMPTY_FORM: FormData = { slug: "", name: "", color: "#6B5E5E", baseGateway: "SHOPEE_CNPJ" };
+function tiersToRows(tiers: CommissionTier[]): TierRow[] {
+  return tiers.map((t) => ({
+    maxPrice: t.maxPrice >= 999999999 || t.maxPrice === Infinity ? "" : String(t.maxPrice),
+    pct: String(Math.round(t.pct * 10000) / 100),
+    fixed: String(t.fixed),
+  }));
+}
+
+function pixTiersToRows(tiers: PixTier[]): PixTierRow[] {
+  return tiers.map((t) => ({
+    maxPrice: t.maxPrice >= 999999999 || t.maxPrice === Infinity ? "" : String(t.maxPrice),
+    pct: String(Math.round(t.pct * 10000) / 100),
+  }));
+}
+
+function rowsToTiers(rows: TierRow[]): CommissionTier[] {
+  return rows.map((r) => ({
+    maxPrice: r.maxPrice === "" ? Infinity : Number(r.maxPrice),
+    pct: Number(r.pct) / 100,
+    fixed: Number(r.fixed),
+  }));
+}
+
+function rowsToPixTiers(rows: PixTierRow[]): PixTier[] {
+  return rows.map((r) => ({
+    maxPrice: r.maxPrice === "" ? Infinity : Number(r.maxPrice),
+    pct: Number(r.pct) / 100,
+  }));
+}
+
+function buildEmptyForm(baseGateway: BuiltInGatewayId): FormData {
+  const params = BUILT_IN_PARAMS[baseGateway];
+  return {
+    slug: "",
+    name: "",
+    color: "#6B5E5E",
+    baseGateway,
+    tiers: tiersToRows(params.tiers),
+    pixTiers: pixTiersToRows(params.pixTiers),
+    extraFixed: String(params.extraFixed),
+  };
+}
 
 const PRESET_COLORS = [
   "#EE4D2D", "#FFE600", "#ff914d", "#3D2C2C",
@@ -26,7 +73,7 @@ export default function Gateways() {
   const { customGateways, loading, fetchGateways, createGateway, updateGateway, deleteGateway, getAllGateways } = useGatewayStore();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingGateway, setEditingGateway] = useState<CustomGateway | null>(null);
-  const [form, setForm] = useState<FormData>(EMPTY_FORM);
+  const [form, setForm] = useState<FormData>(buildEmptyForm("SHOPEE_CNPJ"));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,7 +82,7 @@ export default function Gateways() {
   const allGateways = getAllGateways();
 
   const openCreate = () => {
-    setForm(EMPTY_FORM);
+    setForm(buildEmptyForm("SHOPEE_CNPJ"));
     setEditingGateway(null);
     setError("");
     setModalOpen(true);
@@ -47,10 +94,24 @@ export default function Gateways() {
       name: gw.name,
       color: gw.color,
       baseGateway: gw.baseGateway as BuiltInGatewayId,
+      tiers: tiersToRows(gw.tiers as CommissionTier[]),
+      pixTiers: pixTiersToRows(gw.pixTiers as PixTier[]),
+      extraFixed: String(gw.extraFixed),
     });
     setEditingGateway(gw);
     setError("");
     setModalOpen(true);
+  };
+
+  const handleBaseGatewayChange = (newBase: BuiltInGatewayId) => {
+    const params = BUILT_IN_PARAMS[newBase];
+    setForm((prev) => ({
+      ...prev,
+      baseGateway: newBase,
+      tiers: tiersToRows(params.tiers),
+      pixTiers: pixTiersToRows(params.pixTiers),
+      extraFixed: String(params.extraFixed),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,14 +119,22 @@ export default function Gateways() {
     setSubmitting(true);
     setError("");
     try {
+      const payload = {
+        name: form.name,
+        color: form.color,
+        tiers: rowsToTiers(form.tiers),
+        pixTiers: rowsToPixTiers(form.pixTiers),
+        extraFixed: Number(form.extraFixed),
+      };
+
       if (editingGateway) {
-        await updateGateway(editingGateway.id, {
-          name: form.name,
-          color: form.color,
+        await updateGateway(editingGateway.id, payload);
+      } else {
+        await createGateway({
+          ...payload,
+          slug: form.slug,
           baseGateway: form.baseGateway,
         });
-      } else {
-        await createGateway(form);
       }
       setModalOpen(false);
     } catch (err) {
@@ -82,6 +151,50 @@ export default function Gateways() {
     } catch (err) {
       alert(err instanceof Error ? err.message : "Erro ao remover");
     }
+  };
+
+  const updateTier = (index: number, field: keyof TierRow, value: string) => {
+    setForm((prev) => {
+      const tiers = [...prev.tiers];
+      tiers[index] = { ...tiers[index], [field]: value };
+      return { ...prev, tiers };
+    });
+  };
+
+  const addTier = () => {
+    setForm((prev) => ({
+      ...prev,
+      tiers: [...prev.tiers, { maxPrice: "", pct: "10", fixed: "0" }],
+    }));
+  };
+
+  const removeTier = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      tiers: prev.tiers.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updatePixTier = (index: number, field: keyof PixTierRow, value: string) => {
+    setForm((prev) => {
+      const pixTiers = [...prev.pixTiers];
+      pixTiers[index] = { ...pixTiers[index], [field]: value };
+      return { ...prev, pixTiers };
+    });
+  };
+
+  const addPixTier = () => {
+    setForm((prev) => ({
+      ...prev,
+      pixTiers: [...prev.pixTiers, { maxPrice: "", pct: "0" }],
+    }));
+  };
+
+  const removePixTier = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      pixTiers: prev.pixTiers.filter((_, i) => i !== index),
+    }));
   };
 
   return (
@@ -202,7 +315,7 @@ export default function Gateways() {
       {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setModalOpen(false)}>
-          <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-md animate-scale-in" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-scale-in" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-stroke">
               <h2 className="text-[18px] font-bold text-text-dark">
                 {editingGateway ? t("gateways.editGateway") : t("gateways.newGateway")}
@@ -214,21 +327,40 @@ export default function Gateways() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && <p className="text-[13px] text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
 
+              {/* Slug + Name + Base Gateway (only on create) */}
               {!editingGateway && (
-                <div>
-                  <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
-                    Slug <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={form.slug}
-                    onChange={(e) => setForm({ ...form, slug: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })}
-                    required
-                    placeholder="EX: SHOPEE_NOVO"
-                    className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg font-mono focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                  />
-                  <p className="text-[11px] text-text-muted mt-1">{t("gateways.slugHint")}</p>
-                </div>
+                <>
+                  <div>
+                    <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
+                      Slug <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={form.slug}
+                      onChange={(e) => setForm({ ...form, slug: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })}
+                      required
+                      placeholder="EX: SHOPEE_NOVO"
+                      className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg font-mono focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    />
+                    <p className="text-[11px] text-text-muted mt-1">{t("gateways.slugHint")}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
+                      {t("gateways.baseGatewayLabel")} <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={form.baseGateway}
+                      onChange={(e) => handleBaseGatewayChange(e.target.value as BuiltInGatewayId)}
+                      className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    >
+                      {BUILT_IN_GATEWAYS.map((gid) => (
+                        <option key={gid} value={gid}>{GATEWAY_LABELS[gid] ?? gid}</option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-text-muted mt-1">{t("gateways.baseGatewayHint")}</p>
+                  </div>
+                </>
               )}
 
               <div>
@@ -245,22 +377,124 @@ export default function Gateways() {
                 />
               </div>
 
+              {/* Commission Tiers */}
               <div>
-                <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
-                  {t("gateways.baseGatewayLabel")} <span className="text-red-400">*</span>
+                <label className="block text-[12px] font-semibold text-text-muted mb-2 uppercase tracking-wider">
+                  {t("gateways.commissionTiers")}
                 </label>
-                <select
-                  value={form.baseGateway}
-                  onChange={(e) => setForm({ ...form, baseGateway: e.target.value as BuiltInGatewayId })}
-                  className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                >
-                  {BUILT_IN_GATEWAYS.map((gid) => (
-                    <option key={gid} value={gid}>{GATEWAY_LABELS[gid] ?? gid}</option>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-[1fr_80px_80px_32px] gap-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider px-1">
+                    <span>{t("gateways.tierMaxPrice")}</span>
+                    <span>{t("gateways.tierPct")}</span>
+                    <span>{t("gateways.tierFixed")}</span>
+                    <span />
+                  </div>
+                  {form.tiers.map((tier, i) => (
+                    <div key={i} className="grid grid-cols-[1fr_80px_80px_32px] gap-2">
+                      <input
+                        type="text"
+                        value={tier.maxPrice}
+                        onChange={(e) => updateTier(i, "maxPrice", e.target.value)}
+                        placeholder="∞"
+                        className="px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                      />
+                      <input
+                        type="text"
+                        value={tier.pct}
+                        onChange={(e) => updateTier(i, "pct", e.target.value)}
+                        className="px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-page-bg text-center focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                      />
+                      <input
+                        type="text"
+                        value={tier.fixed}
+                        onChange={(e) => updateTier(i, "fixed", e.target.value)}
+                        className="px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-page-bg text-center focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeTier(i)}
+                        disabled={form.tiers.length <= 1}
+                        className="p-1.5 text-text-muted hover:text-red-500 transition-colors disabled:opacity-30"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   ))}
-                </select>
-                <p className="text-[11px] text-text-muted mt-1">{t("gateways.baseGatewayHint")}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addTier}
+                  className="mt-2 flex items-center gap-1 text-[12px] font-medium text-primary hover:text-primary-hover transition-colors"
+                >
+                  <Plus size={12} /> {t("gateways.addTier")}
+                </button>
               </div>
 
+              {/* Pix Tiers */}
+              <div>
+                <label className="block text-[12px] font-semibold text-text-muted mb-2 uppercase tracking-wider">
+                  {t("gateways.pixTiers")}
+                </label>
+                {form.pixTiers.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-[1fr_80px_32px] gap-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider px-1">
+                      <span>{t("gateways.tierMaxPrice")}</span>
+                      <span>{t("gateways.tierPct")}</span>
+                      <span />
+                    </div>
+                    {form.pixTiers.map((tier, i) => (
+                      <div key={i} className="grid grid-cols-[1fr_80px_32px] gap-2">
+                        <input
+                          type="text"
+                          value={tier.maxPrice}
+                          onChange={(e) => updatePixTier(i, "maxPrice", e.target.value)}
+                          placeholder="∞"
+                          className="px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                        />
+                        <input
+                          type="text"
+                          value={tier.pct}
+                          onChange={(e) => updatePixTier(i, "pct", e.target.value)}
+                          className="px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-page-bg text-center focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePixTier(i)}
+                          className="p-1.5 text-text-muted hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[12px] text-text-muted italic">{t("gateways.noPixTiers")}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={addPixTier}
+                  className="mt-2 flex items-center gap-1 text-[12px] font-medium text-primary hover:text-primary-hover transition-colors"
+                >
+                  <Plus size={12} /> {t("gateways.addPixTier")}
+                </button>
+              </div>
+
+              {/* Extra Fixed Fee */}
+              <div>
+                <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
+                  {t("gateways.extraFixed")}
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={form.extraFixed}
+                  onChange={(e) => setForm({ ...form, extraFixed: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                />
+                <p className="text-[11px] text-text-muted mt-1">{t("gateways.extraFixedHint")}</p>
+              </div>
+
+              {/* Color */}
               <div>
                 <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
                   {t("gateways.colorLabel")}
@@ -284,6 +518,7 @@ export default function Gateways() {
                 />
               </div>
 
+              {/* Buttons */}
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"

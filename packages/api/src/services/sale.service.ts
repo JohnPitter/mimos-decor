@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
-import { MARKETPLACES, calcProductCost, calcIdealPrice } from "@mimos/shared";
-import type { Marketplace } from "@mimos/shared";
+import { MARKETPLACES, buildMarketplace, calcProductCost, calcIdealPrice } from "@mimos/shared";
+import type { Marketplace, CommissionTier, PixTier } from "@mimos/shared";
 import type { Prisma, DeliveryStatus } from "@prisma/client";
 import { parse } from "csv-parse/sync";
 
@@ -12,10 +12,19 @@ async function resolveMarketplace(gateway: string): Promise<Marketplace> {
   const custom = await prisma.customGateway.findUnique({ where: { slug: gateway } });
   if (!custom) throw new Error("Gateway inválido");
 
-  const base = MARKETPLACES[custom.baseGateway];
-  if (!base) throw new Error("Gateway base inválido");
+  return buildMarketplace(custom.slug, custom.name, {
+    tiers: deserializeTiers(custom.tiers as unknown as unknown[]),
+    pixTiers: custom.pixTiers as unknown as PixTier[],
+    extraFixed: custom.extraFixed,
+  });
+}
 
-  return { ...base, id: custom.slug, name: custom.name, badge: "" };
+function deserializeTiers(raw: unknown[]): CommissionTier[] {
+  return (raw as { maxPrice: number; pct: number; fixed: number }[]).map((t) => ({
+    maxPrice: t.maxPrice >= 999999999 ? Infinity : t.maxPrice,
+    pct: t.pct,
+    fixed: t.fixed,
+  }));
 }
 
 const SALE_ITEMS_INCLUDE = {

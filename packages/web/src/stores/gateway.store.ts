@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { api } from "../lib/api.js";
 import type { CustomGateway } from "@mimos/shared";
-import { GATEWAY_LABELS, GATEWAY_COLORS, BUILT_IN_GATEWAYS, MARKETPLACES } from "@mimos/shared";
-import type { Marketplace } from "@mimos/shared";
+import { GATEWAY_LABELS, GATEWAY_COLORS, BUILT_IN_GATEWAYS, MARKETPLACES, buildMarketplace } from "@mimos/shared";
+import type { Marketplace, CommissionTier, PixTier } from "@mimos/shared";
 
 interface GatewayInfo {
   id: string;
@@ -16,13 +16,21 @@ interface GatewayState {
   customGateways: CustomGateway[];
   loading: boolean;
   fetchGateways: () => Promise<void>;
-  createGateway: (data: { slug: string; name: string; color?: string; baseGateway: string }) => Promise<void>;
-  updateGateway: (id: string, data: { name?: string; color?: string; baseGateway?: string }) => Promise<void>;
+  createGateway: (data: Record<string, unknown>) => Promise<void>;
+  updateGateway: (id: string, data: Record<string, unknown>) => Promise<void>;
   deleteGateway: (id: string) => Promise<void>;
   getAllGateways: () => GatewayInfo[];
   getGatewayLabel: (gateway: string) => string;
   getGatewayColor: (gateway: string) => string;
   getMarketplace: (gateway: string) => Marketplace | null;
+}
+
+function deserializeTiers(raw: { maxPrice: number; pct: number; fixed: number }[]): CommissionTier[] {
+  return raw.map((t) => ({
+    maxPrice: t.maxPrice >= 999999999 ? Infinity : t.maxPrice,
+    pct: t.pct,
+    fixed: t.fixed,
+  }));
 }
 
 export const useGatewayStore = create<GatewayState>((set, get) => ({
@@ -92,8 +100,10 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
     if (builtin) return builtin;
     const custom = get().customGateways.find((g) => g.slug === gateway);
     if (!custom) return null;
-    const base = MARKETPLACES[custom.baseGateway];
-    if (!base) return null;
-    return { ...base, id: custom.slug, name: custom.name, badge: "" };
+    return buildMarketplace(custom.slug, custom.name, {
+      tiers: deserializeTiers(custom.tiers as { maxPrice: number; pct: number; fixed: number }[]),
+      pixTiers: custom.pixTiers as PixTier[],
+      extraFixed: custom.extraFixed,
+    });
   },
 }));

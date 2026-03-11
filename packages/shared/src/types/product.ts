@@ -41,6 +41,9 @@ export interface CustomGateway {
   name: string;
   color: string;
   baseGateway: BuiltInGatewayId;
+  tiers: { maxPrice: number; pct: number; fixed: number }[];
+  pixTiers: { maxPrice: number; pct: number }[];
+  extraFixed: number;
   createdAt: string;
 }
 
@@ -49,12 +52,17 @@ export interface CreateCustomGatewayInput {
   name: string;
   color?: string;
   baseGateway: BuiltInGatewayId;
+  tiers?: { maxPrice: number; pct: number; fixed: number }[];
+  pixTiers?: { maxPrice: number; pct: number }[];
+  extraFixed?: number;
 }
 
 export interface UpdateCustomGatewayInput {
   name?: string;
   color?: string;
-  baseGateway?: BuiltInGatewayId;
+  tiers?: { maxPrice: number; pct: number; fixed: number }[];
+  pixTiers?: { maxPrice: number; pct: number }[];
+  extraFixed?: number;
 }
 
 export interface ProductWithPricing extends Product {
