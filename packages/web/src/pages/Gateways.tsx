@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2, X, Plug } from "lucide-react";
 import { Header } from "../components/layout/Header.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
-import { BUILT_IN_GATEWAYS, BUILT_IN_PARAMS, GATEWAY_LABELS } from "@mimos/shared";
-import type { CustomGateway, BuiltInGatewayId, CommissionTier, PixTier } from "@mimos/shared";
+import { BUILT_IN_GATEWAYS } from "@mimos/shared";
+import type { CustomGateway, CommissionTier, PixTier } from "@mimos/shared";
 
 interface TierRow { maxPrice: string; pct: string; fixed: string }
 interface PixTierRow { maxPrice: string; pct: string }
@@ -13,11 +13,19 @@ interface FormData {
   slug: string;
   name: string;
   color: string;
-  baseGateway: BuiltInGatewayId;
   tiers: TierRow[];
   pixTiers: PixTierRow[];
   extraFixed: string;
 }
+
+const EMPTY_FORM: FormData = {
+  slug: "",
+  name: "",
+  color: "#6B5E5E",
+  tiers: [{ maxPrice: "", pct: "14", fixed: "0" }],
+  pixTiers: [],
+  extraFixed: "0",
+};
 
 function tiersToRows(tiers: CommissionTier[]): TierRow[] {
   return tiers.map((t) => ({
@@ -49,19 +57,6 @@ function rowsToPixTiers(rows: PixTierRow[]): PixTier[] {
   }));
 }
 
-function buildEmptyForm(baseGateway: BuiltInGatewayId): FormData {
-  const params = BUILT_IN_PARAMS[baseGateway];
-  return {
-    slug: "",
-    name: "",
-    color: "#6B5E5E",
-    baseGateway,
-    tiers: tiersToRows(params.tiers),
-    pixTiers: pixTiersToRows(params.pixTiers),
-    extraFixed: String(params.extraFixed),
-  };
-}
-
 const PRESET_COLORS = [
   "#EE4D2D", "#FFE600", "#ff914d", "#3D2C2C",
   "#6B5E5E", "#4CAF50", "#2196F3", "#9C27B0",
@@ -73,7 +68,7 @@ export default function Gateways() {
   const { customGateways, loading, fetchGateways, createGateway, updateGateway, deleteGateway, getAllGateways } = useGatewayStore();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingGateway, setEditingGateway] = useState<CustomGateway | null>(null);
-  const [form, setForm] = useState<FormData>(buildEmptyForm("SHOPEE_CNPJ"));
+  const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -82,7 +77,7 @@ export default function Gateways() {
   const allGateways = getAllGateways();
 
   const openCreate = () => {
-    setForm(buildEmptyForm("SHOPEE_CNPJ"));
+    setForm(EMPTY_FORM);
     setEditingGateway(null);
     setError("");
     setModalOpen(true);
@@ -93,7 +88,6 @@ export default function Gateways() {
       slug: gw.slug,
       name: gw.name,
       color: gw.color,
-      baseGateway: gw.baseGateway as BuiltInGatewayId,
       tiers: tiersToRows(gw.tiers as CommissionTier[]),
       pixTiers: pixTiersToRows(gw.pixTiers as PixTier[]),
       extraFixed: String(gw.extraFixed),
@@ -101,17 +95,6 @@ export default function Gateways() {
     setEditingGateway(gw);
     setError("");
     setModalOpen(true);
-  };
-
-  const handleBaseGatewayChange = (newBase: BuiltInGatewayId) => {
-    const params = BUILT_IN_PARAMS[newBase];
-    setForm((prev) => ({
-      ...prev,
-      baseGateway: newBase,
-      tiers: tiersToRows(params.tiers),
-      pixTiers: pixTiersToRows(params.pixTiers),
-      extraFixed: String(params.extraFixed),
-    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,11 +113,7 @@ export default function Gateways() {
       if (editingGateway) {
         await updateGateway(editingGateway.id, payload);
       } else {
-        await createGateway({
-          ...payload,
-          slug: form.slug,
-          baseGateway: form.baseGateway,
-        });
+        await createGateway({ ...payload, slug: form.slug });
       }
       setModalOpen(false);
     } catch (err) {
@@ -274,12 +253,7 @@ export default function Gateways() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[14px] font-semibold text-text-dark">{gw.name}</p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-[11px] text-text-muted font-mono">{gw.slug}</p>
-                          <span className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary rounded font-medium">
-                            {t("gateways.basedOn")} {GATEWAY_LABELS[gw.baseGateway] ?? gw.baseGateway}
-                          </span>
-                        </div>
+                        <p className="text-[11px] text-text-muted font-mono">{gw.slug}</p>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
@@ -327,42 +301,25 @@ export default function Gateways() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {error && <p className="text-[13px] text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
 
-              {/* Slug + Name + Base Gateway (only on create) */}
+              {/* Slug (only on create) */}
               {!editingGateway && (
-                <>
-                  <div>
-                    <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
-                      Slug <span className="text-red-400">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={form.slug}
-                      onChange={(e) => setForm({ ...form, slug: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })}
-                      required
-                      placeholder="EX: SHOPEE_NOVO"
-                      className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg font-mono focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                    />
-                    <p className="text-[11px] text-text-muted mt-1">{t("gateways.slugHint")}</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
-                      {t("gateways.baseGatewayLabel")} <span className="text-red-400">*</span>
-                    </label>
-                    <select
-                      value={form.baseGateway}
-                      onChange={(e) => handleBaseGatewayChange(e.target.value as BuiltInGatewayId)}
-                      className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                    >
-                      {BUILT_IN_GATEWAYS.map((gid) => (
-                        <option key={gid} value={gid}>{GATEWAY_LABELS[gid] ?? gid}</option>
-                      ))}
-                    </select>
-                    <p className="text-[11px] text-text-muted mt-1">{t("gateways.baseGatewayHint")}</p>
-                  </div>
-                </>
+                <div>
+                  <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
+                    Slug <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.slug}
+                    onChange={(e) => setForm({ ...form, slug: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })}
+                    required
+                    placeholder="EX: SHOPEE_NOVO"
+                    className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg font-mono focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  />
+                  <p className="text-[11px] text-text-muted mt-1">{t("gateways.slugHint")}</p>
+                </div>
               )}
 
+              {/* Name */}
               <div>
                 <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
                   {t("gateways.nameLabel")} <span className="text-red-400">*</span>
@@ -380,7 +337,7 @@ export default function Gateways() {
               {/* Commission Tiers */}
               <div>
                 <label className="block text-[12px] font-semibold text-text-muted mb-2 uppercase tracking-wider">
-                  {t("gateways.commissionTiers")}
+                  {t("gateways.commissionTiers")} <span className="text-red-400">*</span>
                 </label>
                 <div className="space-y-2">
                   <div className="grid grid-cols-[1fr_80px_80px_32px] gap-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider px-1">

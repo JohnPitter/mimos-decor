@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import type { Prisma } from "@prisma/client";
-import { BUILT_IN_GATEWAYS, BUILT_IN_PARAMS } from "@mimos/shared";
+import { BUILT_IN_GATEWAYS } from "@mimos/shared";
 import type { BuiltInGatewayId, CommissionTier, PixTier } from "@mimos/shared";
 
 export async function listGateways() {
@@ -15,15 +15,10 @@ export async function createGateway(data: {
   slug: string;
   name: string;
   color?: string;
-  baseGateway: string;
-  tiers?: CommissionTier[];
+  tiers: CommissionTier[];
   pixTiers?: PixTier[];
   extraFixed?: number;
 }) {
-  if (!BUILT_IN_GATEWAYS.includes(data.baseGateway as BuiltInGatewayId)) {
-    throw new Error("Gateway base inválido");
-  }
-
   const slugRegex = /^[A-Z0-9_]+$/;
   if (!slugRegex.test(data.slug)) {
     throw new Error("Slug deve conter apenas letras maiúsculas, números e underscores");
@@ -38,17 +33,18 @@ export async function createGateway(data: {
     throw new Error("Já existe um gateway com esse slug");
   }
 
-  const baseParams = BUILT_IN_PARAMS[data.baseGateway];
+  if (!data.tiers.length) {
+    throw new Error("É necessário pelo menos uma faixa de comissão");
+  }
 
   return prisma.customGateway.create({
     data: {
       slug: data.slug,
       name: data.name,
       color: data.color ?? "#6B5E5E",
-      baseGateway: data.baseGateway,
-      tiers: serializeTiers(data.tiers ?? baseParams.tiers) as unknown as Prisma.InputJsonValue,
-      pixTiers: (data.pixTiers ?? baseParams.pixTiers) as unknown as Prisma.InputJsonValue,
-      extraFixed: data.extraFixed ?? baseParams.extraFixed,
+      tiers: serializeTiers(data.tiers) as unknown as Prisma.InputJsonValue,
+      pixTiers: (data.pixTiers ?? []) as unknown as Prisma.InputJsonValue,
+      extraFixed: data.extraFixed ?? 0,
     },
   });
 }

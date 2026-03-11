@@ -9,7 +9,6 @@ interface GatewayInfo {
   label: string;
   color: string;
   isCustom: boolean;
-  baseGateway?: string;
 }
 
 interface GatewayState {
@@ -75,7 +74,6 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
       label: g.name,
       color: g.color,
       isCustom: true,
-      baseGateway: g.baseGateway,
     }));
 
     return [...builtIn, ...custom];

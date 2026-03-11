@@ -13,15 +13,14 @@ enum UserRole {
 }
 
 model CustomGateway {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  name        String
-  color       String   @default("#6B5E5E")
-  baseGateway String   @map("base_gateway")
-  tiers       Json     @default("[]")
-  pixTiers    Json     @default("[]") @map("pix_tiers")
-  extraFixed  Float    @default(0) @map("extra_fixed")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  name       String
+  color      String   @default("#6B5E5E")
+  tiers      Json     @default("[]")
+  pixTiers   Json     @default("[]") @map("pix_tiers")
+  extraFixed Float    @default(0) @map("extra_fixed")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   @@map("custom_gateways")
 }

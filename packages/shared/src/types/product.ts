@@ -40,7 +40,6 @@ export interface CustomGateway {
   slug: string;
   name: string;
   color: string;
-  baseGateway: BuiltInGatewayId;
   tiers: { maxPrice: number; pct: number; fixed: number }[];
   pixTiers: { maxPrice: number; pct: number }[];
   extraFixed: number;
@@ -51,8 +50,7 @@ export interface CreateCustomGatewayInput {
   slug: string;
   name: string;
   color?: string;
-  baseGateway: BuiltInGatewayId;
-  tiers?: { maxPrice: number; pct: number; fixed: number }[];
+  tiers: { maxPrice: number; pct: number; fixed: number }[];
   pixTiers?: { maxPrice: number; pct: number }[];
   extraFixed?: number;
 }
