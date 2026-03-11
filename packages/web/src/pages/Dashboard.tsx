@@ -70,11 +70,36 @@ export default function Dashboard() {
   const topProductsFormatted = useMemo(() => {
     return (data?.topProducts ?? []).map((p) => ({
       ...p,
-      shortName: p.productName.length > 20 ? p.productName.slice(0, 18) + "…" : p.productName,
+      shortName: p.productName.length > 18 ? p.productName.slice(0, 16) + "…" : p.productName,
     }));
   }, [data?.topProducts]);
 
-  const topProductsHeight = Math.max(280, topProductsFormatted.length * 40 + 60);
+  const imageMap = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const p of topProductsFormatted) {
+      map.set(p.shortName, p.productImageUrl);
+    }
+    return map;
+  }, [topProductsFormatted]);
+
+  const topProductsHeight = Math.max(280, topProductsFormatted.length * 44 + 60);
+
+  const renderProductTick = (props: { x: number; y: number; payload: { value: string } }) => {
+    const { x, y, payload } = props;
+    const imgUrl = imageMap.get(payload.value);
+    return (
+      <g transform={`translate(${x},${y})`}>
+        {imgUrl ? (
+          <image href={imgUrl} x={-160} y={-12} width={24} height={24} clipPath="inset(0 round 4px)" />
+        ) : (
+          <rect x={-160} y={-12} width={24} height={24} rx={4} fill={theme.stroke} opacity={0.5} />
+        )}
+        <text x={-130} y={4} textAnchor="start" fontSize={11} fill="#666">
+          {payload.value}
+        </text>
+      </g>
+    );
+  };
 
   return (
     <div>
@@ -282,10 +307,10 @@ export default function Dashboard() {
                 {/* Bar chart */}
                 <div className="flex-1 min-w-0">
                   <ResponsiveContainer width="100%" height={topProductsHeight}>
-                    <BarChart data={topProductsFormatted} layout="vertical" margin={{ left: 10, right: 20 }}>
+                    <BarChart data={topProductsFormatted} layout="vertical" margin={{ left: 30, right: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={theme.stroke} horizontal={false} />
                       <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => formatBRL(v)} />
-                      <YAxis type="category" dataKey="shortName" width={140} tick={{ fontSize: 11 }} />
+                      <YAxis type="category" dataKey="shortName" width={170} tick={renderProductTick as never} />
                       <Tooltip
                         formatter={(v: number) => [formatBRL(v), t("dashboard.chartRevenue")]}
                         labelFormatter={(label) => label}

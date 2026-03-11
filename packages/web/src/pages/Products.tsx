@@ -9,7 +9,7 @@ import { useGatewayStore } from "../stores/gateway.store.js";
 import { calcIdealPrice, MARKETPLACES, formatBRL } from "@mimos/shared";
 import type { Product } from "@mimos/shared";
 import type { Marketplace } from "@mimos/shared";
-import { Plus, Search, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Package } from "lucide-react";
 
 interface GatewayPriceInfo {
   id: string;
@@ -64,11 +64,12 @@ export default function Products() {
       await updateProduct(editProduct.id, data);
       setDialogOpen(false);
       setEditProduct(null);
-    } else {
-      const created = await createProduct(data);
-      setEditProduct(created);
+      loadProducts();
+      return;
     }
+    const created = await createProduct(data);
     loadProducts();
+    return created;
   };
 
   const handleDeleteConfirm = async () => {
@@ -141,8 +142,19 @@ export default function Products() {
                     return (
                       <tr key={product.id} className="border-b border-stroke/50 hover:bg-rosa-light/30 transition-colors animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
                         <td className="px-4 py-3">
-                          <p className="text-[14px] font-semibold text-text-dark">{product.name}</p>
-                          {product.supplier && <p className="text-[11px] text-text-muted">{product.supplier}</p>}
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-page-bg border border-stroke flex items-center justify-center overflow-hidden shrink-0">
+                              {product.imageUrl ? (
+                                <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <Package size={16} className="text-text-muted" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-[14px] font-semibold text-text-dark">{product.name}</p>
+                              {product.supplier && <p className="text-[11px] text-text-muted">{product.supplier}</p>}
+                            </div>
+                          </div>
                         </td>
                         <td className="text-center px-3 py-3">
                           <span className={`text-[13px] font-semibold ${product.quantity <= 5 ? "text-red-500" : "text-text-dark"}`}>
