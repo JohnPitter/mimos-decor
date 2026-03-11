@@ -193,7 +193,8 @@ export default function Dashboard() {
               <LineChart data={salesByDayFormatted}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0e0e0" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
+                <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${v}`} />
                 <Tooltip
                   formatter={(value: number, name: string) => [
                     name === "count" ? value : formatBRL(value),
@@ -202,12 +203,23 @@ export default function Dashboard() {
                   labelFormatter={(label) => label}
                 />
                 <Line
+                  yAxisId="left"
                   type="monotone"
                   dataKey="count"
-                  name={t("dashboard.chartSales")}
+                  name="count"
                   stroke="#ff914d"
                   strokeWidth={2.5}
                   dot={{ fill: "#ff914d", r: 4 }}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="revenue"
+                  name="revenue"
+                  stroke="#3D2C2C"
+                  strokeWidth={2}
+                  dot={{ fill: "#3D2C2C", r: 3 }}
+                  strokeDasharray="5 5"
                 />
               </LineChart>
             </ResponsiveContainer>

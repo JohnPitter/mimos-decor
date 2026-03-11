@@ -31,13 +31,22 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       _count: true,
       _sum: { salePrice: true },
     }),
-    prisma.$queryRaw`
-      SELECT DATE(created_at) as date, COUNT(*)::int as count, SUM(sale_price) as revenue
-      FROM sales
-      WHERE created_at >= ${startOfMonth}
-      GROUP BY DATE(created_at)
-      ORDER BY date
-    ` as Promise<{ date: string; count: number; revenue: number }[]>,
+    (params.startDate && params.endDate
+      ? prisma.$queryRaw`
+          SELECT DATE(created_at) as date, COUNT(*)::int as count, SUM(sale_price) as revenue
+          FROM sales
+          WHERE created_at >= ${new Date(params.startDate)} AND created_at <= ${new Date(params.endDate)}
+          GROUP BY DATE(created_at)
+          ORDER BY date
+        `
+      : prisma.$queryRaw`
+          SELECT DATE(created_at) as date, COUNT(*)::int as count, SUM(sale_price) as revenue
+          FROM sales
+          WHERE created_at >= ${startOfMonth}
+          GROUP BY DATE(created_at)
+          ORDER BY date
+        `
+    ) as Promise<{ date: string; count: number; revenue: number }[]>,
     prisma.$queryRaw`
       SELECT si.product_id as "productId", COUNT(*)::int as count, SUM(si.sale_price * si.quantity) as revenue
       FROM sale_items si
@@ -73,7 +82,11 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       count: g._count,
       revenue: g._sum.salePrice ?? 0,
     })),
-    salesByDay,
+    salesByDay: salesByDay.map((d) => ({
+      date: d.date,
+      count: d.count,
+      revenue: Number(d.revenue) || 0,
+    })),
     topProducts: topProducts.map((p) => ({
       productName: productMap.get(p.productId) ?? "Desconhecido",
       count: p.count,
