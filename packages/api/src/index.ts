@@ -46,8 +46,8 @@ app.use("/api/audit-logs", auditLogRouter);
 if (isProduction) {
   const webDist = path.resolve(__dirname, "../../web/dist");
   app.use(express.static(webDist));
-  // SPA fallback: any non-API route returns index.html
-  app.get("*", (_req, res) => {
+  // SPA fallback: any non-API route returns index.html (Express 5 syntax)
+  app.get("{*path}", (_req, res) => {
     res.sendFile(path.join(webDist, "index.html"));
   });
 }
