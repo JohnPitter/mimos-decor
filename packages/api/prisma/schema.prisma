@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+}
+
+enum Gateway {
+  SHOPEE_CNPJ
+  SHOPEE_CPF
+  ML_CLASSICO
+  ML_PREMIUM
+}
+
+enum DeliveryStatus {
+  PENDING
+  PREPARING
+  SHIPPED
+  IN_TRANSIT
+  DELIVERED
+  RETURNED
+  CANCELLED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum AuditEntity {
+  PRODUCT
+  SALE
+  USER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(OPERATOR)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sales                Sale[]
+  deliveryStatusChanges DeliveryStatusHistory[]
+  auditLogs            AuditLog[]
+
+  @@map("users")
+}
+
+model Product {
+  id            String  @id @default(cuid())
+  name          String
+  unitPrice     Float   @map("unit_price")
+  quantity      Int     @default(0)
+  supplier      String?
+  shippingCost  Float   @map("shipping_cost")
+  desiredMargin Float   @default(20) @map("desired_margin")
+  taxRate       Float   @default(0) @map("tax_rate")
+  packagingCost Float   @default(0) @map("packaging_cost")
+  laborCost     Float   @default(0) @map("labor_cost")
+  otherCosts    Float   @default(0) @map("other_costs")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  sales Sale[]
+
+  @@map("products")
+}
+
+model Sale {
+  id               String         @id @default(cuid())
+  productId        String         @map("product_id")
+  quantity         Int
+  gateway          Gateway
+  salePrice        Float          @map("sale_price")
+  unitCost         Float          @map("unit_cost")
+  totalFees        Float          @map("total_fees")
+  netRevenue       Float          @map("net_revenue")
+  profit           Float
+  customerName     String?        @map("customer_name")
+  customerDocument String?        @map("customer_document")
+  deliveryStatus   DeliveryStatus @default(PENDING) @map("delivery_status")
+  trackingCode     String?        @map("tracking_code")
+  importedFrom     String?        @map("imported_from")
+  createdById      String         @map("created_by_id")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  product          Product        @relation(fields: [productId], references: [id])
+  createdBy        User           @relation(fields: [createdById], references: [id])
+  statusHistory    DeliveryStatusHistory[]
+
+  @@index([productId])
+  @@index([gateway])
+  @@index([deliveryStatus])
+  @@index([createdAt])
+  @@map("sales")
+}
+
+model DeliveryStatusHistory {
+  id          String         @id @default(cuid())
+  saleId      String         @map("sale_id")
+  fromStatus  DeliveryStatus @map("from_status")
+  toStatus    DeliveryStatus @map("to_status")
+  changedById String         @map("changed_by_id")
+  changedAt   DateTime       @default(now()) @map("changed_at")
+
+  sale      Sale @relation(fields: [saleId], references: [id])
+  changedBy User @relation(fields: [changedById], references: [id])
+
+  @@index([saleId])
+  @@map("delivery_status_history")
+}
+
+model AuditLog {
+  id        String      @id @default(cuid())
+  userId    String      @map("user_id")
+  action    AuditAction
+  entity    AuditEntity
+  entityId  String      @map("entity_id")
+  oldData   Json?       @map("old_data")
+  newData   Json?       @map("new_data")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
