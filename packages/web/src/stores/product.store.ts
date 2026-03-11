@@ -7,7 +7,7 @@ interface ProductState {
   total: number;
   loading: boolean;
   fetchProducts: (params?: { search?: string; page?: number }) => Promise<void>;
-  createProduct: (data: Partial<Product>) => Promise<void>;
+  createProduct: (data: Partial<Product>) => Promise<Product>;
   updateProduct: (id: string, data: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
 }
@@ -30,7 +30,7 @@ export const useProductStore = create<ProductState>((set) => ({
     }
   },
   createProduct: async (data) => {
-    await api.post("/products", data);
+    return api.post<Product>("/products", data);
   },
   updateProduct: async (id, data) => {
     await api.put(`/products/${id}`, data);

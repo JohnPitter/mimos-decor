@@ -62,11 +62,12 @@ export default function Products() {
   const handleSubmit = async (data: Record<string, unknown>) => {
     if (editProduct) {
       await updateProduct(editProduct.id, data);
+      setDialogOpen(false);
+      setEditProduct(null);
     } else {
-      await createProduct(data);
+      const created = await createProduct(data);
+      setEditProduct(created);
     }
-    setDialogOpen(false);
-    setEditProduct(null);
     loadProducts();
   };
 
