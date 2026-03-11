@@ -65,7 +65,7 @@ export default function Profile() {
   return (
     <div>
       <Header title={t("profile.title")} />
-      <div className="p-6 max-w-2xl mx-auto space-y-6 animate-fade-in">
+      <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-5 sm:space-y-6 animate-fade-in">
         {/* User Card */}
         <div className="bg-card-bg border border-stroke rounded-xl p-6 animate-fade-in-up">
           <div className="flex items-center gap-4 mb-6">

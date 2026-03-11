@@ -27,7 +27,7 @@ authRouter.post("/login", async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000,
     });
     logger.info(`User ${user.email} logged in`, "auth");
-    res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, createdAt: user.createdAt } });
   } catch (err) {
     logger.error("Login error", "auth", { error: String(err) });
     res.status(500).json({ error: "Erro interno" });

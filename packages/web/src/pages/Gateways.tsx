@@ -180,7 +180,7 @@ export default function Gateways() {
     <div className="flex-1 flex flex-col">
       <Header title={t("gateways.title")} />
 
-      <main className="flex-1 p-6 overflow-y-auto animate-fade-in">
+      <main className="flex-1 p-4 sm:p-6 overflow-y-auto animate-fade-in">
         <div className="flex items-center justify-between mb-6">
           <p className="text-[13px] text-text-muted">
             {allGateways.length} gateways ({BUILT_IN_GATEWAYS.length} {t("gateways.builtIn")} + {customGateways.length} {t("gateways.custom")})
@@ -289,7 +289,7 @@ export default function Gateways() {
       {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setModalOpen(false)}>
-          <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-scale-in" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-scale-in mx-4 sm:mx-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-stroke">
               <h2 className="text-[18px] font-bold text-text-dark">
                 {editingGateway ? t("gateways.editGateway") : t("gateways.newGateway")}

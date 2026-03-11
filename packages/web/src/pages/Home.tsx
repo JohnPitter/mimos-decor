@@ -23,11 +23,11 @@ export function Home() {
       {/* Hero */}
       <section className="pt-32 pb-20 bg-gradient-to-b from-rosa-light to-page-bg">
         <div className="max-w-6xl mx-auto px-6 text-center">
-          <img src="/logo.png" alt="Mimos Decor" className="w-32 h-32 mx-auto mb-8 drop-shadow-lg" />
-          <h1 className="text-[42px] font-extrabold text-text-dark tracking-tight leading-tight mb-4">
+          <img src="/logo.png" alt="Mimos Decor" className="w-24 sm:w-32 h-24 sm:h-32 mx-auto mb-6 sm:mb-8 drop-shadow-lg" />
+          <h1 className="text-[28px] sm:text-[42px] font-extrabold text-text-dark tracking-tight leading-tight mb-4">
             Decoracao com carinho
           </h1>
-          <p className="text-[18px] text-text-secondary max-w-xl mx-auto leading-relaxed mb-8">
+          <p className="text-[15px] sm:text-[18px] text-text-secondary max-w-xl mx-auto leading-relaxed mb-8">
             Transformamos ambientes com pecas unicas e selecionadas. Cada detalhe pensado para tornar sua casa mais acolhedora.
           </p>
           <Link

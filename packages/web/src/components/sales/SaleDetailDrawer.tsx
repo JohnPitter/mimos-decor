@@ -103,7 +103,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
       />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 h-screen w-[480px] z-50 bg-card-bg border-l border-stroke shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
+      <div className="fixed right-0 top-0 h-screen w-full sm:w-[480px] z-50 bg-card-bg border-l border-stroke shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-stroke sticky top-0 bg-card-bg z-10">
           <h2 className="text-[18px] font-bold text-text-dark">{t("sales.saleDetails")}</h2>

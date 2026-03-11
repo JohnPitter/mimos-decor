@@ -5,7 +5,7 @@ import { prisma } from "../lib/prisma.js";
 declare global {
   namespace Express {
     interface Request {
-      user?: { id: string; name: string; email: string; role: string };
+      user?: { id: string; name: string; email: string; role: string; createdAt: Date };
     }
   }
 }
@@ -20,7 +20,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     const payload = verifyToken(token);
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, name: true, email: true, role: true },
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
     });
     if (!user) {
       res.status(401).json({ error: "Usuário não encontrado" });

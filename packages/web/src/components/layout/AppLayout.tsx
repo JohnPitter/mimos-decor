@@ -13,7 +13,7 @@ export function AppLayout() {
   return (
     <div className="min-h-screen">
       <Sidebar />
-      <main className="ml-[220px] min-h-screen">
+      <main className="min-h-screen lg:ml-[220px]">
         <Outlet />
       </main>
     </div>

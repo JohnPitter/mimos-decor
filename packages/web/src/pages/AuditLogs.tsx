@@ -55,7 +55,7 @@ export default function AuditLogs() {
     <div className="flex-1 flex flex-col">
       <Header title={t("auditLogs.title")} />
 
-      <main className="flex-1 p-6 overflow-y-auto animate-fade-in">
+      <main className="flex-1 p-4 sm:p-6 overflow-y-auto animate-fade-in">
         {/* Filters */}
         <div className="bg-card-bg rounded-xl border border-stroke p-4 mb-6 animate-fade-in-down">
           <div className="flex flex-wrap items-end gap-3">

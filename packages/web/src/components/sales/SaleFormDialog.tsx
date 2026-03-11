@@ -141,7 +141,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
       onClick={onClose}
     >
       <div
-        className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scale-in"
+        className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scale-in mx-4 sm:mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b border-stroke">
@@ -193,66 +193,70 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
                   return (
                     <div
                       key={item.key}
-                      className="flex items-center gap-2 bg-page-bg rounded-lg p-3 border border-stroke/50 animate-fade-in-up"
+                      className="bg-page-bg rounded-lg p-3 border border-stroke/50 animate-fade-in-up"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      {/* Product select */}
-                      <div className="flex-1 min-w-0">
-                        <select
-                          value={item.productId}
-                          onChange={(e) => updateItem(item.key, { productId: e.target.value })}
-                          className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                      <div className="flex items-center gap-2">
+                        {/* Product select */}
+                        <div className="flex-1 min-w-0">
+                          <select
+                            value={item.productId}
+                            onChange={(e) => updateItem(item.key, { productId: e.target.value })}
+                            className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                          >
+                            <option value="">{t("sales.selectProduct")}</option>
+                            {products.map((p) => (
+                              <option
+                                key={p.id}
+                                value={p.id}
+                                disabled={usedProductIds.has(p.id) && item.productId !== p.id}
+                              >
+                                {p.name} (est: {p.quantity})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Quantity */}
+                        <div className="w-16 sm:w-20">
+                          <input
+                            type="number"
+                            min={1}
+                            value={item.quantity}
+                            onChange={(e) => updateItem(item.key, { quantity: Math.max(1, Number(e.target.value)) })}
+                            className="w-full px-2 sm:px-2.5 py-2 border border-stroke rounded-lg text-[13px] text-center bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                            placeholder="Qtd"
+                          />
+                        </div>
+
+                        {/* Remove button */}
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.key)}
+                          disabled={items.length <= 1}
+                          className="p-1.5 text-text-muted hover:text-red-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
                         >
-                          <option value="">{t("sales.selectProduct")}</option>
-                          {products.map((p) => (
-                            <option
-                              key={p.id}
-                              value={p.id}
-                              disabled={usedProductIds.has(p.id) && item.productId !== p.id}
-                            >
-                              {p.name} (est: {p.quantity})
-                            </option>
-                          ))}
-                        </select>
+                          <Trash2 size={16} />
+                        </button>
                       </div>
 
-                      {/* Quantity */}
-                      <div className="w-20">
-                        <input
-                          type="number"
-                          min={1}
-                          value={item.quantity}
-                          onChange={(e) => updateItem(item.key, { quantity: Math.max(1, Number(e.target.value)) })}
-                          className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] text-center bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                          placeholder="Qtd"
-                        />
-                      </div>
-
-                      {/* Unit price (read-only) */}
-                      <div className="w-24 text-right">
-                        <p className="text-[11px] text-text-muted leading-tight">Unit.</p>
-                        <p className="text-[13px] font-semibold text-text-dark">
-                          {pricing.unitPrice > 0 ? formatBRL(pricing.unitPrice) : "—"}
-                        </p>
-                      </div>
-
-                      {/* Subtotal (read-only) */}
-                      <div className="w-24 text-right">
-                        <p className="text-[11px] text-text-muted leading-tight">Subtotal</p>
-                        <p className="text-[13px] font-bold text-text-dark">
-                          {pricing.subtotal > 0 ? formatBRL(pricing.subtotal) : "—"}
-                        </p>
-                      </div>
-
-                      {/* Remove button */}
-                      <button
-                        type="button"
-                        onClick={() => removeItem(item.key)}
-                        disabled={items.length <= 1}
-                        className="p-1.5 text-text-muted hover:text-red-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {/* Pricing row */}
+                      {pricing.unitPrice > 0 && (
+                        <div className="flex items-center gap-4 mt-2 pt-2 border-t border-stroke/30">
+                          <div className="text-left">
+                            <p className="text-[10px] text-text-muted leading-tight">Unit.</p>
+                            <p className="text-[12px] sm:text-[13px] font-semibold text-text-dark">
+                              {formatBRL(pricing.unitPrice)}
+                            </p>
+                          </div>
+                          <div className="text-left">
+                            <p className="text-[10px] text-text-muted leading-tight">Subtotal</p>
+                            <p className="text-[12px] sm:text-[13px] font-bold text-text-dark">
+                              {formatBRL(pricing.subtotal)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -298,7 +302,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
           )}
 
           {/* Customer fields */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
                 {t("sales.customerName")}

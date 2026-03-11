@@ -54,7 +54,7 @@ export function ImportCSVDialog({ open, onClose, onImported }: Props) {
       onClick={handleClose}
     >
       <div
-        className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-scale-in"
+        className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-scale-in mx-4 sm:mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b border-stroke">

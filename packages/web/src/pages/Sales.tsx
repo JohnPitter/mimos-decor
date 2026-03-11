@@ -75,15 +75,15 @@ export default function Sales() {
   return (
     <div>
       <Header title={t("sales.title")} />
-      <div className="p-6 animate-fade-in">
+      <div className="p-4 sm:p-6 animate-fade-in">
         {/* Actions bar */}
-        <div className="flex items-center justify-between mb-6 animate-fade-in-down">
-          <div className="flex items-center gap-1 bg-page-bg border border-stroke rounded-lg p-1">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 animate-fade-in-down">
+          <div className="flex items-center gap-1 bg-page-bg border border-stroke rounded-lg p-1 overflow-x-auto">
             {TABS.map((tab) => (
               <button
                 key={tab.labelKey}
                 onClick={() => setActiveTab(tab.status)}
-                className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all duration-200 ${
+                className={`px-3 sm:px-4 py-2 rounded-md text-[12px] sm:text-[13px] font-semibold transition-all duration-200 whitespace-nowrap ${
                   activeTab === tab.status
                     ? "bg-primary text-white shadow-sm"
                     : "text-text-secondary hover:text-text-dark hover:bg-card-bg"
@@ -94,16 +94,16 @@ export default function Sales() {
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setImportDialogOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 border border-stroke rounded-lg text-[14px] font-medium text-text-secondary hover:bg-page-bg transition-colors hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2.5 border border-stroke rounded-lg text-[13px] sm:text-[14px] font-medium text-text-secondary hover:bg-page-bg transition-colors hover:scale-[1.02] active:scale-[0.98]"
             >
-              <Upload size={16} /> {t("sales.importCSV")}
+              <Upload size={16} /> <span className="hidden sm:inline">{t("sales.importCSV")}</span><span className="sm:hidden">CSV</span>
             </button>
             <button
               onClick={() => setSaleDialogOpen(true)}
-              className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-lg font-semibold text-[14px] transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-3 sm:px-4 py-2.5 rounded-lg font-semibold text-[13px] sm:text-[14px] transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <Plus size={16} /> {t("sales.newSale")}
             </button>
