@@ -111,14 +111,15 @@ model Sale {
 }
 
 model SaleItem {
-  id        String  @id @default(cuid())
-  saleId    String  @map("sale_id")
-  productId String? @map("product_id")
-  quantity  Int
-  salePrice Float   @map("sale_price")
-  unitCost  Float   @map("unit_cost")
-  totalFees Float   @map("total_fees")
-  profit    Float
+  id          String  @id @default(cuid())
+  saleId      String  @map("sale_id")
+  productId   String? @map("product_id")
+  productName String  @default("") @map("product_name")
+  quantity    Int
+  salePrice   Float   @map("sale_price")
+  unitCost    Float   @map("unit_cost")
+  totalFees   Float   @map("total_fees")
+  profit      Float
 
   sale    Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
   product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)

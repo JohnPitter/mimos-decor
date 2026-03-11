@@ -33,12 +33,12 @@ const SALE_ITEMS_INCLUDE = {
   },
 } as const;
 
-function mapSaleItems(sale: { items: { product: { name: string } | null; [k: string]: unknown }[]; [k: string]: unknown }) {
+function mapSaleItems(sale: { items: { product: { name: string } | null; productName: string; [k: string]: unknown }[]; [k: string]: unknown }) {
   return {
     ...sale,
     items: sale.items.map((item) => ({
       ...item,
-      productName: item.product?.name ?? "Produto removido",
+      productName: item.product?.name ?? item.productName,
       product: undefined,
     })),
   };
@@ -115,6 +115,7 @@ export async function createSale(data: {
 
   const saleItems: {
     productId: string;
+    productName: string;
     quantity: number;
     salePrice: number;
     unitCost: number;
@@ -147,6 +148,7 @@ export async function createSale(data: {
 
     saleItems.push({
       productId: item.productId,
+      productName: product.name,
       quantity: item.quantity,
       salePrice: pricing.salePrice,
       unitCost,
