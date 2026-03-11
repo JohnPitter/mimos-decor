@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
+import { Toaster } from "sonner";
 import { useAuthStore } from "./stores/auth.store.js";
+import { useSettingsStore } from "./stores/settings.store.js";
 import { AppLayout } from "./components/layout/AppLayout.js";
 import { ProtectedRoute } from "./components/common/ProtectedRoute.js";
 import { Home } from "./pages/Home.js";
@@ -15,6 +17,7 @@ const UsersPage = lazy(() => import("./pages/Users.js"));
 const AuditLogs = lazy(() => import("./pages/AuditLogs.js"));
 const Profile = lazy(() => import("./pages/Profile.js"));
 const Gateways = lazy(() => import("./pages/Gateways.js"));
+const Settings = lazy(() => import("./pages/Settings.js"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-[60vh]">
@@ -24,13 +27,26 @@ const PageLoader = () => (
 
 export default function App() {
   const checkAuth = useAuthStore((s) => s.checkAuth);
+  const applyTheme = useSettingsStore((s) => s.applyTheme);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
+  useEffect(() => {
+    applyTheme();
+  }, [applyTheme]);
+
   return (
     <BrowserRouter>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: { fontFamily: "var(--font-sans)" },
+        }}
+        richColors
+        closeButton
+      />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -43,6 +59,7 @@ export default function App() {
           <Route path="logs" element={<ProtectedRoute adminOnly><Suspense fallback={<PageLoader />}><AuditLogs /></Suspense></ProtectedRoute>} />
           <Route path="profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
           <Route path="gateways" element={<ProtectedRoute adminOnly><Suspense fallback={<PageLoader />}><Gateways /></Suspense></ProtectedRoute>} />
+          <Route path="settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
         </Route>
       </Routes>
     </BrowserRouter>

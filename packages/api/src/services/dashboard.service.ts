@@ -1,9 +1,10 @@
 import { prisma } from "../lib/prisma.js";
 
-export async function getDashboardData(params: { startDate?: string; endDate?: string }) {
+export async function getDashboardData(params: { startDate?: string; endDate?: string; topN?: number }) {
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const topN = Math.min(Math.max(params.topN ?? 5, 1), 50);
 
   const dateFilter = params.startDate || params.endDate
     ? {
@@ -52,9 +53,10 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       FROM sale_items si
       JOIN sales s ON si.sale_id = s.id
       WHERE s.created_at >= ${startOfMonth}
+        AND si.product_id IS NOT NULL
       GROUP BY si.product_id
-      ORDER BY count DESC
-      LIMIT 5
+      ORDER BY revenue DESC
+      LIMIT ${topN}
     ` as Promise<{ productId: string; count: number; revenue: number }[]>,
     prisma.product.findMany({
       where: { quantity: { lte: 5 } },
@@ -64,12 +66,12 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
     }),
   ]);
 
-  const topProductIds = topProducts.map((p) => p.productId);
+  const topProductIds = topProducts.map((p) => p.productId).filter(Boolean);
   const products = await prisma.product.findMany({
     where: { id: { in: topProductIds } },
-    select: { id: true, name: true },
+    select: { id: true, name: true, imageUrl: true },
   });
-  const productMap = new Map(products.map((p) => [p.id, p.name]));
+  const productMap = new Map(products.map((p) => [p.id, { name: p.name, imageUrl: p.imageUrl }]));
 
   return {
     totalSalesToday: todaySales._count,
@@ -87,11 +89,15 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       count: d.count,
       revenue: Number(d.revenue) || 0,
     })),
-    topProducts: topProducts.map((p) => ({
-      productName: productMap.get(p.productId) ?? "Desconhecido",
-      count: p.count,
-      revenue: Number(p.revenue) || 0,
-    })),
+    topProducts: topProducts.map((p) => {
+      const info = productMap.get(p.productId);
+      return {
+        productName: info?.name ?? "Produto removido",
+        productImageUrl: info?.imageUrl ?? null,
+        count: p.count,
+        revenue: Number(p.revenue) || 0,
+      };
+    }),
     lowStockProducts,
   };
 }

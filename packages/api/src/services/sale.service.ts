@@ -33,12 +33,12 @@ const SALE_ITEMS_INCLUDE = {
   },
 } as const;
 
-function mapSaleItems(sale: { items: { product: { name: string }; [k: string]: unknown }[]; [k: string]: unknown }) {
+function mapSaleItems(sale: { items: { product: { name: string } | null; [k: string]: unknown }[]; [k: string]: unknown }) {
   return {
     ...sale,
     items: sale.items.map((item) => ({
       ...item,
-      productName: item.product.name,
+      productName: item.product?.name ?? "Produto removido",
       product: undefined,
     })),
   };

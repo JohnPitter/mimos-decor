@@ -35,6 +35,9 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// Serve uploaded files
+app.use("/uploads", express.static(path.resolve("uploads")));
+
 // API Routes
 app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);

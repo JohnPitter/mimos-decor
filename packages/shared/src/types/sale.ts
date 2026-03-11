@@ -29,7 +29,7 @@ export const DELIVERY_STATUS_COLORS: Record<DeliveryStatus, string> = {
 export interface SaleItem {
   id: string;
   saleId: string;
-  productId: string;
+  productId: string | null;
   productName: string;
   quantity: number;
   salePrice: number;
@@ -100,6 +100,6 @@ export interface SaleDashboard {
   averageTicket: number;
   salesByGateway: { gateway: GatewayId; count: number; revenue: number }[];
   salesByDay: { date: string; count: number; revenue: number }[];
-  topProducts: { productName: string; count: number; revenue: number }[];
+  topProducts: { productName: string; productImageUrl: string | null; count: number; revenue: number }[];
   lowStockProducts: LowStockProduct[];
 }

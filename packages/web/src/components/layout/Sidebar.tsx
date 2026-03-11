@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, Package, ShoppingCart, Users, ScrollText, LogOut, UserCircle, Plug } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, ScrollText, LogOut, UserCircle, Plug, Settings } from "lucide-react";
 import { useAuthStore } from "../../stores/auth.store.js";
 import { useSidebarStore } from "../../stores/sidebar.store.js";
 import { useEffect } from "react";
@@ -71,6 +71,19 @@ export function Sidebar() {
         </nav>
 
         <div className="p-3 border-t border-white/10 space-y-1">
+          <NavLink
+            to="/app/settings"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-all duration-200 ${
+                isActive
+                  ? "bg-primary text-white shadow-md"
+                  : "text-white/70 hover:text-white hover:bg-sidebar-hover"
+              }`
+            }
+          >
+            <Settings size={18} />
+            {t("nav.settings")}
+          </NavLink>
           <NavLink
             to="/app/profile"
             className={({ isActive }) =>

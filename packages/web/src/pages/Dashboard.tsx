@@ -20,9 +20,6 @@ import {
   Bar,
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -30,7 +27,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const PIE_COLORS = ["#ff914d", "#fac6cd", "#3D2C2C", "#6B5E5E", "#e8a5ae"];
+const TOP_N_OPTIONS = [5, 10, 20, 50];
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -41,14 +38,15 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [showFilter, setShowFilter] = useState(false);
+  const [topN, setTopN] = useState(5);
 
   const isCurrentMonth = selectedMonth === now.getMonth() + 1 && selectedYear === now.getFullYear();
 
   useEffect(() => {
     const startDate = new Date(selectedYear, selectedMonth - 1, 1).toISOString();
     const endDate = new Date(selectedYear, selectedMonth, 0, 23, 59, 59, 999).toISOString();
-    fetchDashboard(startDate, endDate);
-  }, [fetchDashboard, selectedMonth, selectedYear]);
+    fetchDashboard(startDate, endDate, topN);
+  }, [fetchDashboard, selectedMonth, selectedYear, topN]);
 
   const STAT_CARDS = [
     { key: "totalSalesToday" as const, label: t("dashboard.salesToday"), icon: ShoppingCart, format: (v: number) => String(v) },
@@ -66,6 +64,15 @@ export default function Dashboard() {
       label: format(new Date(d.date), "dd/MM"),
     }));
   }, [data?.salesByDay]);
+
+  const topProductsFormatted = useMemo(() => {
+    return (data?.topProducts ?? []).map((p) => ({
+      ...p,
+      shortName: p.productName.length > 20 ? p.productName.slice(0, 18) + "…" : p.productName,
+    }));
+  }, [data?.topProducts]);
+
+  const topProductsHeight = Math.max(280, topProductsFormatted.length * 40 + 60);
 
   return (
     <div>
@@ -248,25 +255,67 @@ export default function Dashboard() {
 
           {/* Top Products Chart */}
           <div className="bg-card-bg border border-stroke rounded-xl p-6 lg:col-span-2 animate-fade-in-up" style={{ animationDelay: "400ms" }}>
-            <h3 className="text-[15px] font-bold text-text-dark mb-4">{t("dashboard.topProducts")}</h3>
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={data?.topProducts ?? []}
-                  dataKey="revenue"
-                  nameKey="productName"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  label={({ productName }) => productName}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[15px] font-bold text-text-dark">{t("dashboard.topProducts")}</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] text-text-muted">{t("dashboard.topNSelector")}</span>
+                <select
+                  value={topN}
+                  onChange={(e) => setTopN(Number(e.target.value))}
+                  className="px-2 py-1.5 border border-stroke rounded-lg text-[13px] text-text-dark bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/30"
                 >
-                  {data?.topProducts?.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  {TOP_N_OPTIONS.map((n) => (
+                    <option key={n} value={n}>Top {n}</option>
                   ))}
-                </Pie>
-                <Tooltip formatter={(v: number) => [formatBRL(v), t("dashboard.chartRevenue")]} />
-              </PieChart>
-            </ResponsiveContainer>
+                </select>
+              </div>
+            </div>
+            {topProductsFormatted.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-text-muted">
+                <Package size={36} className="mb-3 opacity-40" />
+                <p className="text-[13px]">{t("common.noResults")}</p>
+              </div>
+            ) : (
+              <div className="flex flex-col lg:flex-row gap-6">
+                {/* Bar chart */}
+                <div className="flex-1 min-w-0">
+                  <ResponsiveContainer width="100%" height={topProductsHeight}>
+                    <BarChart data={topProductsFormatted} layout="vertical" margin={{ left: 10, right: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0e0e0" horizontal={false} />
+                      <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => formatBRL(v)} />
+                      <YAxis type="category" dataKey="shortName" width={140} tick={{ fontSize: 11 }} />
+                      <Tooltip
+                        formatter={(v: number) => [formatBRL(v), t("dashboard.chartRevenue")]}
+                        labelFormatter={(label) => label}
+                      />
+                      <Bar dataKey="revenue" name={t("dashboard.chartRevenue")} fill="#ff914d" radius={[0, 6, 6, 0]} barSize={24} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Products list with images */}
+                <div className="w-full lg:w-[280px] shrink-0 space-y-2 max-h-[400px] overflow-y-auto">
+                  {topProductsFormatted.map((p, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-page-bg border border-stroke/50 hover:shadow-sm transition-all">
+                      <span className="text-[11px] font-bold text-text-muted w-5 text-center shrink-0">
+                        {i + 1}
+                      </span>
+                      <div className="w-8 h-8 rounded-lg bg-card-bg border border-stroke flex items-center justify-center overflow-hidden shrink-0">
+                        {p.productImageUrl ? (
+                          <img src={p.productImageUrl} alt={p.productName} className="w-full h-full object-cover" />
+                        ) : (
+                          <Package size={14} className="text-text-muted" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-semibold text-text-dark truncate">{p.productName}</p>
+                        <p className="text-[11px] text-text-muted">{p.count}x &middot; {formatBRL(p.revenue)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

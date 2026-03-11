@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Plus, Pencil, Trash2, X, Plug } from "lucide-react";
 import { Header } from "../components/layout/Header.js";
+import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
 import { BUILT_IN_GATEWAYS } from "@mimos/shared";
 import type { CustomGateway, CommissionTier, PixTier } from "@mimos/shared";
@@ -71,6 +73,7 @@ export default function Gateways() {
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<CustomGateway | null>(null);
 
   useEffect(() => { fetchGateways(); }, [fetchGateways]);
 
@@ -123,12 +126,15 @@ export default function Gateways() {
     }
   };
 
-  const handleDelete = async (gw: CustomGateway) => {
-    if (!confirm(t("gateways.deleteConfirm"))) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
     try {
-      await deleteGateway(gw.id);
+      await deleteGateway(deleteTarget.id);
+      toast.success(t("gateways.deleteSuccess"));
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro ao remover");
+      toast.error(err instanceof Error ? err.message : t("gateways.deleteError"));
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -263,7 +269,7 @@ export default function Gateways() {
                           <Pencil size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(gw)}
+                          onClick={() => setDeleteTarget(gw)}
                           className="p-2 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50 transition-all"
                         >
                           <Trash2 size={16} />
@@ -285,6 +291,16 @@ export default function Gateways() {
           </div>
         )}
       </main>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title={t("nav.deleteConfirmTitle")}
+        message={t("gateways.deleteConfirm")}
+        confirmLabel={t("common.delete")}
+        cancelLabel={t("common.cancel")}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
+      />
 
       {/* Modal */}
       {modalOpen && (

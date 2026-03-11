@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Header } from "../components/layout/Header.js";
 import { ProductFormDialog } from "../components/products/ProductFormDialog.js";
+import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
 import { useProductStore } from "../stores/product.store.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
 import { calcIdealPrice, MARKETPLACES, formatBRL } from "@mimos/shared";
@@ -45,6 +47,7 @@ export default function Products() {
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
@@ -67,10 +70,17 @@ export default function Products() {
     loadProducts();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t("products.deleteConfirm"))) return;
-    await deleteProduct(id);
-    loadProducts();
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+    try {
+      await deleteProduct(deleteId);
+      toast.success(t("products.deleteSuccess"));
+      loadProducts();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("products.deleteError"));
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   return (
@@ -155,7 +165,7 @@ export default function Products() {
                             <button onClick={() => { setEditProduct(product); setDialogOpen(true); }} className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-rosa-light transition-all">
                               <Pencil size={15} />
                             </button>
-                            <button onClick={() => handleDelete(product.id)} className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50 transition-all">
+                            <button onClick={() => setDeleteId(product.id)} className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50 transition-all">
                               <Trash2 size={15} />
                             </button>
                           </div>
@@ -191,6 +201,15 @@ export default function Products() {
       </div>
 
       <ProductFormDialog open={dialogOpen} product={editProduct} onClose={() => { setDialogOpen(false); setEditProduct(null); }} onSubmit={handleSubmit} />
+      <ConfirmDialog
+        open={!!deleteId}
+        title={t("nav.deleteConfirmTitle")}
+        message={t("products.deleteConfirm")}
+        confirmLabel={t("common.delete")}
+        cancelLabel={t("common.cancel")}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

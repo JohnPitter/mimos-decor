@@ -8,10 +8,11 @@ dashboardRouter.use(authMiddleware);
 
 dashboardRouter.get("/", async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, topN } = req.query;
     const data = await dashboardService.getDashboardData({
       startDate: startDate as string,
       endDate: endDate as string,
+      topN: topN ? Number(topN) : undefined,
     });
     res.json(data);
   } catch (err) {

@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.js";
 import { logger } from "../lib/logger.js";
+import { uploadProductImage } from "../lib/upload.js";
+import { prisma } from "../lib/prisma.js";
 import * as productService from "../services/product.service.js";
 
 export const productRouter = Router();
@@ -63,6 +65,26 @@ productRouter.delete("/:id", async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     logger.error("Delete product error", "product", { error: String(err) });
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+productRouter.post("/:id/image", uploadProductImage.single("image"), async (req, res) => {
+  try {
+    const id = req.params.id as string;
+    if (!req.file) {
+      res.status(400).json({ error: "Nenhuma imagem enviada" });
+      return;
+    }
+    const imageUrl = `/uploads/products/${req.file.filename}`;
+    const product = await prisma.product.update({
+      where: { id },
+      data: { imageUrl },
+    });
+    logger.info(`Product image uploaded: ${product.name}`, "product");
+    res.json({ imageUrl: product.imageUrl });
+  } catch (err) {
+    logger.error("Upload product image error", "product", { error: String(err) });
     res.status(500).json({ error: "Erro interno" });
   }
 });

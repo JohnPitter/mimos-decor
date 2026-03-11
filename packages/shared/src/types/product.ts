@@ -4,6 +4,7 @@ export interface Product {
   unitPrice: number;
   quantity: number;
   supplier: string | null;
+  imageUrl: string | null;
   shippingCost: number;
   desiredMargin: number;
   taxRate: number;

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Plus, Pencil, Trash2, X, Users as UsersIcon } from "lucide-react";
 import { Header } from "../components/layout/Header.js";
+import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
 import { useUserStore } from "../stores/user.store.js";
 import type { UserRole } from "@mimos/shared";
 
@@ -23,6 +25,7 @@ export default function Users() {
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers(page);
@@ -64,12 +67,15 @@ export default function Users() {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(t("users.deleteConfirm"))) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
     try {
-      await deleteUser(id);
+      await deleteUser(deleteId);
+      toast.success(t("users.deleteSuccess"));
     } catch (err) {
-      alert(err instanceof Error ? err.message : t("profile.updateError"));
+      toast.error(err instanceof Error ? err.message : t("users.deleteError"));
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -151,7 +157,7 @@ export default function Users() {
                           <Pencil size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(user.id, user.name)}
+                          onClick={() => setDeleteId(user.id)}
                           className="p-2 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50 transition-all"
                           title={t("common.delete")}
                         >
@@ -187,6 +193,16 @@ export default function Users() {
           </div>
         )}
       </main>
+
+      <ConfirmDialog
+        open={!!deleteId}
+        title={t("nav.deleteConfirmTitle")}
+        message={t("users.deleteConfirm")}
+        confirmLabel={t("common.delete")}
+        cancelLabel={t("common.cancel")}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteId(null)}
+      />
 
       {/* Modal */}
       {modalOpen && (

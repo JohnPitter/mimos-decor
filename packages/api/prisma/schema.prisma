@@ -68,6 +68,7 @@ model Product {
   unitPrice     Float   @map("unit_price")
   quantity      Int     @default(0)
   supplier      String?
+  imageUrl      String? @map("image_url")
   shippingCost  Float   @map("shipping_cost")
   desiredMargin Float   @default(20) @map("desired_margin")
   taxRate       Float   @default(0) @map("tax_rate")
@@ -110,17 +111,17 @@ model Sale {
 }
 
 model SaleItem {
-  id        String @id @default(cuid())
-  saleId    String @map("sale_id")
-  productId String @map("product_id")
+  id        String  @id @default(cuid())
+  saleId    String  @map("sale_id")
+  productId String? @map("product_id")
   quantity  Int
-  salePrice Float  @map("sale_price")
-  unitCost  Float  @map("unit_cost")
-  totalFees Float  @map("total_fees")
+  salePrice Float   @map("sale_price")
+  unitCost  Float   @map("unit_cost")
+  totalFees Float   @map("total_fees")
   profit    Float
 
-  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  sale    Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([saleId])
   @@index([productId])
