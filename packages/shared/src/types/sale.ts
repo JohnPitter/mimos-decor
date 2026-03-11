@@ -3,7 +3,6 @@ import type { GatewayId } from "./product.js";
 export type DeliveryStatus =
   | "PENDING"
   | "PREPARING"
-  | "SHIPPED"
   | "IN_TRANSIT"
   | "DELIVERED"
   | "RETURNED"
@@ -12,7 +11,6 @@ export type DeliveryStatus =
 export const DELIVERY_STATUS_LABELS: Record<DeliveryStatus, string> = {
   PENDING: "Pendente",
   PREPARING: "Preparando",
-  SHIPPED: "Enviado",
   IN_TRANSIT: "Em Trânsito",
   DELIVERED: "Entregue",
   RETURNED: "Devolvido",
@@ -22,8 +20,7 @@ export const DELIVERY_STATUS_LABELS: Record<DeliveryStatus, string> = {
 export const DELIVERY_STATUS_COLORS: Record<DeliveryStatus, string> = {
   PENDING: "yellow",
   PREPARING: "blue",
-  SHIPPED: "indigo",
-  IN_TRANSIT: "purple",
+  IN_TRANSIT: "indigo",
   DELIVERED: "green",
   RETURNED: "orange",
   CANCELLED: "red",

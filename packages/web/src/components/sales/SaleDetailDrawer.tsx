@@ -39,7 +39,6 @@ const TIMELINE_DOT_MAP: Record<string, string> = {
 const ALL_STATUSES: DeliveryStatus[] = [
   "PENDING",
   "PREPARING",
-  "SHIPPED",
   "IN_TRANSIT",
   "DELIVERED",
   "RETURNED",

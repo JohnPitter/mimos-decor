@@ -22,7 +22,6 @@ enum Gateway {
 enum DeliveryStatus {
   PENDING
   PREPARING
-  SHIPPED
   IN_TRANSIT
   DELIVERED
   RETURNED
