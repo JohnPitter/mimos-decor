@@ -21,6 +21,9 @@ import {
   Bar,
   LineChart,
   Line,
+  PieChart,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -68,38 +71,13 @@ export default function Dashboard() {
   }, [data?.salesByDay]);
 
   const topProductsFormatted = useMemo(() => {
-    return (data?.topProducts ?? []).map((p) => ({
-      ...p,
-      shortName: p.productName.length > 18 ? p.productName.slice(0, 16) + "…" : p.productName,
-    }));
+    return data?.topProducts ?? [];
   }, [data?.topProducts]);
 
-  const imageMap = useMemo(() => {
-    const map = new Map<string, string | null>();
-    for (const p of topProductsFormatted) {
-      map.set(p.shortName, p.productImageUrl);
-    }
-    return map;
-  }, [topProductsFormatted]);
-
-  const topProductsHeight = Math.max(280, topProductsFormatted.length * 44 + 60);
-
-  const renderProductTick = (props: { x: number; y: number; payload: { value: string } }) => {
-    const { x, y, payload } = props;
-    const imgUrl = imageMap.get(payload.value);
-    return (
-      <g transform={`translate(${x},${y})`}>
-        {imgUrl ? (
-          <image href={imgUrl} x={-160} y={-12} width={24} height={24} clipPath="inset(0 round 4px)" />
-        ) : (
-          <rect x={-160} y={-12} width={24} height={24} rx={4} fill={theme.stroke} opacity={0.5} />
-        )}
-        <text x={-130} y={4} textAnchor="start" fontSize={11} fill="#666">
-          {payload.value}
-        </text>
-      </g>
-    );
-  };
+  const PIE_COLORS = [
+    theme.primary, theme.sidebarBg, "#e8a5ae", "#6B5E5E", "#fac6cd",
+    "#4CAF50", "#2196F3", "#9C27B0", "#FF5722", "#00BCD4",
+  ];
 
   return (
     <div>
@@ -303,30 +281,42 @@ export default function Dashboard() {
                 <p className="text-[13px]">{t("common.noResults")}</p>
               </div>
             ) : (
-              <div className="flex flex-col lg:flex-row gap-6">
-                {/* Bar chart */}
+              <div className="flex flex-col lg:flex-row gap-6 items-center">
+                {/* Pie chart */}
                 <div className="flex-1 min-w-0">
-                  <ResponsiveContainer width="100%" height={topProductsHeight}>
-                    <BarChart data={topProductsFormatted} layout="vertical" margin={{ left: 30, right: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={theme.stroke} horizontal={false} />
-                      <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => formatBRL(v)} />
-                      <YAxis type="category" dataKey="shortName" width={170} tick={renderProductTick as never} />
-                      <Tooltip
-                        formatter={(v: number) => [formatBRL(v), t("dashboard.chartRevenue")]}
-                        labelFormatter={(label) => label}
-                      />
-                      <Bar dataKey="revenue" name={t("dashboard.chartRevenue")} fill={theme.primary} radius={[0, 6, 6, 0]} barSize={24} />
-                    </BarChart>
+                  <ResponsiveContainer width="100%" height={320}>
+                    <PieChart>
+                      <Pie
+                        data={topProductsFormatted}
+                        dataKey="revenue"
+                        nameKey="productName"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={120}
+                        innerRadius={50}
+                        paddingAngle={2}
+                        label={({ productName, percent }) =>
+                          `${productName.length > 14 ? productName.slice(0, 12) + "…" : productName} (${(percent * 100).toFixed(0)}%)`
+                        }
+                        labelLine={{ strokeWidth: 1 }}
+                      >
+                        {topProductsFormatted.map((_, i) => (
+                          <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v: number) => [formatBRL(v), t("dashboard.chartRevenue")]} />
+                    </PieChart>
                   </ResponsiveContainer>
                 </div>
 
                 {/* Products list with images */}
-                <div className="w-full lg:w-[280px] shrink-0 space-y-2 max-h-[400px] overflow-y-auto">
+                <div className="w-full lg:w-[300px] shrink-0 space-y-2 max-h-[400px] overflow-y-auto">
                   {topProductsFormatted.map((p, i) => (
                     <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-page-bg border border-stroke/50 hover:shadow-sm transition-all">
-                      <span className="text-[11px] font-bold text-text-muted w-5 text-center shrink-0">
-                        {i + 1}
-                      </span>
+                      <div
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }}
+                      />
                       <div className="w-8 h-8 rounded-lg bg-card-bg border border-stroke flex items-center justify-center overflow-hidden shrink-0">
                         {p.productImageUrl ? (
                           <img src={p.productImageUrl} alt={p.productName} className="w-full h-full object-cover" />
