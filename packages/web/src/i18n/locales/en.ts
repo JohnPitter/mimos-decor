@@ -139,7 +139,8 @@ export const en = {
     currentMonth: "Current Month",
     chartSales: "Sales",
     chartRevenue: "Revenue",
-    productStock: "Product Stock",
+    lowStockWarning: "Products that need urgent restocking",
+    outOfStock: "Out of stock",
   },
   months: {
     "1": "January",

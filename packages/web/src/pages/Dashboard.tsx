@@ -180,27 +180,46 @@ export default function Dashboard() {
 
         {/* Low Stock Alert */}
         {data && data.lowStockProducts.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 animate-fade-in-up" style={{ animationDelay: "320ms" }}>
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle size={18} className="text-yellow-600" />
-              <h3 className="text-[15px] font-bold text-yellow-800">{t("dashboard.lowStock")}</h3>
-              <span className="ml-auto bg-yellow-200 text-yellow-800 text-[11px] font-bold px-2 py-0.5 rounded-full">
+          <div className="bg-red-50 border-2 border-red-300 rounded-xl p-5 animate-fade-in-up shadow-sm" style={{ animationDelay: "320ms" }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center animate-pulse">
+                <AlertTriangle size={22} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-[16px] font-bold text-red-800">{t("dashboard.lowStock")}</h3>
+                <p className="text-[12px] text-red-600/80">{t("dashboard.lowStockWarning")}</p>
+              </div>
+              <span className="ml-auto bg-red-200 text-red-800 text-[13px] font-extrabold px-3 py-1 rounded-full">
                 {data.lowStockProducts.length}
               </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
               {data.lowStockProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="flex items-center gap-3 bg-white rounded-lg px-3 py-2.5 border border-yellow-100"
+                  className={`flex items-center gap-3 rounded-lg px-3.5 py-3 border transition-all ${
+                    product.quantity === 0
+                      ? "bg-red-100 border-red-300"
+                      : "bg-white border-red-100"
+                  }`}
                 >
-                  <Package size={16} className="text-yellow-600 shrink-0" />
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                    product.quantity === 0 ? "bg-red-200" : "bg-yellow-100"
+                  }`}>
+                    {product.quantity === 0 ? (
+                      <AlertTriangle size={16} className="text-red-600" />
+                    ) : (
+                      <Package size={16} className="text-yellow-600" />
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-semibold text-text-dark truncate">{product.name}</p>
                     <p className="text-[11px] text-text-muted">{product.supplier ?? t("dashboard.noSupplier")}</p>
                   </div>
-                  <span className={`text-[13px] font-bold shrink-0 ${product.quantity === 0 ? "text-red-600" : "text-yellow-600"}`}>
-                    {product.quantity} {t("dashboard.units")}
+                  <span className={`text-[14px] font-extrabold shrink-0 ${
+                    product.quantity === 0 ? "text-red-600" : "text-yellow-600"
+                  }`}>
+                    {product.quantity === 0 ? t("dashboard.outOfStock") : `${product.quantity} ${t("dashboard.units")}`}
                   </span>
                 </div>
               ))}
@@ -346,40 +365,6 @@ export default function Dashboard() {
             )}
           </div>
         </div>
-        {/* Product Stock Chart */}
-        {data && data.productStock.length > 0 && (
-          <div className="bg-card-bg border border-stroke rounded-xl p-6 animate-fade-in-up" style={{ animationDelay: "500ms" }}>
-            <h3 className="text-[15px] font-bold text-text-dark mb-4">{t("dashboard.productStock")}</h3>
-            <ResponsiveContainer width="100%" height={Math.max(280, data.productStock.length * 36)}>
-              <BarChart data={data.productStock} layout="vertical" margin={{ left: 20, right: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={theme.stroke} horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11 }} />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tick={{ fontSize: 11 }}
-                  width={120}
-                />
-                <Tooltip
-                  formatter={(value: number) => [value, t("dashboard.units")]}
-                  labelFormatter={(label) => label}
-                />
-                <Bar
-                  dataKey="quantity"
-                  name={t("products.stock")}
-                  radius={[0, 6, 6, 0]}
-                >
-                  {data.productStock.map((p, i) => (
-                    <Cell
-                      key={i}
-                      fill={p.quantity <= 5 ? "#EF4444" : p.quantity <= 15 ? "#F59E0B" : theme.primary}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
       </div>
     </div>
   );

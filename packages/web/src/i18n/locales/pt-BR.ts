@@ -139,7 +139,8 @@ export const ptBR = {
     currentMonth: "Mês Atual",
     chartSales: "Vendas",
     chartRevenue: "Faturamento",
-    productStock: "Estoque dos Produtos",
+    lowStockWarning: "Produtos que precisam de reposição urgente",
+    outOfStock: "Esgotado",
   },
   months: {
     "1": "Janeiro",
