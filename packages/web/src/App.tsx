@@ -14,6 +14,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard.js"));
 const Products = lazy(() => import("./pages/Products.js"));
 const Sales = lazy(() => import("./pages/Sales.js"));
 const UsersPage = lazy(() => import("./pages/Users.js"));
+const RolesPage = lazy(() => import("./pages/Roles.js"));
 const AuditLogs = lazy(() => import("./pages/AuditLogs.js"));
 const Profile = lazy(() => import("./pages/Profile.js"));
 const Gateways = lazy(() => import("./pages/Gateways.js"));
@@ -56,11 +57,12 @@ export default function App() {
           <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
           <Route path="products" element={<Suspense fallback={<PageLoader />}><Products /></Suspense>} />
           <Route path="sales" element={<Suspense fallback={<PageLoader />}><Sales /></Suspense>} />
-          <Route path="users" element={<ProtectedRoute adminOnly><Suspense fallback={<PageLoader />}><UsersPage /></Suspense></ProtectedRoute>} />
-          <Route path="logs" element={<ProtectedRoute adminOnly><Suspense fallback={<PageLoader />}><AuditLogs /></Suspense></ProtectedRoute>} />
+          <Route path="users" element={<ProtectedRoute permission="users:view"><Suspense fallback={<PageLoader />}><UsersPage /></Suspense></ProtectedRoute>} />
+          <Route path="roles" element={<ProtectedRoute permission="users:manage"><Suspense fallback={<PageLoader />}><RolesPage /></Suspense></ProtectedRoute>} />
+          <Route path="logs" element={<ProtectedRoute permission="auditLogs:view"><Suspense fallback={<PageLoader />}><AuditLogs /></Suspense></ProtectedRoute>} />
           <Route path="profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
-          <Route path="gateways" element={<ProtectedRoute adminOnly><Suspense fallback={<PageLoader />}><Gateways /></Suspense></ProtectedRoute>} />
-          <Route path="reports" element={<Suspense fallback={<PageLoader />}><Reports /></Suspense>} />
+          <Route path="gateways" element={<ProtectedRoute permission="gateways:view"><Suspense fallback={<PageLoader />}><Gateways /></Suspense></ProtectedRoute>} />
+          <Route path="reports" element={<ProtectedRoute permission="reports:view"><Suspense fallback={<PageLoader />}><Reports /></Suspense></ProtectedRoute>} />
           <Route path="settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
         </Route>
       </Routes>

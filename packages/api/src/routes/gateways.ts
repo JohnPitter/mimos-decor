@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.js";
-import { requireRole } from "../middleware/requireRole.js";
+import { requirePermission } from "../middleware/requirePermission.js";
 import { logger } from "../lib/logger.js";
 import * as gatewayService from "../services/gateway.service.js";
 
@@ -19,7 +19,7 @@ gatewayRouter.get("/", async (_req, res) => {
 });
 
 // Create/Update/Delete require ADMIN
-gatewayRouter.post("/", requireRole("ADMIN"), async (req, res) => {
+gatewayRouter.post("/", requirePermission("gateways:manage"), async (req, res) => {
   try {
     const gateway = await gatewayService.createGateway(req.body);
     logger.info(`Gateway created: ${gateway.slug}`, "gateway");
@@ -30,7 +30,7 @@ gatewayRouter.post("/", requireRole("ADMIN"), async (req, res) => {
   }
 });
 
-gatewayRouter.put("/:id", requireRole("ADMIN"), async (req, res) => {
+gatewayRouter.put("/:id", requirePermission("gateways:manage"), async (req, res) => {
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const gateway = await gatewayService.updateGateway(id, req.body);
@@ -43,7 +43,7 @@ gatewayRouter.put("/:id", requireRole("ADMIN"), async (req, res) => {
   }
 });
 
-gatewayRouter.delete("/:id", requireRole("ADMIN"), async (req, res) => {
+gatewayRouter.delete("/:id", requirePermission("gateways:manage"), async (req, res) => {
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const gateway = await gatewayService.deleteGateway(id);

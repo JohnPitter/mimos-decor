@@ -13,7 +13,7 @@ async function main() {
       name: "Admin",
       email: "admin@mimosdecor.com",
       password: hashedPassword,
-      role: "ADMIN",
+      isAdmin: true,
     },
   });
 

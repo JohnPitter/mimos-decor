@@ -7,11 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  ADMIN
-  OPERATOR
-}
-
 model CustomGateway {
   id         String   @id @default(cuid())
   slug       String   @unique
@@ -23,6 +18,18 @@ model CustomGateway {
   createdAt  DateTime @default(now()) @map("created_at")
 
   @@map("custom_gateways")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  permissions String[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  users User[]
+
+  @@map("roles")
 }
 
 enum DeliveryStatus {
@@ -47,14 +54,18 @@ enum AuditEntity {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      UserRole @default(OPERATOR)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                  String   @id @default(cuid())
+  name                String
+  email               String   @unique
+  password            String
+  isAdmin             Boolean  @default(false) @map("is_admin")
+  roleId              String?  @map("role_id")
+  permissionOverrides String[] @default([]) @map("permission_overrides")
+  themeColors         Json?    @map("theme_colors")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
+  role                 Role?    @relation(fields: [roleId], references: [id])
   sales                Sale[]
   deliveryStatusChanges DeliveryStatusHistory[]
   auditLogs            AuditLog[]

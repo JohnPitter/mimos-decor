@@ -77,7 +77,7 @@ export default function Profile() {
               <p className="text-[13px] text-text-muted">{user.email}</p>
               <div className="flex items-center gap-2 mt-1">
                 <Shield size={12} className="text-primary" />
-                <span className="text-[12px] font-semibold text-primary">{t(`roles.${user.role}`)}</span>
+                <span className="text-[12px] font-semibold text-primary">{user.isAdmin ? t("roles.ADMIN") : user.role?.name ?? t("users.noRole")}</span>
               </div>
             </div>
           </div>

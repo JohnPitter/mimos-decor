@@ -5,7 +5,6 @@ const EXPIRES_IN = "24h";
 
 export interface JwtPayload {
   userId: string;
-  role: string;
 }
 
 export function signToken(payload: JwtPayload): string {

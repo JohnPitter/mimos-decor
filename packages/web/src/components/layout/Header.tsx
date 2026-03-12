@@ -39,7 +39,7 @@ export function Header({ title }: { title: string }) {
         </button>
         <div className="text-right hidden sm:block">
           <p className="text-[13px] font-semibold text-text-dark">{user?.name}</p>
-          <p className="text-[11px] text-text-muted">{user?.role ? t(`roles.${user.role}`) : ""}</p>
+          <p className="text-[11px] text-text-muted">{user?.isAdmin ? t("roles.ADMIN") : user?.role?.name ?? ""}</p>
         </div>
         <button
           onClick={() => navigate("/app/profile")}

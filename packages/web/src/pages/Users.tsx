@@ -1,24 +1,29 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, X, Users as UsersIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Users as UsersIcon, ShieldCheck } from "lucide-react";
 import { Header } from "../components/layout/Header.js";
 import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
 import { useUserStore } from "../stores/user.store.js";
-import type { UserRole } from "@mimos/shared";
+import { api } from "../lib/api.js";
+import { PERMISSION_GROUPS } from "@mimos/shared";
+import type { User, Role } from "@mimos/shared";
 
 interface FormData {
   name: string;
   email: string;
   password: string;
-  role: UserRole;
+  isAdmin: boolean;
+  roleId: string;
+  permissionOverrides: string[];
 }
 
-const EMPTY_FORM: FormData = { name: "", email: "", password: "", role: "OPERATOR" };
+const EMPTY_FORM: FormData = { name: "", email: "", password: "", isAdmin: false, roleId: "", permissionOverrides: [] };
 
 export default function Users() {
   const { t } = useTranslation();
   const { users, total, loading, fetchUsers, createUser, updateUser, deleteUser } = useUserStore();
+  const [roles, setRoles] = useState<Role[]>([]);
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -31,6 +36,10 @@ export default function Users() {
     fetchUsers(page);
   }, [page, fetchUsers]);
 
+  useEffect(() => {
+    api.get<{ roles: Role[] }>("/roles").then((data) => setRoles(data.roles));
+  }, []);
+
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
   const openCreate = () => {
@@ -40,11 +49,27 @@ export default function Users() {
     setModalOpen(true);
   };
 
-  const openEdit = (user: { id: string; name: string; email: string; role: UserRole }) => {
-    setForm({ name: user.name, email: user.email, password: "", role: user.role });
+  const openEdit = (user: User) => {
+    setForm({
+      name: user.name,
+      email: user.email,
+      password: "",
+      isAdmin: user.isAdmin,
+      roleId: user.roleId ?? "",
+      permissionOverrides: user.permissionOverrides ?? [],
+    });
     setEditingId(user.id);
     setError("");
     setModalOpen(true);
+  };
+
+  const toggleOverride = (perm: string) => {
+    setForm((prev) => ({
+      ...prev,
+      permissionOverrides: prev.permissionOverrides.includes(perm)
+        ? prev.permissionOverrides.filter((p) => p !== perm)
+        : [...prev.permissionOverrides, perm],
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,12 +77,26 @@ export default function Users() {
     setSubmitting(true);
     setError("");
     try {
+      const payload: Record<string, unknown> = {
+        name: form.name,
+        email: form.email,
+        isAdmin: form.isAdmin,
+        roleId: form.roleId || undefined,
+        permissionOverrides: form.permissionOverrides,
+      };
+      if (form.password) payload.password = form.password;
+
       if (editingId) {
-        const data: Record<string, string> = { name: form.name, email: form.email, role: form.role };
-        if (form.password) data.password = form.password;
-        await updateUser(editingId, data);
+        await updateUser(editingId, payload);
       } else {
-        await createUser(form);
+        await createUser({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          isAdmin: form.isAdmin,
+          roleId: form.roleId || undefined,
+          permissionOverrides: form.permissionOverrides,
+        });
       }
       setModalOpen(false);
     } catch (err) {
@@ -78,6 +117,10 @@ export default function Users() {
       setDeleteId(null);
     }
   };
+
+  // Get permissions from the selected role
+  const selectedRole = roles.find((r) => r.id === form.roleId);
+  const rolePermissions = new Set(selectedRole?.permissions ?? []);
 
   return (
     <div className="flex-1 flex flex-col">
@@ -134,15 +177,16 @@ export default function Users() {
                     </td>
                     <td className="px-5 py-3.5 text-[14px] text-text-muted">{user.email}</td>
                     <td className="px-5 py-3.5">
-                      <span
-                        className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
-                          user.role === "ADMIN"
-                            ? "bg-primary/10 text-primary"
-                            : "bg-neutral-200 text-neutral-600"
-                        }`}
-                      >
-                        {t(`roles.${user.role}`)}
-                      </span>
+                      {user.isAdmin ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-primary/10 text-primary">
+                          <ShieldCheck size={12} />
+                          Admin
+                        </span>
+                      ) : (
+                        <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-neutral-200 text-neutral-600">
+                          {user.role?.name ?? t("users.noRole")}
+                        </span>
+                      )}
                     </td>
                     <td className="px-5 py-3.5 text-[13px] text-text-muted">
                       {new Date(user.createdAt).toLocaleDateString()}
@@ -206,9 +250,9 @@ export default function Users() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setModalOpen(false)}>
-          <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-md animate-scale-in mx-4 sm:mx-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-stroke">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-lg animate-scale-in mx-4 sm:mx-auto max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-stroke shrink-0">
               <h2 className="text-[18px] font-bold text-text-dark">
                 {editingId ? t("users.editUser") : t("users.createUser")}
               </h2>
@@ -216,7 +260,7 @@ export default function Users() {
                 <X size={20} />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
               {error && <p className="text-[13px] text-red-500 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
 
               <div>
@@ -258,19 +302,79 @@ export default function Users() {
                 />
               </div>
 
-              <div>
-                <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
-                  {t("users.role")} <span className="text-red-400">*</span>
+              <div className="flex items-center gap-3">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.isAdmin}
+                    onChange={(e) => setForm({ ...form, isAdmin: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-neutral-300 peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary" />
                 </label>
-                <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}
-                  className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                >
-                  <option value="ADMIN">{t("roles.ADMIN")}</option>
-                  <option value="OPERATOR">{t("roles.OPERATOR")}</option>
-                </select>
+                <span className="text-[13px] font-medium text-text-dark flex items-center gap-1.5">
+                  <ShieldCheck size={14} className="text-primary" />
+                  {t("users.isAdmin")}
+                </span>
               </div>
+
+              {!form.isAdmin && (
+                <>
+                  <div>
+                    <label className="block text-[12px] font-semibold text-text-muted mb-1 uppercase tracking-wider">
+                      {t("users.role")}
+                    </label>
+                    <select
+                      value={form.roleId}
+                      onChange={(e) => setForm({ ...form, roleId: e.target.value })}
+                      className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    >
+                      <option value="">{t("users.noRole")}</option>
+                      {roles.map((role) => (
+                        <option key={role.id} value={role.id}>{role.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[12px] font-semibold text-text-muted mb-2 uppercase tracking-wider">
+                      {t("users.permissionOverrides")}
+                    </label>
+                    <p className="text-[12px] text-text-muted mb-3">{t("users.permissionOverridesHint")}</p>
+                    <div className="space-y-3 max-h-[200px] overflow-y-auto border border-stroke rounded-lg p-3">
+                      {PERMISSION_GROUPS.map((group) => (
+                        <div key={group.labelKey}>
+                          <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">{t(group.labelKey)}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {group.permissions.map((perm) => {
+                              const fromRole = rolePermissions.has(perm);
+                              const isOverride = form.permissionOverrides.includes(perm);
+                              return (
+                                <button
+                                  key={perm}
+                                  type="button"
+                                  disabled={fromRole}
+                                  onClick={() => toggleOverride(perm)}
+                                  className={`px-2 py-1 rounded text-[11px] font-medium transition-all ${
+                                    fromRole
+                                      ? "bg-green-100 text-green-700 cursor-default"
+                                      : isOverride
+                                        ? "bg-primary/10 text-primary ring-1 ring-primary/30"
+                                        : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"
+                                  }`}
+                                  title={fromRole ? t("users.fromRole") : perm}
+                                >
+                                  {t(`permissions.${perm}`)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="flex gap-3 pt-2">
                 <button

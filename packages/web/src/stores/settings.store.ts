@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { api } from "../lib/api.js";
+import type { User } from "@mimos/shared";
 
 interface ThemeColors {
   primary: string;
@@ -25,6 +27,8 @@ interface SettingsState {
   setThemeColor: (key: keyof ThemeColors, value: string) => void;
   resetTheme: () => void;
   applyTheme: () => void;
+  loadFromUser: (user: User) => void;
+  saveToServer: () => Promise<void>;
 }
 
 function applyToDOM(theme: ThemeColors) {
@@ -60,10 +64,25 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ theme: DEFAULT_THEME });
     localStorage.removeItem("mimos-theme");
     applyToDOM(DEFAULT_THEME);
+    api.put("/auth/profile", { themeColors: null }).catch(() => {});
   },
 
   applyTheme: () => {
     applyToDOM(get().theme);
+  },
+
+  loadFromUser: (user: User) => {
+    if (user.themeColors) {
+      const theme = { ...DEFAULT_THEME, ...user.themeColors };
+      set({ theme });
+      localStorage.setItem("mimos-theme", JSON.stringify(theme));
+      applyToDOM(theme);
+    }
+  },
+
+  saveToServer: async () => {
+    const theme = get().theme;
+    await api.put("/auth/profile", { themeColors: theme });
   },
 }));
 

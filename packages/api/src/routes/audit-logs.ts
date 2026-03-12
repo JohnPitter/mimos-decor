@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.js";
-import { requireRole } from "../middleware/requireRole.js";
+import { requirePermission } from "../middleware/requirePermission.js";
 import { logger } from "../lib/logger.js";
 import * as auditService from "../services/audit.service.js";
 
 export const auditLogRouter = Router();
-auditLogRouter.use(authMiddleware, requireRole("ADMIN"));
+auditLogRouter.use(authMiddleware, requirePermission("auditLogs:view"));
 
 auditLogRouter.get("/", async (req, res) => {
   try {

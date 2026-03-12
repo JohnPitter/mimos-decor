@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.js";
-import { requireRole } from "../middleware/requireRole.js";
+import { requirePermission } from "../middleware/requirePermission.js";
 import { logger } from "../lib/logger.js";
 import * as userService from "../services/user.service.js";
 
 export const userRouter = Router();
-userRouter.use(authMiddleware, requireRole("ADMIN"));
+userRouter.use(authMiddleware, requirePermission("users:manage"));
 
 userRouter.get("/", async (req, res) => {
   try {
@@ -31,7 +31,7 @@ userRouter.post("/", async (req, res) => {
 
 userRouter.put("/:id", async (req, res) => {
   try {
-    const user = await userService.updateUser(req.params.id, req.body, req.user!.id);
+    const user = await userService.updateUser(req.params.id as string, req.body, req.user!.id);
     if (!user) { res.status(404).json({ error: "Usuário não encontrado" }); return; }
     logger.info(`User updated: ${user.email}`, "user");
     res.json(user);
@@ -43,7 +43,7 @@ userRouter.put("/:id", async (req, res) => {
 
 userRouter.delete("/:id", async (req, res) => {
   try {
-    const user = await userService.deleteUser(req.params.id, req.user!.id);
+    const user = await userService.deleteUser(req.params.id as string, req.user!.id);
     if (!user) { res.status(404).json({ error: "Usuário não encontrado" }); return; }
     logger.info(`User deleted: ${user.email}`, "user");
     res.json({ ok: true });

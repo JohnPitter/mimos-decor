@@ -1,3 +1,4 @@
+import { useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Header } from "../components/layout/Header.js";
 import { useSettingsStore, DEFAULT_THEME } from "../stores/settings.store.js";
@@ -23,7 +24,20 @@ const COLOR_FIELDS: ColorField[] = [
 
 export default function Settings() {
   const { t } = useTranslation();
-  const { theme, setThemeColor, resetTheme } = useSettingsStore();
+  const { theme, setThemeColor, resetTheme, saveToServer } = useSettingsStore();
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const debouncedSave = useCallback(() => {
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      saveToServer().catch(() => {});
+    }, 1000);
+  }, [saveToServer]);
+
+  const handleColorChange = (key: keyof ThemeColors, value: string) => {
+    setThemeColor(key, value);
+    debouncedSave();
+  };
 
   const handleReset = () => {
     resetTheme();
@@ -63,7 +77,7 @@ export default function Settings() {
               <input
                 type="color"
                 value={theme[field.key]}
-                onChange={(e) => setThemeColor(field.key, e.target.value)}
+                onChange={(e) => handleColorChange(field.key, e.target.value)}
                 className="w-12 h-12 rounded-lg border border-stroke cursor-pointer shrink-0"
               />
               <div className="flex-1 min-w-0">

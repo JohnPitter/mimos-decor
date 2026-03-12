@@ -1,12 +1,13 @@
 import { NavLink, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, Package, ShoppingCart, Users, ScrollText, LogOut, UserCircle, Plug, Settings, FileBarChart } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, ScrollText, LogOut, UserCircle, Plug, Settings, FileBarChart, Shield } from "lucide-react";
 import { useAuthStore } from "../../stores/auth.store.js";
 import { useSidebarStore } from "../../stores/sidebar.store.js";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { PERMISSIONS } from "@mimos/shared";
 
 export function Sidebar() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, hasPermission } = useAuthStore();
   const { t } = useTranslation();
   const { open, close } = useSidebarStore();
   const location = useLocation();
@@ -16,20 +17,19 @@ export function Sidebar() {
     close();
   }, [location.pathname, close]);
 
-  const NAV_ITEMS = [
-    { to: "/app/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard },
-    { to: "/app/products", label: t("nav.products"), icon: Package },
-    { to: "/app/sales", label: t("nav.sales"), icon: ShoppingCart },
-    { to: "/app/reports", label: t("nav.reports"), icon: FileBarChart },
-  ];
-
-  const ADMIN_ITEMS = [
-    { to: "/app/users", label: t("nav.users"), icon: Users },
-    { to: "/app/gateways", label: t("nav.gateways"), icon: Plug },
-    { to: "/app/logs", label: t("nav.auditLogs"), icon: ScrollText },
-  ];
-
-  const items = user?.role === "ADMIN" ? [...NAV_ITEMS, ...ADMIN_ITEMS] : NAV_ITEMS;
+  const items = useMemo(() => {
+    const nav = [
+      { to: "/app/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard, perm: PERMISSIONS.DASHBOARD_VIEW },
+      { to: "/app/products", label: t("nav.products"), icon: Package, perm: PERMISSIONS.PRODUCTS_VIEW },
+      { to: "/app/sales", label: t("nav.sales"), icon: ShoppingCart, perm: PERMISSIONS.SALES_VIEW },
+      { to: "/app/reports", label: t("nav.reports"), icon: FileBarChart, perm: PERMISSIONS.REPORTS_VIEW },
+      { to: "/app/users", label: t("nav.users"), icon: Users, perm: PERMISSIONS.USERS_VIEW },
+      { to: "/app/roles", label: t("nav.roles"), icon: Shield, perm: PERMISSIONS.USERS_MANAGE },
+      { to: "/app/gateways", label: t("nav.gateways"), icon: Plug, perm: PERMISSIONS.GATEWAYS_VIEW },
+      { to: "/app/logs", label: t("nav.auditLogs"), icon: ScrollText, perm: PERMISSIONS.AUDIT_LOGS_VIEW },
+    ];
+    return nav.filter((item) => hasPermission(item.perm));
+  }, [t, hasPermission]);
 
   return (
     <>
