@@ -9,7 +9,7 @@ export async function listProducts(params: { search?: string; page?: number; lim
     : {};
 
   const [products, total] = await Promise.all([
-    prisma.product.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: "desc" } }),
+    prisma.product.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { quantity: "asc" } }),
     prisma.product.count({ where }),
   ]);
 

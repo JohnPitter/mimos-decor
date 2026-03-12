@@ -92,6 +92,12 @@ export interface LowStockProduct {
   supplier: string | null;
 }
 
+export interface ProductStockItem {
+  name: string;
+  quantity: number;
+  imageUrl: string | null;
+}
+
 export interface SaleDashboard {
   totalSalesToday: number;
   totalSalesMonth: number;
@@ -102,4 +108,5 @@ export interface SaleDashboard {
   salesByDay: { date: string; count: number; revenue: number }[];
   topProducts: { productName: string; productImageUrl: string | null; count: number; revenue: number }[];
   lowStockProducts: LowStockProduct[];
+  productStock: ProductStockItem[];
 }

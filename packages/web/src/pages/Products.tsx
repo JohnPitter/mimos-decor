@@ -9,7 +9,7 @@ import { useGatewayStore } from "../stores/gateway.store.js";
 import { calcIdealPrice, MARKETPLACES, formatBRL } from "@mimos/shared";
 import type { Product } from "@mimos/shared";
 import type { Marketplace } from "@mimos/shared";
-import { Plus, Search, Pencil, Trash2, Package } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Package, AlertTriangle } from "lucide-react";
 import { ExportDropdown } from "../components/common/ExportDropdown.js";
 import { useSettingsStore } from "../stores/settings.store.js";
 import { exportProductsXlsx } from "../lib/export-xlsx.js";
@@ -154,11 +154,18 @@ export default function Products() {
                       <tr key={product.id} className="border-b border-stroke/50 hover:bg-rosa-light/30 transition-colors animate-fade-in-up" style={{ animationDelay: `${index * 30}ms` }}>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-page-bg border border-stroke flex items-center justify-center overflow-hidden shrink-0">
-                              {product.imageUrl ? (
-                                <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <Package size={16} className="text-text-muted" />
+                            <div className="relative shrink-0">
+                              <div className="w-9 h-9 rounded-lg bg-page-bg border border-stroke flex items-center justify-center overflow-hidden">
+                                {product.imageUrl ? (
+                                  <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <Package size={16} className="text-text-muted" />
+                                )}
+                              </div>
+                              {product.quantity <= 5 && (
+                                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center border border-white" title={t("products.lowStock")}>
+                                  <AlertTriangle size={10} className="text-yellow-900" />
+                                </div>
                               )}
                             </div>
                             <div>
@@ -202,6 +209,13 @@ export default function Products() {
             </table>
           </div>
         </div>
+
+        {/* Total count */}
+        {!loading && (
+          <div className="mt-3 text-[12px] text-text-muted">
+            {total} {t("products.totalRegistered")}
+          </div>
+        )}
 
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-6">

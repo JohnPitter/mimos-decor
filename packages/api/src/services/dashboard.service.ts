@@ -15,7 +15,7 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       }
     : {};
 
-  const [todaySales, monthSales, salesByGateway, salesByDay, topProducts, lowStockProducts] = await Promise.all([
+  const [todaySales, monthSales, salesByGateway, salesByDay, topProducts, lowStockProducts, productStock] = await Promise.all([
     prisma.sale.aggregate({
       where: { createdAt: { gte: startOfDay } },
       _count: true,
@@ -64,6 +64,10 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       orderBy: { quantity: "asc" },
       take: 10,
     }),
+    prisma.product.findMany({
+      select: { name: true, quantity: true, imageUrl: true },
+      orderBy: { quantity: "asc" },
+    }),
   ]);
 
   const topProductIds = topProducts.map((p) => p.productId).filter(Boolean);
@@ -99,5 +103,10 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       };
     }),
     lowStockProducts,
+    productStock: productStock.map((p) => ({
+      name: p.name,
+      quantity: p.quantity,
+      imageUrl: p.imageUrl,
+    })),
   };
 }

@@ -346,6 +346,40 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+        {/* Product Stock Chart */}
+        {data && data.productStock.length > 0 && (
+          <div className="bg-card-bg border border-stroke rounded-xl p-6 animate-fade-in-up" style={{ animationDelay: "500ms" }}>
+            <h3 className="text-[15px] font-bold text-text-dark mb-4">{t("dashboard.productStock")}</h3>
+            <ResponsiveContainer width="100%" height={Math.max(280, data.productStock.length * 36)}>
+              <BarChart data={data.productStock} layout="vertical" margin={{ left: 20, right: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={theme.stroke} horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11 }} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tick={{ fontSize: 11 }}
+                  width={120}
+                />
+                <Tooltip
+                  formatter={(value: number) => [value, t("dashboard.units")]}
+                  labelFormatter={(label) => label}
+                />
+                <Bar
+                  dataKey="quantity"
+                  name={t("products.stock")}
+                  radius={[0, 6, 6, 0]}
+                >
+                  {data.productStock.map((p, i) => (
+                    <Cell
+                      key={i}
+                      fill={p.quantity <= 5 ? "#EF4444" : p.quantity <= 15 ? "#F59E0B" : theme.primary}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
     </div>
   );

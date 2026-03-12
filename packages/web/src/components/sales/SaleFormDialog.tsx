@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { X, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { ProductPicker } from "./ProductPicker.js";
 import {
   MARKETPLACES,
   calcIdealPrice,
@@ -138,11 +139,9 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={onClose}
     >
       <div
         className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scale-in mx-4 sm:mx-auto"
-        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b border-stroke">
           <h2 className="text-[18px] font-bold text-text-dark">{t("sales.newSale")}</h2>
@@ -199,22 +198,12 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
                       <div className="flex items-center gap-2">
                         {/* Product select */}
                         <div className="flex-1 min-w-0">
-                          <select
+                          <ProductPicker
+                            products={products}
                             value={item.productId}
-                            onChange={(e) => updateItem(item.key, { productId: e.target.value })}
-                            className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                          >
-                            <option value="">{t("sales.selectProduct")}</option>
-                            {products.map((p) => (
-                              <option
-                                key={p.id}
-                                value={p.id}
-                                disabled={usedProductIds.has(p.id) && item.productId !== p.id}
-                              >
-                                {p.name} (est: {p.quantity})
-                              </option>
-                            ))}
-                          </select>
+                            onChange={(productId) => updateItem(item.key, { productId })}
+                            disabledIds={usedProductIds}
+                          />
                         </div>
 
                         {/* Quantity */}
