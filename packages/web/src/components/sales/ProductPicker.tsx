@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Search, Package, ChevronDown } from "lucide-react";
 import type { Product } from "@mimos/shared";
@@ -14,12 +15,17 @@ export function ProductPicker({ products, value, onChange, disabledIds }: Props)
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const ref = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selected = products.find((p) => p.id === value);
 
-  const filtered = products.filter((p) => {
+  // Filter out products with zero stock (keep selected even if zero)
+  const available = products.filter((p) => p.quantity > 0 || p.id === value);
+
+  const filtered = available.filter((p) => {
     if (search) {
       const q = search.toLowerCase();
       return p.name.toLowerCase().includes(q) || (p.supplier?.toLowerCase().includes(q) ?? false);
@@ -27,23 +33,38 @@ export function ProductPicker({ products, value, onChange, disabledIds }: Props)
     return true;
   });
 
+  const updatePosition = useCallback(() => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    }
+  }, []);
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (
+        buttonRef.current && !buttonRef.current.contains(target) &&
+        dropdownRef.current && !dropdownRef.current.contains(target)
+      ) {
+        setOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   useEffect(() => {
-    if (open && inputRef.current) {
-      inputRef.current.focus();
+    if (open) {
+      updatePosition();
+      inputRef.current?.focus();
     }
-  }, [open]);
+  }, [open, updatePosition]);
 
   return (
-    <div ref={ref} className="relative">
+    <div>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-2 px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg hover:bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-left"
@@ -68,8 +89,12 @@ export function ProductPicker({ products, value, onChange, disabledIds }: Props)
         <ChevronDown size={14} className={`text-text-muted shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
-      {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-card-bg border border-stroke rounded-xl shadow-lg overflow-hidden animate-fade-in-down">
+      {open && createPortal(
+        <div
+          ref={dropdownRef}
+          className="fixed z-[100] bg-card-bg border border-stroke rounded-xl shadow-lg overflow-hidden animate-fade-in-down"
+          style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
+        >
           <div className="p-2 border-b border-stroke/50">
             <div className="relative">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
@@ -120,7 +145,8 @@ export function ProductPicker({ products, value, onChange, disabledIds }: Props)
               })
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

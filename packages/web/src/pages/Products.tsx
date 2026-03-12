@@ -120,6 +120,13 @@ export default function Products() {
           </div>
         </div>
 
+        {/* Total count */}
+        {!loading && (
+          <div className="mb-3 text-[13px] text-text-muted">
+            {total} {t("products.totalRegistered")}
+          </div>
+        )}
+
         {/* Table */}
         <div className="bg-card-bg border border-stroke rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
@@ -209,13 +216,6 @@ export default function Products() {
             </table>
           </div>
         </div>
-
-        {/* Total count */}
-        {!loading && (
-          <div className="mt-3 text-[12px] text-text-muted">
-            {total} {t("products.totalRegistered")}
-          </div>
-        )}
 
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-6">
