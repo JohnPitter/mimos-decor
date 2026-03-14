@@ -20,6 +20,7 @@ const Profile = lazy(() => import("./pages/Profile.js"));
 const Gateways = lazy(() => import("./pages/Gateways.js"));
 const Settings = lazy(() => import("./pages/Settings.js"));
 const Reports = lazy(() => import("./pages/Reports.js"));
+const Finances = lazy(() => import("./pages/Finances.js"));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-[60vh]">
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="profile" element={<Suspense fallback={<PageLoader />}><Profile /></Suspense>} />
           <Route path="gateways" element={<ProtectedRoute permission="gateways:view"><Suspense fallback={<PageLoader />}><Gateways /></Suspense></ProtectedRoute>} />
           <Route path="reports" element={<ProtectedRoute permission="reports:view"><Suspense fallback={<PageLoader />}><Reports /></Suspense></ProtectedRoute>} />
+          <Route path="finances" element={<ProtectedRoute permission="finances:view"><Suspense fallback={<PageLoader />}><Finances /></Suspense></ProtectedRoute>} />
           <Route path="settings" element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>} />
         </Route>
       </Routes>

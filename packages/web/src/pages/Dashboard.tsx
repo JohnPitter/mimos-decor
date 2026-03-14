@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Header } from "../components/layout/Header.js";
+import { ImageWithSkeleton } from "../components/common/ImageWithSkeleton.js";
 import { useDashboardStore } from "../stores/dashboard.store.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
 import { useSettingsStore } from "../stores/settings.store.js";
@@ -349,7 +350,7 @@ export default function Dashboard() {
                       />
                       <div className="w-8 h-8 rounded-lg bg-card-bg border border-stroke flex items-center justify-center overflow-hidden shrink-0">
                         {p.productImageUrl ? (
-                          <img src={p.productImageUrl} alt={p.productName} className="w-full h-full object-cover" />
+                          <ImageWithSkeleton src={p.productImageUrl} alt={p.productName} className="w-full h-full object-cover" />
                         ) : (
                           <Package size={14} className="text-text-muted" />
                         )}

@@ -1,8 +1,9 @@
 import { NavLink, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, Package, ShoppingCart, Users, ScrollText, LogOut, UserCircle, Plug, Settings, FileBarChart, Shield } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, ScrollText, LogOut, UserCircle, Plug, Settings, FileBarChart, Shield, Wallet } from "lucide-react";
 import { useAuthStore } from "../../stores/auth.store.js";
 import { useSidebarStore } from "../../stores/sidebar.store.js";
+import { useFinanceStore } from "../../stores/finance.store.js";
 import { useEffect, useMemo } from "react";
 import { PERMISSIONS } from "@mimos/shared";
 
@@ -11,17 +12,27 @@ export function Sidebar() {
   const { t } = useTranslation();
   const { open, close } = useSidebarStore();
   const location = useLocation();
+  const notifications = useFinanceStore((s) => s.notifications);
+  const fetchNotifications = useFinanceStore((s) => s.fetchNotifications);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
     close();
   }, [location.pathname, close]);
 
+  // Fetch finance notifications
+  useEffect(() => {
+    if (user && hasPermission(PERMISSIONS.FINANCES_VIEW)) {
+      fetchNotifications();
+    }
+  }, [user, hasPermission, fetchNotifications]);
+
   const items = useMemo(() => {
     const nav = [
       { to: "/app/dashboard", label: t("nav.dashboard"), icon: LayoutDashboard, perm: PERMISSIONS.DASHBOARD_VIEW },
       { to: "/app/products", label: t("nav.products"), icon: Package, perm: PERMISSIONS.PRODUCTS_VIEW },
       { to: "/app/sales", label: t("nav.sales"), icon: ShoppingCart, perm: PERMISSIONS.SALES_VIEW },
+      { to: "/app/finances", label: t("nav.finances"), icon: Wallet, perm: PERMISSIONS.FINANCES_VIEW },
       { to: "/app/reports", label: t("nav.reports"), icon: FileBarChart, perm: PERMISSIONS.REPORTS_VIEW },
       { to: "/app/users", label: t("nav.users"), icon: Users, perm: PERMISSIONS.USERS_VIEW },
       { to: "/app/roles", label: t("nav.roles"), icon: Shield, perm: PERMISSIONS.USERS_MANAGE },
@@ -66,7 +77,12 @@ export function Sidebar() {
               }
             >
               <item.icon size={18} />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.to === "/app/finances" && notifications && notifications.total > 0 && (
+                <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  {notifications.total}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

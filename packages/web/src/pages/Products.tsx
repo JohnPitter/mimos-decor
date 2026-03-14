@@ -10,6 +10,7 @@ import { calcIdealPrice, MARKETPLACES, formatBRL } from "@mimos/shared";
 import type { Product } from "@mimos/shared";
 import type { Marketplace } from "@mimos/shared";
 import { Plus, Search, Pencil, Trash2, Package, AlertTriangle } from "lucide-react";
+import { ImageWithSkeleton } from "../components/common/ImageWithSkeleton.js";
 import { ExportDropdown } from "../components/common/ExportDropdown.js";
 import { useSettingsStore } from "../stores/settings.store.js";
 import { exportProductsXlsx } from "../lib/export-xlsx.js";
@@ -164,7 +165,7 @@ export default function Products() {
                             <div className="relative shrink-0">
                               <div className="w-9 h-9 rounded-lg bg-page-bg border border-stroke flex items-center justify-center overflow-hidden">
                                 {product.imageUrl ? (
-                                  <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                                  <ImageWithSkeleton src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                                 ) : (
                                   <Package size={16} className="text-text-muted" />
                                 )}

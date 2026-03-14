@@ -51,6 +51,20 @@ enum AuditEntity {
   PRODUCT
   SALE
   USER
+  FINANCE_ENTRY
+  FINANCE_CATEGORY
+}
+
+enum FinanceType {
+  PAYABLE
+  RECEIVABLE
+}
+
+enum FinanceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
 }
 
 model User {
@@ -69,6 +83,7 @@ model User {
   sales                Sale[]
   deliveryStatusChanges DeliveryStatusHistory[]
   auditLogs            AuditLog[]
+  financeEntries       FinanceEntry[]
 
   @@map("users")
 }
@@ -171,4 +186,48 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model FinanceCategory {
+  id        String      @id @default(cuid())
+  name      String
+  type      FinanceType
+  color     String      @default("#6B5E5E")
+  icon      String      @default("Tag")
+  isDefault Boolean     @default(false) @map("is_default")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  entries FinanceEntry[]
+
+  @@map("finance_categories")
+}
+
+model FinanceEntry {
+  id                String        @id @default(cuid())
+  type              FinanceType
+  title             String
+  description       String?
+  amount            Float
+  categoryId        String        @map("category_id")
+  dueDate           DateTime      @map("due_date")
+  paidAt            DateTime?     @map("paid_at")
+  status            FinanceStatus @default(PENDING)
+  isRecurring       Boolean       @default(false) @map("is_recurring")
+  recurringMonths   Int?          @map("recurring_months")
+  recurringGroupId  String?       @map("recurring_group_id")
+  installmentNumber Int?          @map("installment_number")
+  createdById       String        @map("created_by_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  category  FinanceCategory @relation(fields: [categoryId], references: [id])
+  createdBy User            @relation(fields: [createdById], references: [id])
+
+  @@index([type])
+  @@index([status])
+  @@index([dueDate])
+  @@index([categoryId])
+  @@index([recurringGroupId])
+  @@index([createdAt])
+  @@map("finance_entries")
 }

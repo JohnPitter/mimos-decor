@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { api } from "../lib/api.js";
 import { useSettingsStore } from "./settings.store.js";
-import type { User } from "@mimos/shared";
+import type { User, FinanceNotifications } from "@mimos/shared";
+import { toast } from "sonner";
+import i18n from "../i18n/index.js";
 
 interface AuthState {
   user: User | null;
@@ -19,6 +21,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const data = await api.post<{ user: User }>("/auth/login", { email, password });
     set({ user: data.user });
     useSettingsStore.getState().loadFromUser(data.user);
+    // Show finance notifications after login
+    try {
+      const notifications = await api.get<FinanceNotifications>("/finances/notifications");
+      const t = i18n.t.bind(i18n);
+      if (notifications.overdue > 0) {
+        toast.warning(t("finances.notificationOverdue", { count: notifications.overdue }));
+      }
+      if (notifications.dueToday > 0) {
+        toast.info(t("finances.notificationDueToday", { count: notifications.dueToday }));
+      }
+    } catch { /* user may not have finance permission */ }
   },
   logout: async () => {
     await api.post("/auth/logout");
