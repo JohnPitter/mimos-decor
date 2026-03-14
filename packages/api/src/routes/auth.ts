@@ -11,6 +11,7 @@ const USER_SELECT = {
   id: true,
   name: true,
   email: true,
+  username: true,
   isAdmin: true,
   roleId: true,
   permissionOverrides: true,
@@ -31,10 +32,13 @@ authRouter.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      res.status(400).json({ error: "Email e senha são obrigatórios" });
+      res.status(400).json({ error: "Email/usuário e senha são obrigatórios" });
       return;
     }
-    const user = await prisma.user.findUnique({ where: { email }, include: { role: { select: { id: true, name: true, permissions: true, createdAt: true, updatedAt: true } } } });
+    const isEmail = email.includes("@");
+    const user = isEmail
+      ? await prisma.user.findUnique({ where: { email }, include: { role: { select: { id: true, name: true, permissions: true, createdAt: true, updatedAt: true } } } })
+      : await prisma.user.findUnique({ where: { username: email }, include: { role: { select: { id: true, name: true, permissions: true, createdAt: true, updatedAt: true } } } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       res.status(401).json({ error: "Credenciais inválidas" });
       return;

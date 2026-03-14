@@ -12,6 +12,7 @@ async function main() {
     create: {
       name: "Admin",
       email: "admin@mimosdecor.com",
+      username: "admin",
       password: hashedPassword,
       isAdmin: true,
     },

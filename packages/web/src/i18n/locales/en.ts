@@ -27,6 +27,8 @@ export const en = {
     login: "Sign In",
     logout: "Sign Out",
     email: "Email",
+    emailOrUsername: "Email or Username",
+    emailOrUsernamePlaceholder: "your@email.com or username",
     password: "Password",
     loginTitle: "Welcome back",
     loginSubtitle: "Sign in to manage your store",

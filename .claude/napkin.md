@@ -3,6 +3,7 @@
 ## Corrections
 | Date | Source | What Went Wrong | What To Do Instead |
 |------|--------|----------------|-------------------|
+| 2026-03-14 | self | Edited prisma/seed.ts but src/seed.ts was the one compiled by tsc | Check BOTH seed files exist; src/seed.ts is compiled, prisma/seed.ts is for prisma db seed |
 
 ## User Preferences
 - Prefers Portuguese for UI/communication

@@ -6,7 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 export function Login() {
   const { t } = useTranslation();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(""); // accepts email or username
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -48,13 +48,13 @@ export function Login() {
 
           <div className="space-y-5">
             <div>
-              <label className="block text-[12px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">{t("auth.email")}</label>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">{t("auth.emailOrUsername")}</label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-stroke rounded-xl text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                placeholder="seu@email.com"
+                placeholder={t("auth.emailOrUsernamePlaceholder")}
                 required
               />
             </div>

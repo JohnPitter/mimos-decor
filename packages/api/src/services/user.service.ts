@@ -26,17 +26,30 @@ export async function listUsers(params: { page?: number; limit?: number }) {
   return { users: users.map(buildUserResponse), total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
+async function generateUniqueUsername(email: string): Promise<string> {
+  const base = email.split("@")[0].toLowerCase().replace(/[^a-z0-9._-]/g, "");
+  let username = base;
+  let suffix = 1;
+  while (await prisma.user.findUnique({ where: { username } })) {
+    username = `${base}${suffix}`;
+    suffix++;
+  }
+  return username;
+}
+
 export async function createUser(
   data: { name: string; email: string; password: string; isAdmin?: boolean; roleId?: string; permissionOverrides?: string[] },
   adminId: string,
 ) {
   const exists = await prisma.user.findUnique({ where: { email: data.email } });
   if (exists) throw new Error("Email já cadastrado");
+  const username = await generateUniqueUsername(data.email);
   const hashedPassword = await bcrypt.hash(data.password, 10);
   const user = await prisma.user.create({
     data: {
       name: data.name,
       email: data.email,
+      username,
       password: hashedPassword,
       isAdmin: data.isAdmin ?? false,
       roleId: data.roleId ?? null,

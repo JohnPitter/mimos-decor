@@ -27,6 +27,8 @@ export const ptBR = {
     login: "Entrar",
     logout: "Sair",
     email: "Email",
+    emailOrUsername: "Email ou Usuário",
+    emailOrUsernamePlaceholder: "seu@email.com ou username",
     password: "Senha",
     loginTitle: "Bem-vindo de volta",
     loginSubtitle: "Acesse sua conta para gerenciar sua loja",
