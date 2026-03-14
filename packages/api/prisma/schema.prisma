@@ -192,7 +192,8 @@ model AuditLog {
 
 model AppSettings {
   id                    String  @id @default("singleton")
-  allowSaleDeletion  Boolean @default(true) @map("allow_sale_deletion")
+  allowSaleDeletion     Boolean @default(true) @map("allow_sale_deletion")
+  allowRoleManagement   Boolean @default(true) @map("allow_role_management")
 
   @@map("app_settings")
 }

@@ -45,6 +45,7 @@ export const en = {
     reports: "Reports",
     roles: "Roles",
     finances: "Finances",
+    admin: "Administration",
     deleteConfirmTitle: "Confirm Deletion",
   },
   roles: {
@@ -336,6 +337,14 @@ export const en = {
     dashboardDesc: "KPIs, daily sales, top products and channels",
     exportSuccess: "Report exported successfully",
     exportError: "Error exporting report",
+  },
+  admin: {
+    title: "Administration",
+    subtitle: "Global system settings",
+    allowSaleDeletion: "Allow sale deletion",
+    allowSaleDeletionDesc: "When disabled, no user can delete sales",
+    allowRoleManagement: "Allow role management",
+    allowRoleManagementDesc: "When disabled, access roles cannot be created or edited",
   },
   finances: {
     title: "Finances",

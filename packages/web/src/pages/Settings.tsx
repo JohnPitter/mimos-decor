@@ -1,10 +1,9 @@
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Header } from "../components/layout/Header.js";
 import { useSettingsStore, DEFAULT_THEME } from "../stores/settings.store.js";
-import { useAuthStore } from "../stores/auth.store.js";
 import type { ThemeColors } from "../stores/settings.store.js";
-import { Palette, RotateCcw, ShieldCheck } from "lucide-react";
+import { Palette, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 interface ColorField {
@@ -25,12 +24,7 @@ const COLOR_FIELDS: ColorField[] = [
 
 export default function Settings() {
   const { t } = useTranslation();
-  const { theme, setThemeColor, resetTheme, saveToServer, appSettings, fetchAppSettings, updateAppSettings } = useSettingsStore();
-  const isAdmin = useAuthStore((s) => s.user?.isAdmin);
-
-  useEffect(() => {
-    fetchAppSettings();
-  }, [fetchAppSettings]);
+  const { theme, setThemeColor, resetTheme, saveToServer } = useSettingsStore();
   const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const debouncedSave = useCallback(() => {
@@ -101,40 +95,6 @@ export default function Settings() {
             </div>
           ))}
         </div>
-
-        {/* Admin settings */}
-        {isAdmin && (
-          <div className="bg-card-bg border border-stroke rounded-xl p-6 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
-                <ShieldCheck size={24} className="text-red-500" />
-              </div>
-              <div>
-                <h2 className="text-[18px] font-bold text-text-dark">{t("settings.adminTitle")}</h2>
-                <p className="text-[13px] text-text-muted">{t("settings.adminSubtitle")}</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between py-3">
-              <div>
-                <p className="text-[14px] font-semibold text-text-dark">{t("settings.allowSaleDeletion")}</p>
-                <p className="text-[12px] text-text-muted">{t("settings.allowSaleDeletionDesc")}</p>
-              </div>
-              <button
-                onClick={async () => {
-                  try {
-                    await updateAppSettings({ allowSaleDeletion: !appSettings.allowSaleDeletion });
-                    toast.success(t("settings.settingsUpdated"));
-                  } catch {
-                    toast.error(t("settings.settingsError"));
-                  }
-                }}
-                className={`w-11 h-6 rounded-full transition-colors relative ${appSettings.allowSaleDeletion ? "bg-primary" : "bg-stroke"}`}
-              >
-                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${appSettings.allowSaleDeletion ? "left-[22px]" : "left-0.5"}`} />
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Preview */}
         <div className="bg-card-bg border border-stroke rounded-xl p-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>

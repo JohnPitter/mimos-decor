@@ -45,6 +45,7 @@ export const ptBR = {
     reports: "Relatórios",
     roles: "Perfis",
     finances: "Finanças",
+    admin: "Administração",
     deleteConfirmTitle: "Confirmar Exclusão",
   },
   roles: {
@@ -336,6 +337,14 @@ export const ptBR = {
     dashboardDesc: "KPIs, vendas por dia, top produtos e modalidades",
     exportSuccess: "Relatório exportado com sucesso",
     exportError: "Erro ao exportar relatório",
+  },
+  admin: {
+    title: "Administração",
+    subtitle: "Configurações globais do sistema",
+    allowSaleDeletion: "Permitir exclusão de vendas",
+    allowSaleDeletionDesc: "Quando desativado, nenhum usuário poderá excluir vendas",
+    allowRoleManagement: "Permitir gerenciamento de perfis",
+    allowRoleManagementDesc: "Quando desativado, perfis de acesso não poderão ser criados ou editados",
   },
   finances: {
     title: "Finanças",

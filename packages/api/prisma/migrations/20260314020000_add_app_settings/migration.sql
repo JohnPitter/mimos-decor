@@ -2,6 +2,7 @@
 CREATE TABLE "app_settings" (
     "id" TEXT NOT NULL DEFAULT 'singleton',
     "allow_sale_deletion" BOOLEAN NOT NULL DEFAULT true,
+    "allow_role_management" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "app_settings_pkey" PRIMARY KEY ("id")
 );

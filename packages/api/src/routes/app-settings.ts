@@ -36,7 +36,8 @@ appSettingsRouter.put("/", async (req, res) => {
     const settings = await prisma.appSettings.update({
       where: { id: SINGLETON_ID },
       data: {
-        allowSaleDeletion: req.body.allowSaleDeletion,
+        ...(req.body.allowSaleDeletion !== undefined && { allowSaleDeletion: req.body.allowSaleDeletion }),
+        ...(req.body.allowRoleManagement !== undefined && { allowRoleManagement: req.body.allowRoleManagement }),
       },
     });
     logger.info("App settings updated", "settings");
