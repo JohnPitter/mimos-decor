@@ -50,6 +50,7 @@ export interface Sale {
   saleDate: string;
   customerName: string | null;
   customerDocument: string | null;
+  customerState: string | null;
   deliveryStatus: DeliveryStatus;
   trackingCode: string | null;
   importedFrom: string | null;
@@ -68,6 +69,7 @@ export interface CreateSaleInput {
   items: CreateSaleItemInput[];
   customerName?: string;
   customerDocument?: string;
+  customerState?: string;
   trackingCode?: string;
   deliveryStatus?: DeliveryStatus;
   discount?: number;

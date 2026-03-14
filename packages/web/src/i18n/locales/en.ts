@@ -20,6 +20,7 @@ export const en = {
     page: "Page",
     previous: "Previous",
     next: "Next",
+    optional: "Optional",
   },
   auth: {
     login: "Sign In",
@@ -206,6 +207,7 @@ export const en = {
     customer: "Customer",
     customerName: "Customer Name",
     customerDocument: "Tax ID",
+    customerState: "State",
     trackingCode: "Tracking Code",
     items: "Items",
     addItem: "Add Item",

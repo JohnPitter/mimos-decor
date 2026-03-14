@@ -20,6 +20,7 @@ export const ptBR = {
     page: "Página",
     previous: "Anterior",
     next: "Próximo",
+    optional: "Opcional",
   },
   auth: {
     login: "Entrar",
@@ -206,6 +207,7 @@ export const ptBR = {
     customer: "Cliente",
     customerName: "Nome do Cliente",
     customerDocument: "CPF/CNPJ",
+    customerState: "Estado (UF)",
     trackingCode: "Código de Rastreio",
     items: "Itens",
     addItem: "Adicionar Item",

@@ -121,6 +121,7 @@ model Sale {
   saleDate         DateTime       @default(now()) @map("sale_date")
   customerName     String?        @map("customer_name")
   customerDocument String?        @map("customer_document")
+  customerState    String?        @map("customer_state")
   deliveryStatus   DeliveryStatus @default(PENDING) @map("delivery_status")
   trackingCode     String?        @map("tracking_code")
   importedFrom     String?        @map("imported_from")
