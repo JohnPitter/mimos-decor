@@ -22,13 +22,20 @@ const DEFAULT_THEME: ThemeColors = {
   stroke: "#f0e0e0",
 };
 
+interface AppSettings {
+  allowSaleDeletion: boolean;
+}
+
 interface SettingsState {
   theme: ThemeColors;
+  appSettings: AppSettings;
   setThemeColor: (key: keyof ThemeColors, value: string) => void;
   resetTheme: () => void;
   applyTheme: () => void;
   loadFromUser: (user: User) => void;
   saveToServer: () => Promise<void>;
+  fetchAppSettings: () => Promise<void>;
+  updateAppSettings: (data: Partial<AppSettings>) => Promise<void>;
 }
 
 function applyToDOM(theme: ThemeColors) {
@@ -52,6 +59,7 @@ function loadTheme(): ThemeColors {
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   theme: loadTheme(),
+  appSettings: { allowSaleDeletion: true },
 
   setThemeColor: (key, value) => {
     const theme = { ...get().theme, [key]: value };
@@ -83,6 +91,18 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   saveToServer: async () => {
     const theme = get().theme;
     await api.put("/auth/profile", { themeColors: theme });
+  },
+
+  fetchAppSettings: async () => {
+    try {
+      const data = await api.get<AppSettings>("/app-settings");
+      set({ appSettings: data });
+    } catch { /* ignore */ }
+  },
+
+  updateAppSettings: async (data) => {
+    const updated = await api.put<AppSettings>("/app-settings", data);
+    set({ appSettings: updated });
   },
 }));
 

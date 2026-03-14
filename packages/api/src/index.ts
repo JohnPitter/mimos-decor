@@ -13,6 +13,7 @@ import { auditLogRouter } from "./routes/audit-logs.js";
 import { gatewayRouter } from "./routes/gateways.js";
 import { roleRouter } from "./routes/roles.js";
 import { financeRouter, financeCategoryRouter } from "./routes/finances.js";
+import { appSettingsRouter } from "./routes/app-settings.js";
 import { logger } from "./lib/logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -52,6 +53,7 @@ app.use("/api/gateways", gatewayRouter);
 app.use("/api/roles", roleRouter);
 app.use("/api/finances", financeRouter);
 app.use("/api/finance-categories", financeCategoryRouter);
+app.use("/api/app-settings", appSettingsRouter);
 
 // In production, serve the frontend build
 if (isProduction) {

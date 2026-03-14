@@ -36,6 +36,7 @@ interface SaleState {
     customerName?: string;
     customerDocument?: string;
   }) => Promise<void>;
+  deleteSale: (id: string) => Promise<void>;
   updateSaleStatus: (id: string, status: DeliveryStatus) => Promise<void>;
   importCSV: (file: File, gateway: string) => Promise<ImportResult>;
   getSaleDetail: (id: string) => Promise<SaleWithHistory>;
@@ -63,6 +64,9 @@ export const useSaleStore = create<SaleState>((set) => ({
   },
   createSale: async (data) => {
     await api.post("/sales", data);
+  },
+  deleteSale: async (id) => {
+    await api.delete(`/sales/${id}`);
   },
   updateSaleStatus: async (id, status) => {
     await api.patch(`/sales/${id}/status`, { status });

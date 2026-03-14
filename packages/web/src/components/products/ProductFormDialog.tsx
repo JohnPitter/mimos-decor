@@ -18,6 +18,7 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const FIELDS = [
@@ -82,17 +83,25 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const data: Record<string, unknown> = {};
-    for (const field of FIELDS) {
-      const val = form[field.name];
-      data[field.name] = field.type === "number" ? Number(val || 0) : val || (field.required ? "" : undefined);
-    }
-    const result = await onSubmit(data);
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const data: Record<string, unknown> = {};
+      for (const field of FIELDS) {
+        const val = form[field.name];
+        data[field.name] = field.type === "number" ? Number(val || 0) : val || (field.required ? "" : undefined);
+      }
+      const result = await onSubmit(data);
 
-    // If we just created a product and have a pending image, upload it
-    if (result && pendingFile) {
-      await uploadImage(result.id, pendingFile);
-      setPendingFile(null);
+      // If we just created a product and have a pending image, upload it
+      if (result && pendingFile) {
+        await uploadImage(result.id, pendingFile);
+        setPendingFile(null);
+      }
+
+      onClose();
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -151,8 +160,8 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
             <button type="button" onClick={onClose} className="flex-1 py-2.5 border border-stroke rounded-lg text-[14px] font-medium text-text-secondary hover:bg-page-bg transition-colors">
               {t("common.cancel")}
             </button>
-            <button type="submit" disabled={uploading} className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-[14px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60">
-              {uploading ? t("common.loading") : product ? t("common.save") : t("common.create")}
+            <button type="submit" disabled={uploading || submitting} className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-[14px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60">
+              {uploading || submitting ? t("common.loading") : product ? t("common.save") : t("common.create")}
             </button>
           </div>
         </form>

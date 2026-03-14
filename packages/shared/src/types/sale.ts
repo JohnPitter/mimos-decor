@@ -46,6 +46,8 @@ export interface Sale {
   totalFees: number;
   netRevenue: number;
   profit: number;
+  discount: number;
+  saleDate: string;
   customerName: string | null;
   customerDocument: string | null;
   deliveryStatus: DeliveryStatus;
@@ -67,6 +69,9 @@ export interface CreateSaleInput {
   customerName?: string;
   customerDocument?: string;
   trackingCode?: string;
+  deliveryStatus?: DeliveryStatus;
+  discount?: number;
+  saleDate?: string;
 }
 
 export interface UpdateSaleInput {

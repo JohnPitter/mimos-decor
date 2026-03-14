@@ -25,6 +25,9 @@ interface Props {
     items: { productId: string; quantity: number }[];
     customerName?: string;
     customerDocument?: string;
+    deliveryStatus?: string;
+    discount?: number;
+    saleDate?: string;
   }) => void;
 }
 
@@ -51,6 +54,9 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   const [items, setItems] = useState<ItemRow[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerDocument, setCustomerDocument] = useState("");
+  const [deliveryStatus, setDeliveryStatus] = useState("PENDING");
+  const [discount, setDiscount] = useState("");
+  const [saleDate, setSaleDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   useEffect(() => {
     if (open) {
@@ -58,6 +64,9 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
       setItems([{ key: ++nextKey, productId: "", quantity: 1 }]);
       setCustomerName("");
       setCustomerDocument("");
+      setDeliveryStatus("PENDING");
+      setDiscount("");
+      setSaleDate(new Date().toISOString().slice(0, 10));
       setLoadingProducts(true);
       api
         .get<{ products: Product[]; total: number }>("/products?limit=500")
@@ -131,6 +140,9 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
       items: validItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
       customerName: customerName || undefined,
       customerDocument: customerDocument || undefined,
+      deliveryStatus: deliveryStatus || undefined,
+      discount: discount ? Number(discount) : undefined,
+      saleDate: saleDate || undefined,
     });
   };
 
@@ -169,6 +181,22 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
                 <option key={gw.id} value={gw.id}>
                   {gw.label}
                 </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Delivery Status */}
+          <div>
+            <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+              {t("sales.status")}
+            </label>
+            <select
+              value={deliveryStatus}
+              onChange={(e) => setDeliveryStatus(e.target.value)}
+              className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+            >
+              {(["PENDING", "PREPARING", "IN_TRANSIT", "DELIVERED", "RETURNED", "CANCELLED"] as const).map((s) => (
+                <option key={s} value={s}>{t(`deliveryStatus.${s}`)}</option>
               ))}
             </select>
           </div>
@@ -289,6 +317,36 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               </div>
             </div>
           )}
+
+          {/* Discount + Sale Date */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+                {t("sales.discount")}
+              </label>
+              <input
+                type="number"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+                step="0.01"
+                min="0"
+                placeholder="R$ 0,00"
+                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+                {t("sales.saleDate")} <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="date"
+                value={saleDate}
+                onChange={(e) => setSaleDate(e.target.value)}
+                required
+                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              />
+            </div>
+          </div>
 
           {/* Customer fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

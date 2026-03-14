@@ -4,6 +4,7 @@ import { Header } from "../components/layout/Header.js";
 import { SaleFormDialog } from "../components/sales/SaleFormDialog.js";
 import { SaleDetailDrawer } from "../components/sales/SaleDetailDrawer.js";
 import { ImportCSVDialog } from "../components/sales/ImportCSVDialog.js";
+import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
 import { useSaleStore } from "../stores/sale.store.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
 import {
@@ -11,7 +12,8 @@ import {
   DELIVERY_STATUS_COLORS,
 } from "@mimos/shared";
 import type { Sale, DeliveryStatus } from "@mimos/shared";
-import { Plus, Upload, ShoppingCart } from "lucide-react";
+import { Plus, Upload, ShoppingCart, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { ExportDropdown } from "../components/common/ExportDropdown.js";
 import { useSettingsStore } from "../stores/settings.store.js";
 import { exportSalesXlsx } from "../lib/export-xlsx.js";
@@ -47,15 +49,18 @@ const TABS: StatusTab[] = [
 
 export default function Sales() {
   const { t } = useTranslation();
-  const { sales, total, loading, fetchSales, createSale } = useSaleStore();
+  const { sales, total, loading, fetchSales, createSale, deleteSale } = useSaleStore();
   const getGatewayLabel = useGatewayStore((s) => s.getGatewayLabel);
   const theme = useSettingsStore((s) => s.theme);
+  const appSettings = useSettingsStore((s) => s.appSettings);
+  const fetchAppSettings = useSettingsStore((s) => s.fetchAppSettings);
   const [activeTab, setActiveTab] = useState<DeliveryStatus | null>(null);
   const [page, setPage] = useState(1);
   const [saleDialogOpen, setSaleDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
@@ -65,6 +70,7 @@ export default function Sales() {
 
   useEffect(() => { setPage(1); }, [activeTab]);
   useEffect(() => { loadSales(); }, [loadSales]);
+  useEffect(() => { fetchAppSettings(); }, [fetchAppSettings]);
 
   const handleCreateSale = async (data: Parameters<typeof createSale>[0]) => {
     await createSale(data);
@@ -75,6 +81,19 @@ export default function Sales() {
   const handleRowClick = (sale: Sale) => {
     setSelectedSale(sale);
     setDrawerOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+    try {
+      await deleteSale(deleteId);
+      toast.success(t("sales.deleteSuccess"));
+      loadSales();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("sales.deleteError"));
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   return (
@@ -132,20 +151,21 @@ export default function Sales() {
                   <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.profit")}</th>
                   <th className="text-center px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.status")}</th>
                   <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.date")}</th>
+                  <th className="px-3 py-3 w-12"></th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   Array.from({ length: 8 }).map((_, i) => (
                     <tr key={i} className="border-b border-stroke/50">
-                      {Array.from({ length: 7 }).map((_, j) => (
+                      {Array.from({ length: 8 }).map((_, j) => (
                         <td key={j} className="px-4 py-3"><div className="h-4 bg-page-bg rounded animate-pulse" /></td>
                       ))}
                     </tr>
                   ))
                 ) : sales.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-16">
+                    <td colSpan={8} className="text-center py-16">
                       <ShoppingCart size={48} className="mx-auto text-text-muted/40 mb-3" />
                       <p className="text-text-muted text-[14px]">{t("common.noResults")}</p>
                     </td>
@@ -188,6 +208,16 @@ export default function Sales() {
                       <td className="text-right px-3 py-3 text-[12px] text-text-muted">
                         {new Date(sale.createdAt).toLocaleDateString()}
                       </td>
+                      <td className="px-3 py-3">
+                        {appSettings.allowSaleDeletion && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeleteId(sale.id); }}
+                            className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50 transition-all"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -228,6 +258,15 @@ export default function Sales() {
       <SaleFormDialog open={saleDialogOpen} onClose={() => setSaleDialogOpen(false)} onSubmit={handleCreateSale} />
       <ImportCSVDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} onImported={() => loadSales()} />
       <SaleDetailDrawer sale={selectedSale} open={drawerOpen} onClose={() => { setDrawerOpen(false); setSelectedSale(null); }} onStatusUpdated={() => loadSales()} />
+      <ConfirmDialog
+        open={!!deleteId}
+        title={t("nav.deleteConfirmTitle")}
+        message={t("sales.deleteConfirm")}
+        confirmLabel={t("common.delete")}
+        cancelLabel={t("common.cancel")}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

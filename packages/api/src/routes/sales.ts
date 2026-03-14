@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { authMiddleware } from "../middleware/auth.js";
 import { logger } from "../lib/logger.js";
+import { prisma } from "../lib/prisma.js";
 import * as saleService from "../services/sale.service.js";
 
 export const saleRouter = Router();
@@ -58,6 +59,27 @@ saleRouter.patch("/:id/status", async (req, res) => {
     res.json(sale);
   } catch (err) {
     logger.error("Update sale status error", "sale", { error: String(err) });
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+saleRouter.delete("/:id", async (req, res) => {
+  try {
+    try {
+      const settings = await prisma.appSettings.findUnique({ where: { id: "singleton" } });
+      if (settings && !settings.allowSaleDeletion) {
+        res.status(403).json({ error: "Exclusão de vendas desativada pelo administrador" });
+        return;
+      }
+    } catch {
+      // Table may not exist yet — allow by default
+    }
+    const sale = await saleService.deleteSale(req.params.id, req.user!.id);
+    if (!sale) { res.status(404).json({ error: "Venda não encontrada" }); return; }
+    logger.info(`Sale deleted: ${req.params.id}`, "sale");
+    res.json({ ok: true });
+  } catch (err) {
+    logger.error("Delete sale error", "sale", { error: String(err) });
     res.status(500).json({ error: "Erro interno" });
   }
 });

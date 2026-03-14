@@ -117,6 +117,8 @@ model Sale {
   totalFees        Float          @map("total_fees")
   netRevenue       Float          @map("net_revenue")
   profit           Float
+  discount         Float          @default(0)
+  saleDate         DateTime       @default(now()) @map("sale_date")
   customerName     String?        @map("customer_name")
   customerDocument String?        @map("customer_document")
   deliveryStatus   DeliveryStatus @default(PENDING) @map("delivery_status")
@@ -186,6 +188,13 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model AppSettings {
+  id                    String  @id @default("singleton")
+  allowSaleDeletion  Boolean @default(true) @map("allow_sale_deletion")
+
+  @@map("app_settings")
 }
 
 model FinanceCategory {

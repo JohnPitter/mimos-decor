@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
+import { logger } from "../lib/logger.js";
 import { MARKETPLACES, buildMarketplace, calcProductCost, calcIdealPrice } from "@mimos/shared";
 import type { Marketplace, CommissionTier, PixTier } from "@mimos/shared";
 import type { Prisma, DeliveryStatus } from "@prisma/client";
@@ -105,6 +106,9 @@ export async function createSale(data: {
   customerName?: string;
   customerDocument?: string;
   trackingCode?: string;
+  deliveryStatus?: DeliveryStatus;
+  discount?: number;
+  saleDate?: string;
 }, userId: string) {
   const marketplace = await resolveMarketplace(data.gateway);
   if (!data.items.length) throw new Error("A venda deve ter pelo menos um item");
@@ -157,11 +161,12 @@ export async function createSale(data: {
     });
   }
 
+  const discount = data.discount ?? 0;
   const totalSalePrice = saleItems.reduce((sum, i) => sum + i.salePrice * i.quantity, 0);
   const totalCost = saleItems.reduce((sum, i) => sum + i.unitCost * i.quantity, 0);
   const totalFees = saleItems.reduce((sum, i) => sum + i.totalFees, 0);
-  const netRevenue = totalSalePrice - totalFees;
-  const profit = saleItems.reduce((sum, i) => sum + i.profit, 0);
+  const netRevenue = totalSalePrice - totalFees - discount;
+  const profit = saleItems.reduce((sum, i) => sum + i.profit, 0) - discount;
 
   const stockDecrements = data.items.map((item) =>
     prisma.product.update({
@@ -179,9 +184,12 @@ export async function createSale(data: {
         totalFees,
         netRevenue,
         profit,
+        discount,
+        saleDate: data.saleDate ? new Date(data.saleDate) : new Date(),
         customerName: data.customerName,
         customerDocument: data.customerDocument,
         trackingCode: data.trackingCode,
+        deliveryStatus: data.deliveryStatus ?? "PENDING",
         createdById: userId,
         items: {
           create: saleItems,
@@ -192,6 +200,30 @@ export async function createSale(data: {
   ]);
 
   await createAuditLog({ userId, action: "CREATE", entity: "SALE", entityId: sale.id, newData: sale as unknown as Record<string, unknown> });
+  return sale;
+}
+
+export async function deleteSale(id: string, userId: string) {
+  const sale = await prisma.sale.findUnique({ where: { id }, include: { items: true } });
+  if (!sale) return null;
+
+  // Restore stock for each item
+  const stockIncrements = sale.items.map((item) =>
+    prisma.product.update({
+      where: { id: item.productId! },
+      data: { quantity: { increment: item.quantity } },
+    }),
+  );
+
+  await prisma.$transaction([
+    prisma.deliveryStatusHistory.deleteMany({ where: { saleId: id } }),
+    prisma.saleItem.deleteMany({ where: { saleId: id } }),
+    prisma.sale.delete({ where: { id } }),
+    ...stockIncrements.filter((_, i) => sale.items[i].productId !== null),
+  ]);
+
+  await createAuditLog({ userId, action: "DELETE", entity: "SALE", entityId: id, oldData: sale as unknown as Record<string, unknown> });
+  logger.info(`Sale deleted: ${id}`, "sale");
   return sale;
 }
 
