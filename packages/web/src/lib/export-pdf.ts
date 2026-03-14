@@ -58,18 +58,22 @@ export function exportSalesPdf(
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   addHeader(doc, opts.title, opts.primaryColor);
 
-  const head = [["Produto", "Cliente", "Gateway", "Qtd.", "Valor Venda", "Custo", "Taxas", "Lucro", "Status", "Data"]];
+  const genderLabel = (g: string | null) => g === "M" ? "Masc." : g === "F" ? "Fem." : g === "O" ? "Outros" : "—";
+  const head = [["Produto", "Cliente", "Shopee", "Sexo", "UF", "Gateway", "Qtd.", "Venda", "Desc.", "Taxas", "Lucro", "Status", "Data"]];
   const body = sales.map((s) => [
     s.items.map((i) => i.productName).join(", "),
     s.customerName ?? "—",
+    s.shopeeUsername ?? "—",
+    genderLabel(s.customerGender),
+    s.customerState ?? "—",
     getGatewayLabel(s.gateway),
     String(s.items.reduce((sum, i) => sum + i.quantity, 0)),
     formatBRL(s.salePrice),
-    formatBRL(s.totalCost),
+    formatBRL(s.discount ?? 0),
     formatBRL(s.totalFees),
     formatBRL(s.profit),
     tDeliveryStatus(s.deliveryStatus),
-    new Date(s.createdAt).toLocaleDateString("pt-BR"),
+    new Date(s.saleDate ?? s.createdAt).toLocaleDateString("pt-BR"),
   ]);
 
   const [r, g, b] = hexToRgb(opts.primaryColor);
@@ -82,10 +86,13 @@ export function exportSalesPdf(
     headStyles: { fillColor: [r, g, b], textColor: [255, 255, 255], fontStyle: "bold" },
     alternateRowStyles: { fillColor: [249, 249, 249] },
     columnStyles: {
-      7: { cellWidth: 22, halign: "right" },
-      4: { cellWidth: 24, halign: "right" },
-      5: { cellWidth: 20, halign: "right" },
-      6: { cellWidth: 18, halign: "right" },
+      3: { cellWidth: 12 },
+      4: { cellWidth: 10 },
+      6: { cellWidth: 10, halign: "center" },
+      7: { cellWidth: 20, halign: "right" },
+      8: { cellWidth: 16, halign: "right" },
+      9: { cellWidth: 16, halign: "right" },
+      10: { cellWidth: 18, halign: "right" },
     },
   });
 

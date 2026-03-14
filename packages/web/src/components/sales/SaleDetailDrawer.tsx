@@ -217,35 +217,52 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                   {t("sales.date")}
                 </p>
                 <p className="text-[13px] font-medium text-text-secondary">
-                  {new Date(sale.createdAt).toLocaleDateString()}
+                  {new Date(sale.saleDate ?? sale.createdAt).toLocaleDateString()}
                 </p>
               </div>
             </div>
 
-            {(sale.customerName || sale.customerDocument) && (
-              <div className="pt-2 border-t border-stroke/50">
-                {sale.customerName && (
-                  <div className="mb-2">
-                    <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                      {t("sales.customer")}
-                    </p>
-                    <p className="text-[13px] font-medium text-text-dark">
-                      {sale.customerName}
-                    </p>
-                  </div>
-                )}
-                {sale.customerDocument && (
-                  <div>
-                    <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
-                      {t("sales.customerDocument")}
-                    </p>
-                    <p className="text-[13px] font-medium text-text-dark">
-                      {sale.customerDocument}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Customer & sale info */}
+            <div className="pt-2 border-t border-stroke/50 grid grid-cols-2 gap-3">
+              {sale.shopeeUsername && (
+                <div>
+                  <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">{t("sales.shopeeUsername")}</p>
+                  <p className="text-[13px] font-medium text-text-dark">{sale.shopeeUsername}</p>
+                </div>
+              )}
+              {sale.customerGender && (
+                <div>
+                  <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">{t("sales.customerGender")}</p>
+                  <p className="text-[13px] font-medium text-text-dark">
+                    {sale.customerGender === "M" ? t("sales.genderMale") : sale.customerGender === "F" ? t("sales.genderFemale") : t("sales.genderOther")}
+                  </p>
+                </div>
+              )}
+              {sale.customerState && (
+                <div>
+                  <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">{t("sales.customerState")}</p>
+                  <p className="text-[13px] font-medium text-text-dark">{sale.customerState}</p>
+                </div>
+              )}
+              {sale.customerName && (
+                <div>
+                  <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">{t("sales.customer")}</p>
+                  <p className="text-[13px] font-medium text-text-dark">{sale.customerName}</p>
+                </div>
+              )}
+              {sale.customerDocument && (
+                <div>
+                  <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">{t("sales.customerDocument")}</p>
+                  <p className="text-[13px] font-medium text-text-dark">{sale.customerDocument}</p>
+                </div>
+              )}
+              {sale.discount > 0 && (
+                <div>
+                  <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">{t("sales.discount")}</p>
+                  <p className="text-[13px] font-medium text-red-500">-{formatBRL(sale.discount)}</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Status Update */}

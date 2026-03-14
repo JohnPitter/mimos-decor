@@ -77,28 +77,33 @@ export function exportSalesXlsx(
   tDeliveryStatus: (status: string) => string,
   opts: ExportOptions,
 ) {
-  const headers = ["Produto", "Cliente", "Gateway", "Qtd.", "Valor Venda", "Custo", "Taxas", "Lucro", "Status", "Data"];
+  const headers = ["Produto", "Cliente", "Usuário Shopee", "Sexo", "Estado", "Gateway", "Qtd.", "Valor Venda", "Desconto", "Custo", "Taxas", "Lucro", "Status", "Data da Venda"];
+  const genderLabel = (g: string | null) => g === "M" ? "Masculino" : g === "F" ? "Feminino" : g === "O" ? "Outros" : "—";
   const rows = sales.map((s) => [
     s.items.map((i) => i.productName).join(", "),
     s.customerName ?? "—",
+    s.shopeeUsername ?? "—",
+    genderLabel(s.customerGender),
+    s.customerState ?? "—",
     getGatewayLabel(s.gateway),
     s.items.reduce((sum, i) => sum + i.quantity, 0),
     formatBRL(s.salePrice),
+    formatBRL(s.discount ?? 0),
     formatBRL(s.totalCost),
     formatBRL(s.totalFees),
     formatBRL(s.profit),
     tDeliveryStatus(s.deliveryStatus),
-    new Date(s.createdAt).toLocaleDateString("pt-BR"),
+    new Date(s.saleDate ?? s.createdAt).toLocaleDateString("pt-BR"),
   ]);
 
-  const titleRow = [opts.title, "", "", "", "", "", "", "", "", new Date().toLocaleDateString("pt-BR")];
+  const titleRow = [opts.title, "", "", "", "", "", "", "", "", "", "", "", "", new Date().toLocaleDateString("pt-BR")];
   const data = [titleRow, headers, ...rows];
 
   const ws = XLSX.utils.aoa_to_sheet(data);
   autoWidth(ws, data);
 
   // Merge title row
-  ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }];
+  ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 12 } }];
 
   // Style title
   const titleAddr = XLSX.utils.encode_cell({ r: 0, c: 0 });
