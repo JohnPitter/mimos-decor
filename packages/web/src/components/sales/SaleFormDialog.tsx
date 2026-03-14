@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 import { ProductPicker } from "./ProductPicker.js";
 import {
   MARKETPLACES,
@@ -33,6 +33,8 @@ interface Props {
     customerName?: string;
     customerDocument?: string;
     customerState?: string;
+    customerGender?: string;
+    shopeeUsername?: string;
     deliveryStatus?: string;
     discount?: number;
     saleDate?: string;
@@ -63,6 +65,8 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   const [customerName, setCustomerName] = useState("");
   const [customerDocument, setCustomerDocument] = useState("");
   const [customerState, setCustomerState] = useState("");
+  const [customerGender, setCustomerGender] = useState("");
+  const [shopeeUsername, setShopeeUsername] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState("PENDING");
   const [discount, setDiscount] = useState("");
   const [saleDate, setSaleDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -74,6 +78,8 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
       setCustomerName("");
       setCustomerDocument("");
       setCustomerState("");
+      setCustomerGender("");
+      setShopeeUsername("");
       setDeliveryStatus("PENDING");
       setDiscount("");
       setSaleDate(new Date().toISOString().slice(0, 10));
@@ -88,20 +94,18 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
 
   const productMap = useMemo(() => {
     const map = new Map<string, Product>();
-    for (const p of products) {
-      map.set(p.id, p);
-    }
+    for (const p of products) map.set(p.id, p);
     return map;
   }, [products]);
 
   const marketplace = getMarketplace(gateway) ?? MARKETPLACES[gateway];
 
   const itemPricing = useMemo(() => {
-    if (!marketplace) return items.map(() => ({ unitPrice: 0, subtotal: 0, cost: 0, fees: 0, profit: 0 }));
+    if (!marketplace) return items.map(() => ({ unitPrice: 0, subtotal: 0, cost: 0, fees: 0, shipping: 0, profit: 0 }));
     return items.map((item) => {
       const product = productMap.get(item.productId);
       if (!product || item.quantity <= 0) {
-        return { unitPrice: 0, subtotal: 0, cost: 0, fees: 0, profit: 0 };
+        return { unitPrice: 0, subtotal: 0, cost: 0, fees: 0, shipping: 0, profit: 0 };
       }
       const costs = buildCosts(product);
       const result = calcIdealPrice(costs, product.desiredMargin, marketplace);
@@ -111,6 +115,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
         subtotal: result.salePrice * item.quantity,
         cost: unitCost * item.quantity,
         fees: result.fees.totalFees * item.quantity,
+        shipping: product.shippingCost * item.quantity,
         profit: result.profit * item.quantity,
       };
     });
@@ -118,31 +123,28 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
 
   const totals = useMemo(() => {
     let totalPrice = 0;
-    let totalCost = 0;
     let totalFees = 0;
+    let totalShipping = 0;
     let totalProfit = 0;
     for (const p of itemPricing) {
       totalPrice += p.subtotal;
-      totalCost += p.cost;
       totalFees += p.fees;
+      totalShipping += p.shipping;
       totalProfit += p.profit;
     }
     const discountVal = discount ? Number(discount) : 0;
     return {
       totalPrice,
-      totalCost,
       totalFees,
+      totalShipping,
       totalProfit: totalProfit - discountVal,
-      netRevenue: totalPrice - totalFees - discountVal,
     };
   }, [itemPricing, discount]);
 
   if (!open) return null;
 
   const updateItem = (key: number, patch: Partial<ItemRow>) => {
-    setItems((prev) =>
-      prev.map((item) => (item.key === key ? { ...item, ...patch } : item))
-    );
+    setItems((prev) => prev.map((item) => (item.key === key ? { ...item, ...patch } : item)));
   };
 
   const removeItem = (key: number) => {
@@ -154,7 +156,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   };
 
   const validItems = items.filter((i) => i.productId && i.quantity > 0);
-  const canSubmit = validItems.length > 0;
+  const canSubmit = validItems.length > 0 && customerState && customerGender && shopeeUsername;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,7 +166,9 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
       items: validItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
       customerName: customerName || undefined,
       customerDocument: customerDocument || undefined,
-      customerState: customerState || undefined,
+      customerState,
+      customerGender,
+      shopeeUsername,
       deliveryStatus: deliveryStatus || undefined,
       discount: discount ? Number(discount) : undefined,
       saleDate: saleDate || undefined,
@@ -184,37 +188,37 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Gateway */}
-          <div>
-            <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
-              {t("sales.gateway")} <span className="text-red-400">*</span>
-            </label>
-            <select
-              value={gateway}
-              onChange={(e) => setGateway(e.target.value as GatewayId)}
-              required
-              className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            >
-              {allGateways.map((gw) => (
-                <option key={gw.id} value={gw.id}>{gw.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Delivery Status */}
-          <div>
-            <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
-              {t("sales.status")}
-            </label>
-            <select
-              value={deliveryStatus}
-              onChange={(e) => setDeliveryStatus(e.target.value)}
-              className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-            >
-              {(["PENDING", "PREPARING", "IN_TRANSIT", "DELIVERED", "RETURNED", "CANCELLED"] as const).map((s) => (
-                <option key={s} value={s}>{t(`deliveryStatus.${s}`)}</option>
-              ))}
-            </select>
+          {/* Gateway + Status */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+                {t("sales.gateway")} <span className="text-red-400">*</span>
+              </label>
+              <select
+                value={gateway}
+                onChange={(e) => setGateway(e.target.value as GatewayId)}
+                required
+                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              >
+                {allGateways.map((gw) => (
+                  <option key={gw.id} value={gw.id}>{gw.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+                {t("sales.status")}
+              </label>
+              <select
+                value={deliveryStatus}
+                onChange={(e) => setDeliveryStatus(e.target.value)}
+                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              >
+                {(["PENDING", "PREPARING", "IN_TRANSIT", "DELIVERED", "RETURNED", "CANCELLED"] as const).map((s) => (
+                  <option key={s} value={s}>{t(`deliveryStatus.${s}`)}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Items */}
@@ -268,32 +272,11 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
                         </button>
                       </div>
 
+                      {/* Pricing per item: unit price, quantity, subtotal */}
                       {pricing.unitPrice > 0 && (
-                        <div className="flex items-center gap-4 mt-2 pt-2 border-t border-stroke/30">
-                          <div className="text-left">
-                            <p className="text-[10px] text-text-muted leading-tight">Unit.</p>
-                            <p className="text-[12px] sm:text-[13px] font-semibold text-text-dark">
-                              {formatBRL(pricing.unitPrice)}
-                            </p>
-                          </div>
-                          <div className="text-left">
-                            <p className="text-[10px] text-text-muted leading-tight">Subtotal</p>
-                            <p className="text-[12px] sm:text-[13px] font-bold text-text-dark">
-                              {formatBRL(pricing.subtotal)}
-                            </p>
-                          </div>
-                          <div className="text-left">
-                            <p className="text-[10px] text-text-muted leading-tight">{t("sales.totalFees")}</p>
-                            <p className="text-[12px] sm:text-[13px] font-medium text-red-500">
-                              -{formatBRL(pricing.fees)}
-                            </p>
-                          </div>
-                          <div className="text-left">
-                            <p className="text-[10px] text-text-muted leading-tight">{t("sales.profit")}</p>
-                            <p className={`text-[12px] sm:text-[13px] font-bold ${pricing.profit >= 0 ? "text-green-600" : "text-red-500"}`}>
-                              {formatBRL(pricing.profit)}
-                            </p>
-                          </div>
+                        <div className="flex items-center gap-4 mt-2 pt-2 border-t border-stroke/30 text-[12px]">
+                          <span className="text-text-muted">{formatBRL(pricing.unitPrice)} × {item.quantity}</span>
+                          <span className="font-semibold text-text-dark ml-auto">{formatBRL(pricing.subtotal)}</span>
                         </div>
                       )}
                     </div>
@@ -312,33 +295,33 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
             </button>
           </div>
 
-          {/* Summary bar */}
+          {/* Summary — Shopee style */}
           {validItems.length > 0 && (
-            <div className="bg-page-bg rounded-xl p-4 border border-stroke/50 space-y-3">
-              <div className="flex items-center gap-2 text-text-secondary mb-1">
-                <ShoppingBag size={18} />
-                <span className="text-[13px] font-medium">
-                  {validItems.length} {t("common.items")}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div>
-                  <p className="text-[10px] text-text-muted uppercase tracking-wider">{t("sales.salePrice")}</p>
-                  <p className="text-[15px] font-bold text-text-dark">{formatBRL(totals.totalPrice)}</p>
+            <div className="bg-page-bg rounded-xl border border-stroke/50 overflow-hidden">
+              <div className="divide-y divide-stroke/30">
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <span className="text-[13px] text-text-secondary">{t("sales.subtotalProducts")}</span>
+                  <span className="text-[13px] font-semibold text-text-dark">{formatBRL(totals.totalPrice)}</span>
                 </div>
-                <div>
-                  <p className="text-[10px] text-text-muted uppercase tracking-wider">{t("sales.totalCost")}</p>
-                  <p className="text-[15px] font-bold text-text-dark">{formatBRL(totals.totalCost)}</p>
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <span className="text-[13px] text-text-secondary">{t("sales.estimatedShipping")}</span>
+                  <span className="text-[13px] font-semibold text-text-dark">{formatBRL(totals.totalShipping)}</span>
                 </div>
-                <div>
-                  <p className="text-[10px] text-text-muted uppercase tracking-wider">{t("sales.totalFees")}</p>
-                  <p className="text-[15px] font-bold text-red-500">-{formatBRL(totals.totalFees)}</p>
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <span className="text-[13px] text-text-secondary">{t("sales.feesAndCharges")}</span>
+                  <span className="text-[13px] font-semibold text-red-500">-{formatBRL(totals.totalFees)}</span>
                 </div>
-                <div>
-                  <p className="text-[10px] text-text-muted uppercase tracking-wider">{t("sales.profit")}</p>
-                  <p className={`text-[15px] font-bold ${totals.totalProfit >= 0 ? "text-green-600" : "text-red-500"}`}>
+                {discount && Number(discount) > 0 && (
+                  <div className="flex items-center justify-between px-4 py-2.5">
+                    <span className="text-[13px] text-text-secondary">{t("sales.discount")}</span>
+                    <span className="text-[13px] font-semibold text-red-500">-{formatBRL(Number(discount))}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between px-4 py-3 bg-card-bg">
+                  <span className="text-[14px] font-bold text-text-dark">{t("sales.estimatedRevenue")}</span>
+                  <span className={`text-[18px] font-bold ${totals.totalProfit >= 0 ? "text-primary" : "text-red-500"}`}>
                     {formatBRL(totals.totalProfit)}
-                  </p>
+                  </span>
                 </div>
               </div>
             </div>
@@ -374,8 +357,57 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
             </div>
           </div>
 
-          {/* Customer fields */}
+          {/* Shopee Username + Gender + State */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+                {t("sales.shopeeUsername")} <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={shopeeUsername}
+                onChange={(e) => setShopeeUsername(e.target.value)}
+                required
+                placeholder="@usuario"
+                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+                {t("sales.customerGender")} <span className="text-red-400">*</span>
+              </label>
+              <select
+                value={customerGender}
+                onChange={(e) => setCustomerGender(e.target.value)}
+                required
+                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              >
+                <option value="">{t("common.select")}</option>
+                <option value="M">{t("sales.genderMale")}</option>
+                <option value="F">{t("sales.genderFemale")}</option>
+                <option value="O">{t("sales.genderOther")}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+                {t("sales.customerState")} <span className="text-red-400">*</span>
+              </label>
+              <select
+                value={customerState}
+                onChange={(e) => setCustomerState(e.target.value)}
+                required
+                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              >
+                <option value="">{t("common.select")}</option>
+                {BR_STATES.map((uf) => (
+                  <option key={uf} value={uf}>{uf}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Customer name + document */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
                 {t("sales.customerName")}
@@ -399,21 +431,6 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
                 placeholder={t("common.optional")}
                 className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               />
-            </div>
-            <div>
-              <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
-                {t("sales.customerState")}
-              </label>
-              <select
-                value={customerState}
-                onChange={(e) => setCustomerState(e.target.value)}
-                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-              >
-                <option value="">{t("common.optional")}</option>
-                {BR_STATES.map((uf) => (
-                  <option key={uf} value={uf}>{uf}</option>
-                ))}
-              </select>
             </div>
           </div>
 

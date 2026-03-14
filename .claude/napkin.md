@@ -17,6 +17,7 @@
 
 ## Patterns That Don't Work
 - `prisma migrate dev` fails without running PostgreSQL locally — create migration SQL manually
+- Adding new DB columns without running migration on prod causes 500 errors — user must run `prisma migrate deploy` on server after deploy
 
 ## Domain Notes
 - Monorepo: packages/api (Express+Prisma), packages/web (React+Vite), packages/shared (types+constants)

@@ -122,6 +122,8 @@ model Sale {
   customerName     String?        @map("customer_name")
   customerDocument String?        @map("customer_document")
   customerState    String?        @map("customer_state")
+  customerGender   String?        @map("customer_gender")
+  shopeeUsername   String?        @map("shopee_username")
   deliveryStatus   DeliveryStatus @default(PENDING) @map("delivery_status")
   trackingCode     String?        @map("tracking_code")
   importedFrom     String?        @map("imported_from")

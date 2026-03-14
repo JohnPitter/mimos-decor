@@ -106,6 +106,8 @@ export async function createSale(data: {
   customerName?: string;
   customerDocument?: string;
   customerState?: string;
+  customerGender?: string;
+  shopeeUsername?: string;
   trackingCode?: string;
   deliveryStatus?: DeliveryStatus;
   discount?: number;
@@ -190,6 +192,8 @@ export async function createSale(data: {
         customerName: data.customerName,
         customerDocument: data.customerDocument,
         customerState: data.customerState,
+        customerGender: data.customerGender,
+        shopeeUsername: data.shopeeUsername,
         trackingCode: data.trackingCode,
         deliveryStatus: data.deliveryStatus ?? "PENDING",
         createdById: userId,

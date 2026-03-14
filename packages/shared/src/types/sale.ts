@@ -51,6 +51,8 @@ export interface Sale {
   customerName: string | null;
   customerDocument: string | null;
   customerState: string | null;
+  customerGender: string | null;
+  shopeeUsername: string | null;
   deliveryStatus: DeliveryStatus;
   trackingCode: string | null;
   importedFrom: string | null;
@@ -70,6 +72,8 @@ export interface CreateSaleInput {
   customerName?: string;
   customerDocument?: string;
   customerState?: string;
+  customerGender?: string;
+  shopeeUsername?: string;
   trackingCode?: string;
   deliveryStatus?: DeliveryStatus;
   discount?: number;
