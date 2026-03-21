@@ -27,6 +27,7 @@ export const API_ROUTES = {
   GATEWAYS: "/api/gateways",
   FINANCES: "/api/finances",
   FINANCE_CATEGORIES: "/api/finance-categories",
+  SUPPLIES: "/api/supplies",
 } as const;
 
 export const PERMISSIONS = {
@@ -50,6 +51,10 @@ export const PERMISSIONS = {
   FINANCES_CREATE: "finances:create",
   FINANCES_EDIT: "finances:edit",
   FINANCES_DELETE: "finances:delete",
+  SUPPLIES_VIEW: "supplies:view",
+  SUPPLIES_CREATE: "supplies:create",
+  SUPPLIES_EDIT: "supplies:edit",
+  SUPPLIES_DELETE: "supplies:delete",
 } as const;
 
 export type PermissionKey = typeof PERMISSIONS[keyof typeof PERMISSIONS];
@@ -66,4 +71,5 @@ export const PERMISSION_GROUPS: { labelKey: string; permissions: PermissionKey[]
   { labelKey: "nav.settings", permissions: [PERMISSIONS.SETTINGS_THEME] },
   { labelKey: "nav.auditLogs", permissions: [PERMISSIONS.AUDIT_LOGS_VIEW] },
   { labelKey: "nav.finances", permissions: [PERMISSIONS.FINANCES_VIEW, PERMISSIONS.FINANCES_CREATE, PERMISSIONS.FINANCES_EDIT, PERMISSIONS.FINANCES_DELETE] },
+  { labelKey: "nav.supplies", permissions: [PERMISSIONS.SUPPLIES_VIEW, PERMISSIONS.SUPPLIES_CREATE, PERMISSIONS.SUPPLIES_EDIT, PERMISSIONS.SUPPLIES_DELETE] },
 ];

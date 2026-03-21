@@ -51,6 +51,7 @@ export default function Products() {
     .filter((v): v is GatewayPriceInfo => v !== null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [outOfStock, setOutOfStock] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -58,12 +59,12 @@ export default function Products() {
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
   const loadProducts = useCallback(() => {
-    fetchProducts({ search: search || undefined, page });
-  }, [fetchProducts, search, page]);
+    fetchProducts({ search: search || undefined, page, outOfStock: outOfStock || undefined });
+  }, [fetchProducts, search, page, outOfStock]);
 
   useEffect(() => { loadProducts(); }, [loadProducts]);
 
-  useEffect(() => { setPage(1); }, [search]);
+  useEffect(() => { setPage(1); }, [search, outOfStock]);
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     if (editProduct) {
@@ -94,6 +95,26 @@ export default function Products() {
     <div>
       <Header title={t("products.title")} />
       <div className="p-4 sm:p-6 animate-fade-in">
+        {/* Tabs */}
+        <div className="flex items-center gap-1 bg-page-bg border border-stroke rounded-lg p-1 mb-4 w-fit animate-fade-in-down">
+          <button
+            onClick={() => setOutOfStock(false)}
+            className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all duration-200 ${
+              !outOfStock ? "bg-primary text-white shadow-sm" : "text-text-secondary hover:text-text-dark hover:bg-card-bg"
+            }`}
+          >
+            {t("products.allProducts")}
+          </button>
+          <button
+            onClick={() => setOutOfStock(true)}
+            className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all duration-200 ${
+              outOfStock ? "bg-red-500 text-white shadow-sm" : "text-text-secondary hover:text-text-dark hover:bg-card-bg"
+            }`}
+          >
+            {t("products.outOfStock")}
+          </button>
+        </div>
+
         {/* Actions bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6 animate-fade-in-down">
           <div className="relative flex-1">

@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, Package, ShoppingCart, Users, ScrollText, LogOut, UserCircle, Plug, Settings, FileBarChart, Shield, Wallet, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, ScrollText, LogOut, UserCircle, Plug, Settings, FileBarChart, Shield, Wallet, ShieldCheck, PackageOpen } from "lucide-react";
 import { useAuthStore } from "../../stores/auth.store.js";
 import { useSidebarStore } from "../../stores/sidebar.store.js";
 import { useFinanceStore } from "../../stores/finance.store.js";
@@ -33,6 +33,7 @@ export function Sidebar() {
       { to: "/app/products", label: t("nav.products"), icon: Package, perm: PERMISSIONS.PRODUCTS_VIEW },
       { to: "/app/sales", label: t("nav.sales"), icon: ShoppingCart, perm: PERMISSIONS.SALES_VIEW },
       { to: "/app/finances", label: t("nav.finances"), icon: Wallet, perm: PERMISSIONS.FINANCES_VIEW },
+      { to: "/app/supplies", label: t("nav.supplies"), icon: PackageOpen, perm: PERMISSIONS.SUPPLIES_VIEW },
       { to: "/app/reports", label: t("nav.reports"), icon: FileBarChart, perm: PERMISSIONS.REPORTS_VIEW },
       { to: "/app/users", label: t("nav.users"), icon: Users, perm: PERMISSIONS.USERS_VIEW },
       { to: "/app/roles", label: t("nav.roles"), icon: Shield, perm: PERMISSIONS.USERS_MANAGE },

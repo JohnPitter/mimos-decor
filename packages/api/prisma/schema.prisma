@@ -245,3 +245,19 @@ model FinanceEntry {
   @@index([createdAt])
   @@map("finance_entries")
 }
+
+model Supply {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  unitPrice   Float    @map("unit_price")
+  quantity    Int      @default(0)
+  unit        String   @default("un")
+  supplier    String?
+  minStock    Int      @default(0) @map("min_stock")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([name])
+  @@map("supplies")
+}

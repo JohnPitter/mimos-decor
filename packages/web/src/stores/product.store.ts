@@ -6,7 +6,7 @@ interface ProductState {
   products: Product[];
   total: number;
   loading: boolean;
-  fetchProducts: (params?: { search?: string; page?: number }) => Promise<void>;
+  fetchProducts: (params?: { search?: string; page?: number; outOfStock?: boolean }) => Promise<void>;
   createProduct: (data: Partial<Product>) => Promise<Product>;
   updateProduct: (id: string, data: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
@@ -21,6 +21,7 @@ export const useProductStore = create<ProductState>((set) => ({
     try {
       const qs = new URLSearchParams();
       if (params?.search) qs.set("search", params.search);
+      if (params?.outOfStock) qs.set("outOfStock", "true");
       qs.set("page", String(params?.page ?? 1));
       qs.set("limit", "20");
       const data = await api.get<{ products: Product[]; total: number; page: number; limit: number; totalPages: number }>(`/products?${qs}`);

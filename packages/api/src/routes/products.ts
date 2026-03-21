@@ -10,11 +10,12 @@ productRouter.use(authMiddleware);
 
 productRouter.get("/", async (req, res) => {
   try {
-    const { search, page, limit } = req.query;
+    const { search, page, limit, outOfStock } = req.query;
     const result = await productService.listProducts({
       search: search as string,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
+      outOfStock: outOfStock === "true",
     });
     res.json(result);
   } catch (err) {

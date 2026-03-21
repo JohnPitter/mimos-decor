@@ -123,21 +123,26 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
 
   const totals = useMemo(() => {
     let totalPrice = 0;
+    let totalCost = 0;
     let totalFees = 0;
     let totalShipping = 0;
     let totalProfit = 0;
     for (const p of itemPricing) {
       totalPrice += p.subtotal;
+      totalCost += p.cost;
       totalFees += p.fees;
       totalShipping += p.shipping;
       totalProfit += p.profit;
     }
     const discountVal = discount ? Number(discount) : 0;
+    const estimatedRevenue = totalPrice - totalFees - discountVal;
     return {
       totalPrice,
+      totalCost,
       totalFees,
       totalShipping,
-      totalProfit: totalProfit - discountVal,
+      estimatedRevenue,
+      netProfit: totalProfit - discountVal,
     };
   }, [itemPricing, discount]);
 
@@ -317,10 +322,16 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
                     <span className="text-[13px] font-semibold text-red-500">-{formatBRL(Number(discount))}</span>
                   </div>
                 )}
+                <div className="flex items-center justify-between px-4 py-2.5">
+                  <span className="text-[13px] text-text-secondary">{t("sales.estimatedRevenue")}</span>
+                  <span className={`text-[14px] font-bold ${totals.estimatedRevenue >= 0 ? "text-primary" : "text-red-500"}`}>
+                    {formatBRL(totals.estimatedRevenue)}
+                  </span>
+                </div>
                 <div className="flex items-center justify-between px-4 py-3 bg-card-bg">
-                  <span className="text-[14px] font-bold text-text-dark">{t("sales.estimatedRevenue")}</span>
-                  <span className={`text-[18px] font-bold ${totals.totalProfit >= 0 ? "text-primary" : "text-red-500"}`}>
-                    {formatBRL(totals.totalProfit)}
+                  <span className="text-[14px] font-bold text-text-dark">{t("sales.netProfit")}</span>
+                  <span className={`text-[18px] font-bold ${totals.netProfit >= 0 ? "text-green-600" : "text-red-500"}`}>
+                    {formatBRL(totals.netProfit)}
                   </span>
                 </div>
               </div>
