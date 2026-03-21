@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { X, ChevronDown, Clock, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
+import { X, ChevronDown, Clock, ArrowRight, Pencil } from "lucide-react";
 import {
   formatBRL,
   DELIVERY_STATUS_COLORS,
@@ -8,6 +9,7 @@ import {
 import type { Sale, DeliveryStatus, DeliveryStatusHistoryEntry } from "@mimos/shared";
 import { useSaleStore } from "../../stores/sale.store.js";
 import { useGatewayStore } from "../../stores/gateway.store.js";
+import { useSettingsStore } from "../../stores/settings.store.js";
 
 interface Props {
   sale: Sale | null;
@@ -57,17 +59,22 @@ function getTimelineDotClass(status: DeliveryStatus): string {
 
 export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props) {
   const { t } = useTranslation();
-  const { updateSaleStatus, getSaleDetail } = useSaleStore();
+  const { updateSaleStatus, updateSale, getSaleDetail } = useSaleStore();
   const getGatewayLabel = useGatewayStore((s) => s.getGatewayLabel);
+  const allowSaleEditing = useSettingsStore((s) => s.appSettings.allowSaleEditing);
   const [statusHistory, setStatusHistory] = useState<DeliveryStatusHistoryEntry[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (sale && open) {
       setLoadingHistory(true);
       setShowStatusDropdown(false);
+      setEditing(false);
       getSaleDetail(sale.id)
         .then((detail) => setStatusHistory(detail.statusHistory ?? []))
         .catch(() => setStatusHistory([]))
@@ -94,6 +101,50 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
 
   const availableStatuses = ALL_STATUSES.filter((s) => s !== sale.deliveryStatus);
 
+  const startEditing = () => {
+    setEditForm({
+      customerName: sale.customerName ?? "",
+      customerDocument: sale.customerDocument ?? "",
+      customerState: sale.customerState ?? "",
+      customerGender: sale.customerGender ?? "",
+      shopeeUsername: sale.shopeeUsername ?? "",
+      trackingCode: sale.trackingCode ?? "",
+      salePrice: String(sale.salePrice),
+      totalFees: String(sale.totalFees),
+      discount: String(sale.discount),
+    });
+    setEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    setSaving(true);
+    try {
+      await updateSale(sale.id, {
+        customerName: editForm.customerName || undefined,
+        customerDocument: editForm.customerDocument || undefined,
+        customerState: editForm.customerState || undefined,
+        customerGender: editForm.customerGender || undefined,
+        shopeeUsername: editForm.shopeeUsername || undefined,
+        trackingCode: editForm.trackingCode || undefined,
+        salePrice: Number(editForm.salePrice),
+        totalFees: Number(editForm.totalFees),
+        discount: Number(editForm.discount),
+        netRevenue: Number(editForm.salePrice) - Number(editForm.totalFees) - Number(editForm.discount),
+        profit: Number(editForm.salePrice) - Number(editForm.totalFees) - Number(editForm.discount) - sale.totalCost,
+      });
+      toast.success(t("sales.editSuccess"));
+      setEditing(false);
+      onStatusUpdated();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("sales.editError"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const ef = (key: string) => editForm[key] ?? "";
+  const setEf = (key: string, value: string) => setEditForm((prev) => ({ ...prev, [key]: value }));
+
   return (
     <>
       {/* Backdrop */}
@@ -107,12 +158,20 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-stroke sticky top-0 bg-card-bg z-10">
           <h2 className="text-[18px] font-bold text-text-dark">{t("sales.saleDetails")}</h2>
-          <button
-            onClick={onClose}
-            className="text-text-muted hover:text-text-dark transition-colors"
-          >
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            {allowSaleEditing && !editing && (
+              <button
+                onClick={startEditing}
+                className="p-2 rounded-lg text-text-muted hover:text-primary hover:bg-primary/5 transition-all"
+                title={t("common.edit")}
+              >
+                <Pencil size={18} />
+              </button>
+            )}
+            <button onClick={onClose} className="text-text-muted hover:text-text-dark transition-colors">
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="p-6 space-y-6">
@@ -265,8 +324,66 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
             </div>
           </div>
 
+          {/* Edit Form */}
+          {editing && (
+            <div className="bg-page-bg rounded-xl p-5 space-y-3 animate-fade-in">
+              <h3 className="text-[14px] font-bold text-text-dark mb-2">{t("common.edit")}</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.customerName")}</label>
+                  <input type="text" value={ef("customerName")} onChange={(e) => setEf("customerName", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.customerDocument")}</label>
+                  <input type="text" value={ef("customerDocument")} onChange={(e) => setEf("customerDocument", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.shopeeUsername")}</label>
+                  <input type="text" value={ef("shopeeUsername")} onChange={(e) => setEf("shopeeUsername", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.customerGender")}</label>
+                  <select value={ef("customerGender")} onChange={(e) => setEf("customerGender", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all">
+                    <option value="">{t("common.select")}</option>
+                    <option value="M">{t("sales.genderMale")}</option>
+                    <option value="F">{t("sales.genderFemale")}</option>
+                    <option value="O">{t("sales.genderOther")}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.customerState")}</label>
+                  <input type="text" value={ef("customerState")} onChange={(e) => setEf("customerState", e.target.value)} maxLength={2} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.trackingCode")}</label>
+                  <input type="text" value={ef("trackingCode")} onChange={(e) => setEf("trackingCode", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.salePrice")}</label>
+                  <input type="number" step="0.01" value={ef("salePrice")} onChange={(e) => setEf("salePrice", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.totalFees")}</label>
+                  <input type="number" step="0.01" value={ef("totalFees")} onChange={(e) => setEf("totalFees", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.discount")}</label>
+                  <input type="number" step="0.01" value={ef("discount")} onChange={(e) => setEf("discount", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setEditing(false)} className="flex-1 py-2 border border-stroke rounded-lg text-[13px] font-medium text-text-secondary hover:bg-card-bg transition-colors">
+                  {t("common.cancel")}
+                </button>
+                <button onClick={handleSaveEdit} disabled={saving} className="flex-1 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-[13px] font-bold transition-all disabled:opacity-60">
+                  {saving ? t("common.loading") : t("common.save")}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Status Update */}
-          <div>
+          {allowSaleEditing && <div>
             <p className="text-[12px] font-semibold text-text-secondary mb-2 uppercase tracking-wider">
               {t("sales.updateStatus")}
             </p>
@@ -296,7 +413,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                 </div>
               )}
             </div>
-          </div>
+          </div>}
 
           {/* Delivery Timeline */}
           <div>

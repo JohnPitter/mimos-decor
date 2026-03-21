@@ -3,7 +3,22 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Header } from "../components/layout/Header.js";
 import { useSettingsStore } from "../stores/settings.store.js";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Clock } from "lucide-react";
+
+const BR_TIMEZONES = [
+  { value: "America/Sao_Paulo", label: "Brasília (GMT-3)" },
+  { value: "America/Manaus", label: "Manaus (GMT-4)" },
+  { value: "America/Rio_Branco", label: "Rio Branco (GMT-5)" },
+  { value: "America/Noronha", label: "Fernando de Noronha (GMT-2)" },
+  { value: "America/Cuiaba", label: "Cuiabá (GMT-4)" },
+  { value: "America/Belem", label: "Belém (GMT-3)" },
+  { value: "America/Recife", label: "Recife (GMT-3)" },
+  { value: "America/Fortaleza", label: "Fortaleza (GMT-3)" },
+  { value: "America/Bahia", label: "Salvador (GMT-3)" },
+  { value: "America/Campo_Grande", label: "Campo Grande (GMT-4)" },
+  { value: "America/Porto_Velho", label: "Porto Velho (GMT-4)" },
+  { value: "America/Boa_Vista", label: "Boa Vista (GMT-4)" },
+];
 
 function Toggle({ value, onChange }: { value: boolean; onChange: () => void }) {
   return (
@@ -39,6 +54,12 @@ export default function Admin() {
       labelKey: "admin.allowSaleDeletion",
       descKey: "admin.allowSaleDeletionDesc",
       value: appSettings.allowSaleDeletion,
+    },
+    {
+      key: "allowSaleEditing",
+      labelKey: "admin.allowSaleEditing",
+      descKey: "admin.allowSaleEditingDesc",
+      value: appSettings.allowSaleEditing,
     },
     {
       key: "allowRoleManagement",
@@ -78,6 +99,38 @@ export default function Admin() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Timezone */}
+        <div className="bg-card-bg border border-stroke rounded-xl p-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+              <Clock size={20} className="text-blue-500" />
+            </div>
+            <div>
+              <p className="text-[14px] font-bold text-text-dark">{t("admin.timezone")}</p>
+              <p className="text-[12px] text-text-muted">{t("admin.timezoneDesc")}</p>
+            </div>
+          </div>
+          <select
+            value={appSettings.timezone}
+            onChange={async (e) => {
+              try {
+                await updateAppSettings({ timezone: e.target.value });
+                toast.success(t("settings.settingsUpdated"));
+              } catch {
+                toast.error(t("settings.settingsError"));
+              }
+            }}
+            className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+          >
+            {BR_TIMEZONES.map((tz) => (
+              <option key={tz.value} value={tz.value}>{tz.label}</option>
+            ))}
+          </select>
+          <p className="text-[11px] text-text-muted mt-2">
+            {t("admin.currentTime")}: {new Date().toLocaleString("pt-BR", { timeZone: appSettings.timezone, dateStyle: "short", timeStyle: "medium" })}
+          </p>
         </div>
       </div>
     </div>

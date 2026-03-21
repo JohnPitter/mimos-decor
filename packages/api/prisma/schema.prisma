@@ -198,7 +198,9 @@ model AuditLog {
 model AppSettings {
   id                    String  @id @default("singleton")
   allowSaleDeletion     Boolean @default(true) @map("allow_sale_deletion")
+  allowSaleEditing      Boolean @default(true) @map("allow_sale_editing")
   allowRoleManagement   Boolean @default(true) @map("allow_role_management")
+  timezone              String  @default("America/Sao_Paulo")
 
   @@map("app_settings")
 }

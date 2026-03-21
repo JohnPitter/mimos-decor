@@ -24,7 +24,9 @@ const DEFAULT_THEME: ThemeColors = {
 
 interface AppSettings {
   allowSaleDeletion: boolean;
+  allowSaleEditing: boolean;
   allowRoleManagement: boolean;
+  timezone: string;
 }
 
 interface SettingsState {
@@ -60,7 +62,7 @@ function loadTheme(): ThemeColors {
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   theme: loadTheme(),
-  appSettings: { allowSaleDeletion: true, allowRoleManagement: true },
+  appSettings: { allowSaleDeletion: true, allowSaleEditing: true, allowRoleManagement: true, timezone: "America/Sao_Paulo" },
 
   setThemeColor: (key, value) => {
     const theme = { ...get().theme, [key]: value };

@@ -50,6 +50,25 @@ saleRouter.post("/", async (req, res) => {
   }
 });
 
+saleRouter.put("/:id", async (req, res) => {
+  try {
+    try {
+      const settings = await prisma.appSettings.findUnique({ where: { id: "singleton" } });
+      if (settings && !settings.allowSaleEditing) {
+        res.status(403).json({ error: "Edição de vendas desativada pelo administrador" });
+        return;
+      }
+    } catch { /* table may not exist */ }
+    const sale = await saleService.updateSale(req.params.id, req.body, req.user!.id);
+    if (!sale) { res.status(404).json({ error: "Venda não encontrada" }); return; }
+    logger.info(`Sale updated: ${req.params.id}`, "sale");
+    res.json(sale);
+  } catch (err) {
+    logger.error("Update sale error", "sale", { error: String(err) });
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
 saleRouter.patch("/:id/status", async (req, res) => {
   try {
     const { status } = req.body;

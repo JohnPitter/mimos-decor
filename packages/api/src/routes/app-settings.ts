@@ -37,7 +37,9 @@ appSettingsRouter.put("/", async (req, res) => {
       where: { id: SINGLETON_ID },
       data: {
         ...(req.body.allowSaleDeletion !== undefined && { allowSaleDeletion: req.body.allowSaleDeletion }),
+        ...(req.body.allowSaleEditing !== undefined && { allowSaleEditing: req.body.allowSaleEditing }),
         ...(req.body.allowRoleManagement !== undefined && { allowRoleManagement: req.body.allowRoleManagement }),
+        ...(req.body.timezone !== undefined && { timezone: req.body.timezone }),
       },
     });
     logger.info("App settings updated", "settings");

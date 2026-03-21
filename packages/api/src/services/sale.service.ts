@@ -241,15 +241,83 @@ export async function deleteSale(id: string, userId: string) {
   return sale;
 }
 
+export async function updateSale(id: string, data: {
+  salePrice?: number;
+  totalCost?: number;
+  totalFees?: number;
+  netRevenue?: number;
+  profit?: number;
+  discount?: number;
+  customerName?: string;
+  customerDocument?: string;
+  customerState?: string;
+  customerGender?: string;
+  shopeeUsername?: string;
+  trackingCode?: string;
+  gateway?: string;
+  saleDate?: string;
+}, userId: string) {
+  const old = await prisma.sale.findUnique({ where: { id } });
+  if (!old) return null;
+
+  const updateData: Record<string, unknown> = {};
+  if (data.salePrice !== undefined) updateData.salePrice = data.salePrice;
+  if (data.totalCost !== undefined) updateData.totalCost = data.totalCost;
+  if (data.totalFees !== undefined) updateData.totalFees = data.totalFees;
+  if (data.netRevenue !== undefined) updateData.netRevenue = data.netRevenue;
+  if (data.profit !== undefined) updateData.profit = data.profit;
+  if (data.discount !== undefined) updateData.discount = data.discount;
+  if (data.customerName !== undefined) updateData.customerName = data.customerName || null;
+  if (data.customerDocument !== undefined) updateData.customerDocument = data.customerDocument || null;
+  if (data.customerState !== undefined) updateData.customerState = data.customerState || null;
+  if (data.customerGender !== undefined) updateData.customerGender = data.customerGender || null;
+  if (data.shopeeUsername !== undefined) updateData.shopeeUsername = data.shopeeUsername || null;
+  if (data.trackingCode !== undefined) updateData.trackingCode = data.trackingCode || null;
+  if (data.gateway !== undefined) updateData.gateway = data.gateway;
+  if (data.saleDate !== undefined) updateData.saleDate = new Date(data.saleDate);
+
+  const sale = await prisma.sale.update({ where: { id }, data: updateData });
+  await createAuditLog({ userId, action: "UPDATE", entity: "SALE", entityId: id, oldData: old as unknown as Record<string, unknown>, newData: sale as unknown as Record<string, unknown> });
+  logger.info(`Sale updated: ${id}`, "sale");
+  return sale;
+}
+
 export async function updateSaleStatus(id: string, newStatus: DeliveryStatus, userId: string) {
-  const sale = await prisma.sale.findUnique({ where: { id } });
+  const sale = await prisma.sale.findUnique({ where: { id }, include: { items: true } });
   if (!sale) return null;
+
+  const wasCancelled = sale.deliveryStatus === "CANCELLED";
+  const isCancelling = newStatus === "CANCELLED";
+
+  const stockOps = [];
+  if (isCancelling && !wasCancelled) {
+    // Restore stock when cancelling
+    for (const item of sale.items) {
+      if (item.productId) {
+        stockOps.push(prisma.product.update({
+          where: { id: item.productId },
+          data: { quantity: { increment: item.quantity } },
+        }));
+      }
+    }
+  } else if (wasCancelled && !isCancelling) {
+    // Decrement stock when un-cancelling
+    for (const item of sale.items) {
+      if (item.productId) {
+        stockOps.push(prisma.product.update({
+          where: { id: item.productId },
+          data: { quantity: { decrement: item.quantity } },
+        }));
+      }
+    }
+  }
 
   const [updated] = await prisma.$transaction([
     prisma.sale.update({ where: { id }, data: { deliveryStatus: newStatus } }),
     prisma.deliveryStatusHistory.create({
       data: { saleId: id, fromStatus: sale.deliveryStatus, toStatus: newStatus, changedById: userId },
     }),
+    ...stockOps,
   ]);
 
   await createAuditLog({ userId, action: "UPDATE", entity: "SALE", entityId: id, oldData: { deliveryStatus: sale.deliveryStatus }, newData: { deliveryStatus: newStatus } });

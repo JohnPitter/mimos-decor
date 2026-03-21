@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate, Link, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../stores/auth.store.js";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 
 export function Login() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const sessionExpired = searchParams.get("session") === "expired";
   const [email, setEmail] = useState(""); // accepts email or username
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(sessionExpired ? t("auth.sessionExpired") : "");
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
@@ -41,8 +43,18 @@ export function Login() {
 
         <form onSubmit={handleSubmit} className="bg-card-bg border border-stroke rounded-2xl p-8 shadow-xl shadow-rosa/10 animate-scale-in">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-[13px] mb-5">
-              {error}
+            <div className={`px-4 py-3 rounded-lg text-[13px] mb-5 flex items-start gap-3 ${
+              error.includes("sessão") || error.includes("session")
+                ? "bg-yellow-50 border border-yellow-300 text-yellow-800"
+                : "bg-red-50 border border-red-200 text-red-700"
+            }`}>
+              <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">{error}</p>
+                {(error.includes("sessão") || error.includes("session")) && (
+                  <p className="text-[12px] mt-1 opacity-80">{t("auth.sessionActiveHint")}</p>
+                )}
+              </div>
             </div>
           )}
 

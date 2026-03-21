@@ -1,7 +1,20 @@
 import { prisma } from "../lib/prisma.js";
 
+const NOT_CANCELLED = { deliveryStatus: { not: "CANCELLED" as const } };
+
+function getNowInTimezone(tz: string) {
+  const nowStr = new Date().toLocaleString("en-US", { timeZone: tz });
+  return new Date(nowStr);
+}
+
 export async function getDashboardData(params: { startDate?: string; endDate?: string; topN?: number }) {
-  const now = new Date();
+  let tz = "America/Sao_Paulo";
+  try {
+    const settings = await prisma.appSettings.findUnique({ where: { id: "singleton" } });
+    if (settings?.timezone) tz = settings.timezone;
+  } catch { /* table may not exist */ }
+
+  const now = getNowInTimezone(tz);
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const topN = Math.min(Math.max(params.topN ?? 5, 1), 50);
@@ -17,18 +30,18 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
 
   const [todaySales, monthSales, salesByGateway, salesByDay, topProducts, lowStockProducts, productStock] = await Promise.all([
     prisma.sale.aggregate({
-      where: { saleDate: { gte: startOfDay } },
+      where: { saleDate: { gte: startOfDay }, ...NOT_CANCELLED },
       _count: true,
       _sum: { salePrice: true, profit: true },
     }),
     prisma.sale.aggregate({
-      where: { saleDate: { gte: startOfMonth }, ...dateFilter },
+      where: { saleDate: { gte: startOfMonth }, ...NOT_CANCELLED, ...dateFilter },
       _count: true,
       _sum: { salePrice: true, profit: true, netRevenue: true },
     }),
     prisma.sale.groupBy({
       by: ["gateway"],
-      where: { saleDate: { gte: startOfMonth }, ...dateFilter },
+      where: { saleDate: { gte: startOfMonth }, ...NOT_CANCELLED, ...dateFilter },
       _count: true,
       _sum: { salePrice: true },
     }),
@@ -37,6 +50,7 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
           SELECT DATE(sale_date) as date, COUNT(*)::int as count, SUM(sale_price) as revenue
           FROM sales
           WHERE sale_date >= ${new Date(params.startDate)} AND sale_date <= ${new Date(params.endDate)}
+            AND delivery_status != 'CANCELLED'
           GROUP BY DATE(sale_date)
           ORDER BY date
         `
@@ -44,6 +58,7 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
           SELECT DATE(sale_date) as date, COUNT(*)::int as count, SUM(sale_price) as revenue
           FROM sales
           WHERE sale_date >= ${startOfMonth}
+            AND delivery_status != 'CANCELLED'
           GROUP BY DATE(sale_date)
           ORDER BY date
         `
@@ -53,6 +68,7 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       FROM sale_items si
       JOIN sales s ON si.sale_id = s.id
       WHERE s.sale_date >= ${startOfMonth}
+        AND s.delivery_status != 'CANCELLED'
         AND si.product_id IS NOT NULL
       GROUP BY si.product_id
       ORDER BY revenue DESC

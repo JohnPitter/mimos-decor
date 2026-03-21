@@ -8,7 +8,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({ error: "Erro desconhecido" }));
-    throw new Error(data.error ?? `HTTP ${res.status}`);
+    const errorMsg = data.error ?? `HTTP ${res.status}`;
+    // Redirect to login if session was invalidated
+    if (res.status === 401 && (errorMsg.includes("Sessão") || errorMsg.includes("session")) && !path.includes("/auth/")) {
+      window.location.href = "/login?session=expired";
+    }
+    throw new Error(errorMsg);
   }
   return res.json();
 }
