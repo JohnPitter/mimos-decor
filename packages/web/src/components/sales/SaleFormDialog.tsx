@@ -69,7 +69,11 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   const [shopeeUsername, setShopeeUsername] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState("PENDING");
   const [discount, setDiscount] = useState("");
-  const [saleDate, setSaleDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [saleDate, setSaleDate] = useState(() => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  });
 
   useEffect(() => {
     if (open) {
@@ -82,7 +86,9 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
       setShopeeUsername("");
       setDeliveryStatus("PENDING");
       setDiscount("");
-      setSaleDate(new Date().toISOString().slice(0, 10));
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      setSaleDate(now.toISOString().slice(0, 16));
       setLoadingProducts(true);
       api
         .get<{ products: Product[]; total: number }>("/products?limit=500")
@@ -359,7 +365,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
                 {t("sales.saleDate")} <span className="text-red-400">*</span>
               </label>
               <input
-                type="date"
+                type="datetime-local"
                 value={saleDate}
                 onChange={(e) => setSaleDate(e.target.value)}
                 required

@@ -237,7 +237,7 @@ export const ptBR = {
     totalFees: "Taxas Totais",
     netRevenue: "Receita Líquida",
     discount: "Desconto (R$)",
-    saleDate: "Data da Venda",
+    saleDate: "Data e Hora da Venda",
     importCSV: "Importar CSV",
     saleDetails: "Detalhes da Venda",
     updateStatus: "Atualizar Status",

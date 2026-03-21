@@ -217,7 +217,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                   {t("sales.date")}
                 </p>
                 <p className="text-[13px] font-medium text-text-secondary">
-                  {new Date(sale.saleDate ?? sale.createdAt).toLocaleDateString()}
+                  {new Date(sale.saleDate ?? sale.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                 </p>
               </div>
             </div>

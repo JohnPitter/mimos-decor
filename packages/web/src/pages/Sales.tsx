@@ -206,7 +206,7 @@ export default function Sales() {
                         </span>
                       </td>
                       <td className="text-right px-3 py-3 text-[12px] text-text-muted">
-                        {new Date(sale.createdAt).toLocaleDateString()}
+                        {new Date(sale.saleDate ?? sale.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                       </td>
                       <td className="px-3 py-3">
                         {appSettings.allowSaleDeletion && (

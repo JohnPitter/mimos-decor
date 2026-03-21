@@ -237,7 +237,7 @@ export const en = {
     totalFees: "Total Fees",
     netRevenue: "Net Revenue",
     discount: "Discount (R$)",
-    saleDate: "Sale Date",
+    saleDate: "Sale Date & Time",
     importCSV: "Import CSV",
     saleDetails: "Sale Details",
     updateStatus: "Update Status",

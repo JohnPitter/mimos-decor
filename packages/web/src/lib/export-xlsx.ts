@@ -93,7 +93,7 @@ export function exportSalesXlsx(
     formatBRL(s.totalFees),
     formatBRL(s.profit),
     tDeliveryStatus(s.deliveryStatus),
-    new Date(s.saleDate ?? s.createdAt).toLocaleDateString("pt-BR"),
+    new Date(s.saleDate ?? s.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }),
   ]);
 
   const titleRow = [opts.title, "", "", "", "", "", "", "", "", "", "", "", "", new Date().toLocaleDateString("pt-BR")];
