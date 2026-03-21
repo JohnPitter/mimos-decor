@@ -2,14 +2,16 @@ import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
 import type { Prisma } from "@prisma/client";
 
-export async function listProducts(params: { search?: string; page?: number; limit?: number; outOfStock?: boolean }) {
-  const { search, page = 1, limit = 50, outOfStock } = params;
+export async function listProducts(params: { search?: string; page?: number; limit?: number; stockFilter?: string }) {
+  const { search, page = 1, limit = 50, stockFilter } = params;
   const where: Prisma.ProductWhereInput = {};
   if (search) {
     where.OR = [{ name: { contains: search, mode: "insensitive" } }, { supplier: { contains: search, mode: "insensitive" } }];
   }
-  if (outOfStock) {
+  if (stockFilter === "outOfStock") {
     where.quantity = { lte: 0 };
+  } else if (stockFilter === "inStock") {
+    where.quantity = { gt: 0 };
   }
 
   const [products, total] = await Promise.all([

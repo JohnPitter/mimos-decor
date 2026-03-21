@@ -201,6 +201,7 @@ export const en = {
     lowStock: "Low stock",
     totalRegistered: "products registered",
     allProducts: "All",
+    inStock: "In Stock",
     outOfStock: "Out of Stock",
   },
   sales: {

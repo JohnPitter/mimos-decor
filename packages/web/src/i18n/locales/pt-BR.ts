@@ -201,6 +201,7 @@ export const ptBR = {
     lowStock: "Estoque baixo",
     totalRegistered: "produtos cadastrados",
     allProducts: "Todos",
+    inStock: "Com Estoque",
     outOfStock: "Sem Estoque",
   },
   sales: {

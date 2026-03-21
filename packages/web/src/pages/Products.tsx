@@ -51,7 +51,7 @@ export default function Products() {
     .filter((v): v is GatewayPriceInfo => v !== null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [outOfStock, setOutOfStock] = useState(false);
+  const [stockFilter, setStockFilter] = useState<"all" | "inStock" | "outOfStock">("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -59,12 +59,16 @@ export default function Products() {
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
   const loadProducts = useCallback(() => {
-    fetchProducts({ search: search || undefined, page, outOfStock: outOfStock || undefined });
-  }, [fetchProducts, search, page, outOfStock]);
+    fetchProducts({
+      search: search || undefined,
+      page,
+      stockFilter: stockFilter !== "all" ? stockFilter : undefined,
+    });
+  }, [fetchProducts, search, page, stockFilter]);
 
   useEffect(() => { loadProducts(); }, [loadProducts]);
 
-  useEffect(() => { setPage(1); }, [search, outOfStock]);
+  useEffect(() => { setPage(1); }, [search, stockFilter]);
 
   const handleSubmit = async (data: Record<string, unknown>) => {
     if (editProduct) {
@@ -97,22 +101,21 @@ export default function Products() {
       <div className="p-4 sm:p-6 animate-fade-in">
         {/* Tabs */}
         <div className="flex items-center gap-1 bg-page-bg border border-stroke rounded-lg p-1 mb-4 w-fit animate-fade-in-down">
-          <button
-            onClick={() => setOutOfStock(false)}
-            className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all duration-200 ${
-              !outOfStock ? "bg-primary text-white shadow-sm" : "text-text-secondary hover:text-text-dark hover:bg-card-bg"
-            }`}
-          >
-            {t("products.allProducts")}
-          </button>
-          <button
-            onClick={() => setOutOfStock(true)}
-            className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all duration-200 ${
-              outOfStock ? "bg-red-500 text-white shadow-sm" : "text-text-secondary hover:text-text-dark hover:bg-card-bg"
-            }`}
-          >
-            {t("products.outOfStock")}
-          </button>
+          {([
+            { key: "all" as const, label: t("products.allProducts"), activeClass: "bg-primary text-white shadow-sm" },
+            { key: "inStock" as const, label: t("products.inStock"), activeClass: "bg-green-500 text-white shadow-sm" },
+            { key: "outOfStock" as const, label: t("products.outOfStock"), activeClass: "bg-red-500 text-white shadow-sm" },
+          ]).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setStockFilter(tab.key)}
+              className={`px-4 py-2 rounded-md text-[13px] font-semibold transition-all duration-200 ${
+                stockFilter === tab.key ? tab.activeClass : "text-text-secondary hover:text-text-dark hover:bg-card-bg"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Actions bar */}
