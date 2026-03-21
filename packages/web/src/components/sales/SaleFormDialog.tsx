@@ -69,6 +69,9 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   const [shopeeUsername, setShopeeUsername] = useState("");
   const [deliveryStatus, setDeliveryStatus] = useState("PENDING");
   const [discount, setDiscount] = useState("");
+  const [overrideSubtotal, setOverrideSubtotal] = useState("");
+  const [overrideShipping, setOverrideShipping] = useState("");
+  const [overrideFees, setOverrideFees] = useState("");
   const [saleDate, setSaleDate] = useState(() => {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -86,6 +89,9 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
       setShopeeUsername("");
       setDeliveryStatus("PENDING");
       setDiscount("");
+      setOverrideSubtotal("");
+      setOverrideShipping("");
+      setOverrideFees("");
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
       setSaleDate(now.toISOString().slice(0, 16));
@@ -144,29 +150,34 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   }, [items, productMap, marketplace, isPresencial]);
 
   const totals = useMemo(() => {
-    let totalPrice = 0;
-    let totalCost = 0;
-    let totalFees = 0;
-    let totalShipping = 0;
-    let totalProfit = 0;
+    let calcPrice = 0;
+    let calcCost = 0;
+    let calcFees = 0;
+    let calcShipping = 0;
     for (const p of itemPricing) {
-      totalPrice += p.subtotal;
-      totalCost += p.cost;
-      totalFees += p.fees;
-      totalShipping += p.shipping;
-      totalProfit += p.profit;
+      calcPrice += p.subtotal;
+      calcCost += p.cost;
+      calcFees += p.fees;
+      calcShipping += p.shipping;
     }
+    const totalPrice = overrideSubtotal ? Number(overrideSubtotal) : calcPrice;
+    const totalShipping = overrideShipping ? Number(overrideShipping) : calcShipping;
+    const totalFees = overrideFees ? Number(overrideFees) : calcFees;
     const discountVal = discount ? Number(discount) : 0;
     const estimatedRevenue = totalPrice - totalFees - discountVal;
+    const netProfit = estimatedRevenue - calcCost;
     return {
       totalPrice,
-      totalCost,
+      calcPrice,
+      totalCost: calcCost,
       totalFees,
+      calcFees,
       totalShipping,
+      calcShipping,
       estimatedRevenue,
-      netProfit: totalProfit - discountVal,
+      netProfit,
     };
-  }, [itemPricing, discount]);
+  }, [itemPricing, discount, overrideSubtotal, overrideShipping, overrideFees]);
 
   if (!open) return null;
 
@@ -327,17 +338,38 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
           {validItems.length > 0 && (
             <div className="bg-page-bg rounded-xl border border-stroke/50 overflow-hidden">
               <div className="divide-y divide-stroke/30">
-                <div className="flex items-center justify-between px-4 py-2.5">
+                <div className="flex items-center justify-between px-4 py-1.5">
                   <span className="text-[13px] text-text-secondary">{t("sales.subtotalProducts")}</span>
-                  <span className="text-[13px] font-semibold text-text-dark">{formatBRL(totals.totalPrice)}</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={overrideSubtotal || ""}
+                    onChange={(e) => setOverrideSubtotal(e.target.value)}
+                    placeholder={formatBRL(totals.calcPrice)}
+                    className="w-28 text-right px-2 py-1.5 border border-stroke rounded-lg text-[13px] font-semibold bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
                 </div>
-                <div className="flex items-center justify-between px-4 py-2.5">
+                <div className="flex items-center justify-between px-4 py-1.5">
                   <span className="text-[13px] text-text-secondary">{t("sales.estimatedShipping")}</span>
-                  <span className="text-[13px] font-semibold text-text-dark">{formatBRL(totals.totalShipping)}</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={overrideShipping || ""}
+                    onChange={(e) => setOverrideShipping(e.target.value)}
+                    placeholder={formatBRL(totals.calcShipping)}
+                    className="w-28 text-right px-2 py-1.5 border border-stroke rounded-lg text-[13px] font-semibold bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
                 </div>
-                <div className="flex items-center justify-between px-4 py-2.5">
+                <div className="flex items-center justify-between px-4 py-1.5">
                   <span className="text-[13px] text-text-secondary">{t("sales.feesAndCharges")}</span>
-                  <span className="text-[13px] font-semibold text-red-500">-{formatBRL(totals.totalFees)}</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={overrideFees || ""}
+                    onChange={(e) => setOverrideFees(e.target.value)}
+                    placeholder={formatBRL(totals.calcFees)}
+                    className="w-28 text-right px-2 py-1.5 border border-stroke rounded-lg text-[13px] font-semibold text-red-500 bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
                 </div>
                 {discount && Number(discount) > 0 && (
                   <div className="flex items-center justify-between px-4 py-2.5">
