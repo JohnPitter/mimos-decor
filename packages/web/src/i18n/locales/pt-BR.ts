@@ -137,6 +137,7 @@ export const ptBR = {
   dashboard: {
     title: "Dashboard",
     salesToday: "Vendas Hoje",
+    salesMonth: "Vendas no Mês",
     revenueMonth: "Faturamento Mês",
     profitMonth: "Lucro Mês",
     averageTicket: "Ticket Médio",

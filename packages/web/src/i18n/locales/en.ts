@@ -137,6 +137,7 @@ export const en = {
   dashboard: {
     title: "Dashboard",
     salesToday: "Sales Today",
+    salesMonth: "Sales This Month",
     revenueMonth: "Monthly Revenue",
     profitMonth: "Monthly Profit",
     averageTicket: "Avg. Ticket",

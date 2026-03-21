@@ -1,4 +1,5 @@
 export const GATEWAY_LABELS: Record<string, string> = {
+  PRESENCIAL: "Presencial",
   SHOPEE_CNPJ: "Shopee CNPJ",
   SHOPEE_CPF: "Shopee CPF",
   ML_CLASSICO: "ML Clássico",

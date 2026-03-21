@@ -7,6 +7,14 @@ import type { Prisma, DeliveryStatus } from "@prisma/client";
 import { parse } from "csv-parse/sync";
 
 async function resolveMarketplace(gateway: string): Promise<Marketplace> {
+  if (gateway === "PRESENCIAL") {
+    return buildMarketplace("PRESENCIAL", "Presencial", {
+      tiers: [{ maxPrice: Infinity, pct: 0, fixed: 0 }],
+      pixTiers: [],
+      extraFixed: 0,
+    });
+  }
+
   const builtin = MARKETPLACES[gateway];
   if (builtin) return builtin;
 

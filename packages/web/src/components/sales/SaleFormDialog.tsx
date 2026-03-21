@@ -28,7 +28,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: {
-    gateway: GatewayId;
+    gateway: string;
     items: { productId: string; quantity: number }[];
     customerName?: string;
     customerDocument?: string;
@@ -60,7 +60,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   const getMarketplace = useGatewayStore((s) => s.getMarketplace);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [gateway, setGateway] = useState<GatewayId>("SHOPEE_CNPJ");
+  const [gateway, setGateway] = useState<string>("SHOPEE_CNPJ");
   const [items, setItems] = useState<ItemRow[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerDocument, setCustomerDocument] = useState("");
@@ -104,18 +104,34 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
     return map;
   }, [products]);
 
-  const marketplace = getMarketplace(gateway) ?? MARKETPLACES[gateway];
+  const isPresencial = gateway === "PRESENCIAL";
+  const marketplace = isPresencial ? null : (getMarketplace(gateway) ?? MARKETPLACES[gateway]);
 
   const itemPricing = useMemo(() => {
-    if (!marketplace) return items.map(() => ({ unitPrice: 0, subtotal: 0, cost: 0, fees: 0, shipping: 0, profit: 0 }));
     return items.map((item) => {
       const product = productMap.get(item.productId);
       if (!product || item.quantity <= 0) {
         return { unitPrice: 0, subtotal: 0, cost: 0, fees: 0, shipping: 0, profit: 0 };
       }
       const costs = buildCosts(product);
-      const result = calcIdealPrice(costs, product.desiredMargin, marketplace);
       const { total: unitCost } = calcProductCost(costs);
+
+      if (isPresencial || !marketplace) {
+        const margin = product.desiredMargin / 100;
+        const price = margin < 1 ? unitCost / (1 - margin) : unitCost;
+        const salePrice = Math.ceil(price * 100) / 100;
+        const profit = salePrice - unitCost;
+        return {
+          unitPrice: salePrice,
+          subtotal: salePrice * item.quantity,
+          cost: unitCost * item.quantity,
+          fees: 0,
+          shipping: product.shippingCost * item.quantity,
+          profit: profit * item.quantity,
+        };
+      }
+
+      const result = calcIdealPrice(costs, product.desiredMargin, marketplace);
       return {
         unitPrice: result.salePrice,
         subtotal: result.salePrice * item.quantity,
@@ -125,7 +141,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
         profit: result.profit * item.quantity,
       };
     });
-  }, [items, productMap, marketplace]);
+  }, [items, productMap, marketplace, isPresencial]);
 
   const totals = useMemo(() => {
     let totalPrice = 0;
@@ -207,10 +223,11 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               </label>
               <select
                 value={gateway}
-                onChange={(e) => setGateway(e.target.value as GatewayId)}
+                onChange={(e) => setGateway(e.target.value)}
                 required
                 className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               >
+                <option value="PRESENCIAL">{t("products.inPerson")}</option>
                 {allGateways.map((gw) => (
                   <option key={gw.id} value={gw.id}>{gw.label}</option>
                 ))}
