@@ -34,6 +34,7 @@ export const ptBR = {
     loginSubtitle: "Acesse sua conta para gerenciar sua loja",
     loginButton: "Entrar",
     invalidCredentials: "Credenciais inválidas",
+    sessionActive: "Este usuário já possui uma sessão ativa em outro dispositivo",
     emailRequired: "Email é obrigatório",
     passwordRequired: "Senha é obrigatória",
   },
@@ -203,6 +204,7 @@ export const ptBR = {
     allProducts: "Todos",
     inStock: "Com Estoque",
     outOfStock: "Sem Estoque",
+    inPerson: "Presencial",
   },
   sales: {
     title: "Vendas",

@@ -58,9 +58,9 @@ export async function listSales(params: {
   if (status) where.deliveryStatus = status;
   if (gateway) where.gateway = gateway;
   if (startDate || endDate) {
-    where.createdAt = {};
-    if (startDate) where.createdAt.gte = new Date(startDate);
-    if (endDate) where.createdAt.lte = new Date(endDate);
+    where.saleDate = {};
+    if (startDate) where.saleDate.gte = new Date(startDate);
+    if (endDate) where.saleDate.lte = new Date(endDate);
   }
 
   const [sales, total] = await Promise.all([
@@ -69,7 +69,7 @@ export async function listSales(params: {
       include: SALE_ITEMS_INCLUDE,
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: { createdAt: "desc" },
+      orderBy: { saleDate: "desc" },
     }),
     prisma.sale.count({ where }),
   ]);

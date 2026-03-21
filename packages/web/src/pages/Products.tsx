@@ -6,7 +6,7 @@ import { ProductFormDialog } from "../components/products/ProductFormDialog.js";
 import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
 import { useProductStore } from "../stores/product.store.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
-import { calcIdealPrice, MARKETPLACES, formatBRL } from "@mimos/shared";
+import { calcIdealPrice, calcProductCost, MARKETPLACES, formatBRL } from "@mimos/shared";
 import type { Product } from "@mimos/shared";
 import type { Marketplace } from "@mimos/shared";
 import { Plus, Search, Pencil, Trash2, Package, AlertTriangle } from "lucide-react";
@@ -22,8 +22,8 @@ interface GatewayPriceInfo {
   marketplace: Marketplace;
 }
 
-function getProductPriceForGateway(product: Product, marketplace: Marketplace) {
-  const costs = {
+function buildCosts(product: Product) {
+  return {
     productCost: product.unitPrice,
     packaging: product.packagingCost,
     labor: product.laborCost,
@@ -31,6 +31,10 @@ function getProductPriceForGateway(product: Product, marketplace: Marketplace) {
     otherCosts: product.otherCosts,
     taxRate: product.taxRate,
   };
+}
+
+function getProductPriceForGateway(product: Product, marketplace: Marketplace) {
+  const costs = buildCosts(product);
   const result = calcIdealPrice(costs, product.desiredMargin, marketplace);
   return { salePrice: result.salePrice, profit: result.profit, margin: result.actualMargin };
 }
@@ -160,6 +164,7 @@ export default function Products() {
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("products.name")}</th>
                   <th className="text-center px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("products.stock")}</th>
                   <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("products.unitPrice")}</th>
+                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("products.inPerson")}</th>
                   {gatewayPriceInfos.map((gw) => (
                     <th key={gw.id} className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
                       {gw.label}
@@ -212,6 +217,21 @@ export default function Products() {
                         </td>
                         <td className="text-right px-3 py-3 text-[13px] font-medium text-text-dark">
                           {formatBRL(product.unitPrice)}
+                        </td>
+                        <td className="text-right px-3 py-3">
+                          {(() => {
+                            const { total: totalCost } = calcProductCost(buildCosts(product));
+                            const margin = product.desiredMargin / 100;
+                            const price = margin < 1 ? totalCost / (1 - margin) : totalCost;
+                            const profit = price - totalCost;
+                            const actualMargin = price > 0 ? (profit / price) * 100 : 0;
+                            return (
+                              <>
+                                <span className="text-[13px] font-semibold text-text-dark">{formatBRL(Math.ceil(price * 100) / 100)}</span>
+                                <span className="block text-[10px] text-text-muted">{actualMargin.toFixed(1)}% {t("products.margin").toLowerCase()}</span>
+                              </>
+                            );
+                          })()}
                         </td>
                         {gatewayPriceInfos.map((gw) => {
                           const price = getProductPriceForGateway(product, gw.marketplace);

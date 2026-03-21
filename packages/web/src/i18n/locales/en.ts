@@ -34,6 +34,7 @@ export const en = {
     loginSubtitle: "Sign in to manage your store",
     loginButton: "Sign In",
     invalidCredentials: "Invalid credentials",
+    sessionActive: "This user already has an active session on another device",
     emailRequired: "Email is required",
     passwordRequired: "Password is required",
   },
@@ -203,6 +204,7 @@ export const en = {
     allProducts: "All",
     inStock: "In Stock",
     outOfStock: "Out of Stock",
+    inPerson: "In Person",
   },
   sales: {
     title: "Sales",

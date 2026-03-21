@@ -73,6 +73,7 @@ model User {
   email               String   @unique
   username            String   @unique
   password            String
+  activeSessionToken  String?  @map("active_session_token")
   isAdmin             Boolean  @default(false) @map("is_admin")
   roleId              String?  @map("role_id")
   permissionOverrides String[] @default([]) @map("permission_overrides")

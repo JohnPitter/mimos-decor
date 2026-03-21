@@ -36,12 +36,17 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
         isAdmin: true,
         roleId: true,
         permissionOverrides: true,
+        activeSessionToken: true,
         createdAt: true,
         role: { select: { permissions: true } },
       },
     });
     if (!user) {
       res.status(401).json({ error: "Usuário não encontrado" });
+      return;
+    }
+    if (user.activeSessionToken && user.activeSessionToken !== token) {
+      res.status(401).json({ error: "Sessão encerrada. Outro login foi detectado." });
       return;
     }
 

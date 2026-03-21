@@ -8,7 +8,7 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
 
   const dateFilter = params.startDate || params.endDate
     ? {
-        createdAt: {
+        saleDate: {
           ...(params.startDate && { gte: new Date(params.startDate) }),
           ...(params.endDate && { lte: new Date(params.endDate) }),
         },
@@ -17,34 +17,34 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
 
   const [todaySales, monthSales, salesByGateway, salesByDay, topProducts, lowStockProducts, productStock] = await Promise.all([
     prisma.sale.aggregate({
-      where: { createdAt: { gte: startOfDay } },
+      where: { saleDate: { gte: startOfDay } },
       _count: true,
       _sum: { salePrice: true, profit: true },
     }),
     prisma.sale.aggregate({
-      where: { createdAt: { gte: startOfMonth }, ...dateFilter },
+      where: { saleDate: { gte: startOfMonth }, ...dateFilter },
       _count: true,
       _sum: { salePrice: true, profit: true, netRevenue: true },
     }),
     prisma.sale.groupBy({
       by: ["gateway"],
-      where: { createdAt: { gte: startOfMonth }, ...dateFilter },
+      where: { saleDate: { gte: startOfMonth }, ...dateFilter },
       _count: true,
       _sum: { salePrice: true },
     }),
     (params.startDate && params.endDate
       ? prisma.$queryRaw`
-          SELECT DATE(created_at) as date, COUNT(*)::int as count, SUM(sale_price) as revenue
+          SELECT DATE(sale_date) as date, COUNT(*)::int as count, SUM(sale_price) as revenue
           FROM sales
-          WHERE created_at >= ${new Date(params.startDate)} AND created_at <= ${new Date(params.endDate)}
-          GROUP BY DATE(created_at)
+          WHERE sale_date >= ${new Date(params.startDate)} AND sale_date <= ${new Date(params.endDate)}
+          GROUP BY DATE(sale_date)
           ORDER BY date
         `
       : prisma.$queryRaw`
-          SELECT DATE(created_at) as date, COUNT(*)::int as count, SUM(sale_price) as revenue
+          SELECT DATE(sale_date) as date, COUNT(*)::int as count, SUM(sale_price) as revenue
           FROM sales
-          WHERE created_at >= ${startOfMonth}
-          GROUP BY DATE(created_at)
+          WHERE sale_date >= ${startOfMonth}
+          GROUP BY DATE(sale_date)
           ORDER BY date
         `
     ) as Promise<{ date: string; count: number; revenue: number }[]>,
@@ -52,7 +52,7 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       SELECT si.product_id as "productId", COUNT(*)::int as count, SUM(si.sale_price * si.quantity) as revenue
       FROM sale_items si
       JOIN sales s ON si.sale_id = s.id
-      WHERE s.created_at >= ${startOfMonth}
+      WHERE s.sale_date >= ${startOfMonth}
         AND si.product_id IS NOT NULL
       GROUP BY si.product_id
       ORDER BY revenue DESC

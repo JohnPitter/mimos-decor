@@ -43,7 +43,12 @@ authRouter.post("/login", async (req, res) => {
       res.status(401).json({ error: "Credenciais inválidas" });
       return;
     }
+    if (user.activeSessionToken) {
+      res.status(409).json({ error: "Este usuário já possui uma sessão ativa em outro dispositivo" });
+      return;
+    }
     const token = signToken({ userId: user.id });
+    await prisma.user.update({ where: { id: user.id }, data: { activeSessionToken: token } });
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -59,7 +64,10 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
-authRouter.post("/logout", (_req, res) => {
+authRouter.post("/logout", authMiddleware, async (req, res) => {
+  try {
+    await prisma.user.update({ where: { id: req.user!.id }, data: { activeSessionToken: null } });
+  } catch { /* ignore if user not found */ }
   res.clearCookie("token");
   res.json({ ok: true });
 });
