@@ -137,7 +137,7 @@ export default function Reports() {
       .map(([name, data]) => ({ name, ...data }));
 
     const byHour = Array.from({ length: 24 }, (_, h) => ({
-      hour: `${String(h).padStart(2, "0")}:00-${String((h + 1) % 24).padStart(2, "0")}:00`,
+      hour: `${String(h).padStart(2, "0")}:00 ${h < 6 ? t("reports.periodDawn") : h < 12 ? t("reports.periodMorning") : h < 18 ? t("reports.periodAfternoon") : t("reports.periodNight")}`,
       count: hourMap.get(h)?.count ?? 0,
       revenue: hourMap.get(h)?.revenue ?? 0,
     }));

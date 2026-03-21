@@ -377,6 +377,10 @@ export const ptBR = {
     salesByGender: "Vendas por Sexo",
     salesByState: "Vendas por Estado (Top 10)",
     revenueByGateway: "Faturamento e Lucro por Modalidade",
+    periodDawn: "Madrugada",
+    periodMorning: "Manhã",
+    periodAfternoon: "Tarde",
+    periodNight: "Noite",
     unknown: "Não informado",
   },
   supplies: {

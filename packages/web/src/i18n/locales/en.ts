@@ -377,6 +377,10 @@ export const en = {
     salesByGender: "Sales by Gender",
     salesByState: "Sales by State (Top 10)",
     revenueByGateway: "Revenue & Profit by Channel",
+    periodDawn: "Dawn",
+    periodMorning: "Morning",
+    periodAfternoon: "Afternoon",
+    periodNight: "Night",
     unknown: "Not specified",
   },
   supplies: {
