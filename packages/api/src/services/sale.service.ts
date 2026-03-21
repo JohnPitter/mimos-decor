@@ -261,12 +261,19 @@ export async function updateSale(id: string, data: {
   if (!old) return null;
 
   const updateData: Record<string, unknown> = {};
+  const newSalePrice = data.salePrice ?? old.salePrice;
+  const newTotalFees = data.totalFees ?? old.totalFees;
+  const newDiscount = data.discount ?? old.discount;
+  const newTotalCost = data.totalCost ?? old.totalCost;
+  const newNetRevenue = newSalePrice - newTotalFees - newDiscount;
+  const newProfit = newNetRevenue - newTotalCost;
+
   if (data.salePrice !== undefined) updateData.salePrice = data.salePrice;
   if (data.totalCost !== undefined) updateData.totalCost = data.totalCost;
   if (data.totalFees !== undefined) updateData.totalFees = data.totalFees;
-  if (data.netRevenue !== undefined) updateData.netRevenue = data.netRevenue;
-  if (data.profit !== undefined) updateData.profit = data.profit;
   if (data.discount !== undefined) updateData.discount = data.discount;
+  updateData.netRevenue = newNetRevenue;
+  updateData.profit = newProfit;
   if (data.customerName !== undefined) updateData.customerName = data.customerName || null;
   if (data.customerDocument !== undefined) updateData.customerDocument = data.customerDocument || null;
   if (data.customerState !== undefined) updateData.customerState = data.customerState || null;
