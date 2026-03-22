@@ -155,7 +155,11 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
                 value={form[field.name] ?? ""}
                 onChange={(e) => {
                   const val = e.target.value;
-                  if (field.step === "1" && val.includes(".")) return;
+                  if (field.step === "1") {
+                    const clean = val.replace(/[^0-9]/g, "");
+                    setForm({ ...form, [field.name]: clean });
+                    return;
+                  }
                   setForm({ ...form, [field.name]: val });
                 }}
                 step={field.step}
