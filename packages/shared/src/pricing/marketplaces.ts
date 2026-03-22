@@ -85,7 +85,7 @@ export const BUILT_IN_PARAMS: Record<string, GatewayParams> = {
       { maxPrice: 499.99, pct: 0.05 },
       { maxPrice: Infinity, pct: 0.08 },
     ],
-    extraFixed: 3,
+    extraFixed: 0,
   },
   ML_CLASSICO: {
     tiers: [
@@ -98,7 +98,7 @@ export const BUILT_IN_PARAMS: Record<string, GatewayParams> = {
   },
   ML_PREMIUM: {
     tiers: [
-      { maxPrice: 79, pct: 0.19, fixed: 0 },
+      { maxPrice: 79, pct: 0.19, fixed: 6.5 },
       { maxPrice: 199, pct: 0.18, fixed: 0 },
       { maxPrice: Infinity, pct: 0.15, fixed: 0 },
     ],

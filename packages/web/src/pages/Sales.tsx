@@ -12,7 +12,7 @@ import {
   DELIVERY_STATUS_COLORS,
 } from "@mimos/shared";
 import type { Sale, DeliveryStatus } from "@mimos/shared";
-import { Plus, Upload, ShoppingCart, Trash2 } from "lucide-react";
+import { Plus, Upload, ShoppingCart, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { ExportDropdown } from "../components/common/ExportDropdown.js";
 import { useSettingsStore } from "../stores/settings.store.js";
@@ -209,14 +209,24 @@ export default function Sales() {
                         {new Date(sale.saleDate ?? sale.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                       </td>
                       <td className="px-3 py-3">
-                        {appSettings.allowSaleDeletion && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setDeleteId(sale.id); }}
-                            className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50 transition-all"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        )}
+                        <div className="flex gap-1 justify-end">
+                          {appSettings.allowSaleEditing && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleRowClick(sale); }}
+                              className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-rosa-light transition-all"
+                            >
+                              <Pencil size={15} />
+                            </button>
+                          )}
+                          {appSettings.allowSaleDeletion && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setDeleteId(sale.id); }}
+                              className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50 transition-all"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
