@@ -110,6 +110,7 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
       shopeeUsername: sale.shopeeUsername ?? "",
       trackingCode: sale.trackingCode ?? "",
       salePrice: String(sale.salePrice),
+      totalCost: String(sale.totalCost),
       totalFees: String(sale.totalFees),
       discount: String(sale.discount),
     });
@@ -127,10 +128,9 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
         shopeeUsername: editForm.shopeeUsername || undefined,
         trackingCode: editForm.trackingCode || undefined,
         salePrice: Number(editForm.salePrice),
+        totalCost: Number(editForm.totalCost),
         totalFees: Number(editForm.totalFees),
         discount: Number(editForm.discount),
-        netRevenue: Number(editForm.salePrice) - Number(editForm.totalFees) - Number(editForm.discount),
-        profit: Number(editForm.salePrice) - Number(editForm.totalFees) - Number(editForm.discount) - sale.totalCost,
       });
       toast.success(t("sales.editSuccess"));
       setEditing(false);
@@ -361,6 +361,10 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
                 <div>
                   <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.salePrice")}</label>
                   <input type="number" step="0.01" value={ef("salePrice")} onChange={(e) => setEf("salePrice", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.totalCost")}</label>
+                  <input type="number" step="0.01" value={ef("totalCost")} onChange={(e) => setEf("totalCost", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.totalFees")}</label>
