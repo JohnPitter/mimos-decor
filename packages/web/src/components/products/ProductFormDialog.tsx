@@ -152,16 +152,11 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
               </label>
               <input
                 type={field.type}
+                inputMode={field.step === "1" ? "numeric" : undefined}
+                pattern={field.step === "1" ? "[0-9]*" : undefined}
                 value={form[field.name] ?? ""}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (field.step === "1") {
-                    const clean = val.replace(/[^0-9]/g, "");
-                    setForm({ ...form, [field.name]: clean });
-                    return;
-                  }
-                  setForm({ ...form, [field.name]: val });
-                }}
+                onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
+                onKeyDown={field.step === "1" ? (e) => { if (e.key === "." || e.key === ",") e.preventDefault(); } : undefined}
                 step={field.step}
                 min={field.step === "1" ? "0" : undefined}
                 required={field.required}
