@@ -60,6 +60,7 @@ export default function Sales() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerEditMode, setDrawerEditMode] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
@@ -78,8 +79,9 @@ export default function Sales() {
     loadSales();
   };
 
-  const handleRowClick = (sale: Sale) => {
+  const handleRowClick = (sale: Sale, editMode = false) => {
     setSelectedSale(sale);
+    setDrawerEditMode(editMode);
     setDrawerOpen(true);
   };
 
@@ -212,7 +214,7 @@ export default function Sales() {
                         <div className="flex gap-1 justify-end">
                           {appSettings.allowSaleEditing && (
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleRowClick(sale); }}
+                              onClick={(e) => { e.stopPropagation(); handleRowClick(sale, true); }}
                               className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-rosa-light transition-all"
                             >
                               <Pencil size={15} />
@@ -267,7 +269,7 @@ export default function Sales() {
 
       <SaleFormDialog open={saleDialogOpen} onClose={() => setSaleDialogOpen(false)} onSubmit={handleCreateSale} />
       <ImportCSVDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} onImported={() => loadSales()} />
-      <SaleDetailDrawer sale={selectedSale} open={drawerOpen} onClose={() => { setDrawerOpen(false); setSelectedSale(null); }} onStatusUpdated={() => loadSales()} />
+      <SaleDetailDrawer sale={selectedSale} open={drawerOpen} startInEditMode={drawerEditMode} onClose={() => { setDrawerOpen(false); setSelectedSale(null); setDrawerEditMode(false); }} onStatusUpdated={() => loadSales()} />
       <ConfirmDialog
         open={!!deleteId}
         title={t("nav.deleteConfirmTitle")}

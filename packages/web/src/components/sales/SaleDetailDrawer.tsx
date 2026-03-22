@@ -14,6 +14,7 @@ import { useSettingsStore } from "../../stores/settings.store.js";
 interface Props {
   sale: Sale | null;
   open: boolean;
+  startInEditMode?: boolean;
   onClose: () => void;
   onStatusUpdated: () => void;
 }
@@ -57,7 +58,7 @@ function getTimelineDotClass(status: DeliveryStatus): string {
   return TIMELINE_DOT_MAP[color] ?? "bg-gray-400";
 }
 
-export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props) {
+export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatusUpdated }: Props) {
   const { t } = useTranslation();
   const { updateSaleStatus, updateSale, getSaleDetail } = useSaleStore();
   const getGatewayLabel = useGatewayStore((s) => s.getGatewayLabel);
@@ -74,7 +75,23 @@ export function SaleDetailDrawer({ sale, open, onClose, onStatusUpdated }: Props
     if (sale && open) {
       setLoadingHistory(true);
       setShowStatusDropdown(false);
-      setEditing(false);
+      if (startInEditMode && allowSaleEditing) {
+        setEditForm({
+          customerName: sale.customerName ?? "",
+          customerDocument: sale.customerDocument ?? "",
+          customerState: sale.customerState ?? "",
+          customerGender: sale.customerGender ?? "",
+          shopeeUsername: sale.shopeeUsername ?? "",
+          trackingCode: sale.trackingCode ?? "",
+          salePrice: String(sale.salePrice),
+          totalCost: String(sale.totalCost),
+          totalFees: String(sale.totalFees),
+          discount: String(sale.discount),
+        });
+        setEditing(true);
+      } else {
+        setEditing(false);
+      }
       getSaleDetail(sale.id)
         .then((detail) => setStatusHistory(detail.statusHistory ?? []))
         .catch(() => setStatusHistory([]))

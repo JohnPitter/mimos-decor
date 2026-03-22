@@ -22,16 +22,16 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const FIELDS = [
-    { name: "name", labelKey: "products.name", type: "text", required: true },
-    { name: "unitPrice", labelKey: "products.unitPrice", type: "number", required: true },
-    { name: "quantity", labelKey: "products.quantity", type: "number", required: true },
-    { name: "shippingCost", labelKey: "products.shippingCost", type: "number", required: true },
-    { name: "desiredMargin", labelKey: "products.desiredMargin", type: "number", required: true },
-    { name: "supplier", labelKey: "products.supplier", type: "text", required: false },
-    { name: "taxRate", labelKey: "products.taxRate", type: "number", required: false },
-    { name: "packagingCost", labelKey: "products.packagingCost", type: "number", required: false },
-    { name: "laborCost", labelKey: "products.laborCost", type: "number", required: false },
-    { name: "otherCosts", labelKey: "products.otherCosts", type: "number", required: false },
+    { name: "name", labelKey: "products.name", type: "text", required: true, step: undefined },
+    { name: "unitPrice", labelKey: "products.unitPrice", type: "number", required: true, step: "0.01" },
+    { name: "quantity", labelKey: "products.quantity", type: "number", required: true, step: "1" },
+    { name: "shippingCost", labelKey: "products.shippingCost", type: "number", required: true, step: "0.01" },
+    { name: "desiredMargin", labelKey: "products.desiredMargin", type: "number", required: true, step: "0.01" },
+    { name: "supplier", labelKey: "products.supplier", type: "text", required: false, step: undefined },
+    { name: "taxRate", labelKey: "products.taxRate", type: "number", required: false, step: "0.01" },
+    { name: "packagingCost", labelKey: "products.packagingCost", type: "number", required: false, step: "0.01" },
+    { name: "laborCost", labelKey: "products.laborCost", type: "number", required: false, step: "0.01" },
+    { name: "otherCosts", labelKey: "products.otherCosts", type: "number", required: false, step: "0.01" },
   ];
 
   useEffect(() => {
@@ -89,7 +89,11 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
       const data: Record<string, unknown> = {};
       for (const field of FIELDS) {
         const val = form[field.name];
-        data[field.name] = field.type === "number" ? Number(val || 0) : val || (field.required ? "" : undefined);
+        if (field.type === "number") {
+          data[field.name] = field.step === "1" ? Math.floor(Number(val || 0)) : Number(val || 0);
+        } else {
+          data[field.name] = val || (field.required ? "" : undefined);
+        }
       }
       const result = await onSubmit(data);
 
@@ -150,7 +154,7 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
                 type={field.type}
                 value={form[field.name] ?? ""}
                 onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
-                step={field.type === "number" ? "0.01" : undefined}
+                step={field.step}
                 required={field.required}
                 className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               />
