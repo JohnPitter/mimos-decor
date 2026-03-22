@@ -7,6 +7,7 @@ import { useSupplyStore } from "../stores/supply.store.js";
 import { formatBRL } from "@mimos/shared";
 import type { Supply } from "@mimos/shared";
 import { Plus, Search, Pencil, Trash2, X, PackageOpen, AlertTriangle } from "lucide-react";
+import { MaskedInput } from "../components/common/MaskedInput.js";
 
 const UNITS = ["un", "kg", "g", "L", "mL", "m", "cm", "pct", "cx", "rolo"];
 
@@ -99,14 +100,14 @@ function SupplyFormDialog({ open, supply, onClose, onSubmit }: {
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
                 {t("supplies.unitPrice")} <span className="text-red-400">*</span>
               </label>
-              <input type="number" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} step="0.01" min="0" required
+              <MaskedInput mask="currency" value={unitPrice} onChange={setUnitPrice} required
                 className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" />
             </div>
             <div>
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
                 {t("supplies.quantity")}
               </label>
-              <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="0"
+              <MaskedInput mask="integer" value={quantity} onChange={setQuantity}
                 className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" />
             </div>
           </div>
@@ -124,7 +125,7 @@ function SupplyFormDialog({ open, supply, onClose, onSubmit }: {
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
                 {t("supplies.minStock")}
               </label>
-              <input type="number" value={minStock} onChange={(e) => setMinStock(e.target.value)} min="0"
+              <MaskedInput mask="integer" value={minStock} onChange={setMinStock}
                 className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" />
             </div>
           </div>

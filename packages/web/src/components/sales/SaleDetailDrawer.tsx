@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { X, ChevronDown, Clock, ArrowRight, Pencil } from "lucide-react";
+import { MaskedInput } from "../common/MaskedInput.js";
 import {
   formatBRL,
   DELIVERY_STATUS_COLORS,
@@ -377,19 +378,19 @@ export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatu
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.salePrice")}</label>
-                  <input type="number" step="0.01" value={ef("salePrice")} onChange={(e) => setEf("salePrice", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                  <MaskedInput mask="currency" value={ef("salePrice")} onChange={(v) => setEf("salePrice", v)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.totalCost")}</label>
-                  <input type="number" step="0.01" value={ef("totalCost")} onChange={(e) => setEf("totalCost", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                  <MaskedInput mask="currency" value={ef("totalCost")} onChange={(v) => setEf("totalCost", v)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.totalFees")}</label>
-                  <input type="number" step="0.01" value={ef("totalFees")} onChange={(e) => setEf("totalFees", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                  <MaskedInput mask="currency" value={ef("totalFees")} onChange={(v) => setEf("totalFees", v)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.discount")}</label>
-                  <input type="number" step="0.01" value={ef("discount")} onChange={(e) => setEf("discount", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                  <MaskedInput mask="currency" value={ef("discount")} onChange={(v) => setEf("discount", v)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
                 </div>
               </div>
               <div className="flex gap-3 pt-2">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
+import { MaskedInput } from "../common/MaskedInput.js";
 import type { FinanceEntry, FinanceCategory } from "@mimos/shared";
 
 interface Props {
@@ -145,14 +146,11 @@ export function FinanceFormDialog({ open, entry, categories, onClose, onSubmit }
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
                 {t("finances.amount")} <span className="text-red-400">*</span>
               </label>
-              <input
-                type="number"
+              <MaskedInput
+                mask="currency"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                step="0.01"
-                min="0.01"
+                onChange={setAmount}
                 required
-                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               />
             </div>
             <div>
@@ -204,14 +202,11 @@ export function FinanceFormDialog({ open, entry, categories, onClose, onSubmit }
                   <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
                     {t("finances.recurringMonths")}
                   </label>
-                  <input
-                    type="number"
+                  <MaskedInput
+                    mask="integer"
                     value={recurringMonths}
-                    onChange={(e) => setRecurringMonths(e.target.value)}
-                    min="2"
-                    max="60"
+                    onChange={setRecurringMonths}
                     required
-                    className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                   />
                   <p className="text-[11px] text-text-muted mt-1">{t("finances.recurringHint")}</p>
                 </div>

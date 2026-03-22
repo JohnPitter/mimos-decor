@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { X, Plus, Trash2 } from "lucide-react";
+import { MaskedInput } from "../common/MaskedInput.js";
 import { ProductPicker } from "./ProductPicker.js";
 import {
   MARKETPLACES,
@@ -340,33 +341,30 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               <div className="divide-y divide-stroke/30">
                 <div className="flex items-center justify-between px-4 py-1.5">
                   <span className="text-[13px] text-text-secondary">{t("sales.subtotalProducts")}</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={overrideSubtotal || ""}
-                    onChange={(e) => setOverrideSubtotal(e.target.value)}
+                  <MaskedInput
+                    mask="currency"
+                    value={overrideSubtotal}
+                    onChange={setOverrideSubtotal}
                     placeholder={formatBRL(totals.calcPrice)}
                     className="w-28 text-right px-2 py-1.5 border border-stroke rounded-lg text-[13px] font-semibold bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   />
                 </div>
                 <div className="flex items-center justify-between px-4 py-1.5">
                   <span className="text-[13px] text-text-secondary">{t("sales.estimatedShipping")}</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={overrideShipping || ""}
-                    onChange={(e) => setOverrideShipping(e.target.value)}
+                  <MaskedInput
+                    mask="currency"
+                    value={overrideShipping}
+                    onChange={setOverrideShipping}
                     placeholder={formatBRL(totals.calcShipping)}
                     className="w-28 text-right px-2 py-1.5 border border-stroke rounded-lg text-[13px] font-semibold bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   />
                 </div>
                 <div className="flex items-center justify-between px-4 py-1.5">
                   <span className="text-[13px] text-text-secondary">{t("sales.feesAndCharges")}</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={overrideFees || ""}
-                    onChange={(e) => setOverrideFees(e.target.value)}
+                  <MaskedInput
+                    mask="currency"
+                    value={overrideFees}
+                    onChange={setOverrideFees}
                     placeholder={formatBRL(totals.calcFees)}
                     className="w-28 text-right px-2 py-1.5 border border-stroke rounded-lg text-[13px] font-semibold text-red-500 bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   />
@@ -399,14 +397,11 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
                 {t("sales.discount")}
               </label>
-              <input
-                type="number"
+              <MaskedInput
+                mask="currency"
                 value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
-                step="0.01"
-                min="0"
+                onChange={setDiscount}
                 placeholder="R$ 0,00"
-                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               />
             </div>
             <div>
@@ -490,12 +485,11 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
                 {t("sales.customerDocument")}
               </label>
-              <input
-                type="text"
+              <MaskedInput
+                mask="cpfcnpj"
                 value={customerDocument}
-                onChange={(e) => setCustomerDocument(e.target.value)}
+                onChange={setCustomerDocument}
                 placeholder={t("common.optional")}
-                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               />
             </div>
           </div>

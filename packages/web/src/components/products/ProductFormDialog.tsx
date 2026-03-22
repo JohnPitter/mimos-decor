@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { X, Upload, ImageIcon } from "lucide-react";
+import { MaskedInput } from "../common/MaskedInput.js";
 import { api } from "../../lib/api.js";
 import type { Product } from "@mimos/shared";
 
@@ -21,17 +22,17 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const FIELDS = [
-    { name: "name", labelKey: "products.name", type: "text", required: true, step: undefined },
-    { name: "unitPrice", labelKey: "products.unitPrice", type: "number", required: true, step: "0.01" },
-    { name: "quantity", labelKey: "products.quantity", type: "number", required: true, step: "1" },
-    { name: "shippingCost", labelKey: "products.shippingCost", type: "number", required: true, step: "0.01" },
-    { name: "desiredMargin", labelKey: "products.desiredMargin", type: "number", required: true, step: "0.01" },
-    { name: "supplier", labelKey: "products.supplier", type: "text", required: false, step: undefined },
-    { name: "taxRate", labelKey: "products.taxRate", type: "number", required: false, step: "0.01" },
-    { name: "packagingCost", labelKey: "products.packagingCost", type: "number", required: false, step: "0.01" },
-    { name: "laborCost", labelKey: "products.laborCost", type: "number", required: false, step: "0.01" },
-    { name: "otherCosts", labelKey: "products.otherCosts", type: "number", required: false, step: "0.01" },
+  const FIELDS: { name: string; labelKey: string; mask: "text" | "integer" | "currency" | "percentage"; required: boolean }[] = [
+    { name: "name", labelKey: "products.name", mask: "text", required: true },
+    { name: "unitPrice", labelKey: "products.unitPrice", mask: "currency", required: true },
+    { name: "quantity", labelKey: "products.quantity", mask: "integer", required: true },
+    { name: "shippingCost", labelKey: "products.shippingCost", mask: "currency", required: true },
+    { name: "desiredMargin", labelKey: "products.desiredMargin", mask: "percentage", required: true },
+    { name: "supplier", labelKey: "products.supplier", mask: "text", required: false },
+    { name: "taxRate", labelKey: "products.taxRate", mask: "percentage", required: false },
+    { name: "packagingCost", labelKey: "products.packagingCost", mask: "currency", required: false },
+    { name: "laborCost", labelKey: "products.laborCost", mask: "currency", required: false },
+    { name: "otherCosts", labelKey: "products.otherCosts", mask: "currency", required: false },
   ];
 
   useEffect(() => {
@@ -89,8 +90,10 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
       const data: Record<string, unknown> = {};
       for (const field of FIELDS) {
         const val = form[field.name];
-        if (field.type === "number") {
-          data[field.name] = field.step === "1" ? Math.floor(Number(val || 0)) : Number(val || 0);
+        if (field.mask === "integer") {
+          data[field.name] = parseInt(String(val || "0"), 10);
+        } else if (field.mask === "currency" || field.mask === "percentage") {
+          data[field.name] = Number(val || 0);
         } else {
           data[field.name] = val || (field.required ? "" : undefined);
         }
@@ -150,17 +153,11 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
               <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
                 {t(field.labelKey)} {field.required && <span className="text-red-400">*</span>}
               </label>
-              <input
-                type={field.type}
-                inputMode={field.step === "1" ? "numeric" : undefined}
-                pattern={field.step === "1" ? "[0-9]*" : undefined}
+              <MaskedInput
+                mask={field.mask}
                 value={form[field.name] ?? ""}
-                onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
-                onKeyDown={field.step === "1" ? (e) => { if (e.key === "." || e.key === ",") e.preventDefault(); } : undefined}
-                step={field.step}
-                min={field.step === "1" ? "0" : undefined}
+                onChange={(val) => setForm({ ...form, [field.name]: val })}
                 required={field.required}
-                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               />
             </div>
           ))}
