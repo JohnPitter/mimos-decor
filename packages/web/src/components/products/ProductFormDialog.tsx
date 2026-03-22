@@ -153,8 +153,13 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
               <input
                 type={field.type}
                 value={form[field.name] ?? ""}
-                onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (field.step === "1" && val.includes(".")) return;
+                  setForm({ ...form, [field.name]: val });
+                }}
                 step={field.step}
+                min={field.step === "1" ? "0" : undefined}
                 required={field.required}
                 className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               />
