@@ -4,6 +4,7 @@
 | Date | Source | What Went Wrong | What To Do Instead |
 |------|--------|----------------|-------------------|
 | 2026-03-14 | self | Edited prisma/seed.ts but src/seed.ts was the one compiled by tsc | Check BOTH seed files exist; src/seed.ts is compiled, prisma/seed.ts is for prisma db seed |
+| 2026-03-24 | user | Session lock blocked login when browser closed without logout | Don't block login — replace the active token so new login invalidates old session automatically |
 
 ## User Preferences
 - Prefers Portuguese for UI/communication

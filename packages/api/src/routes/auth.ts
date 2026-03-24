@@ -43,10 +43,7 @@ authRouter.post("/login", async (req, res) => {
       res.status(401).json({ error: "Credenciais inválidas" });
       return;
     }
-    if (user.activeSessionToken) {
-      res.status(409).json({ error: "Este usuário já possui uma sessão ativa em outro dispositivo" });
-      return;
-    }
+    // New login replaces any existing session (old session gets invalidated)
     const token = signToken({ userId: user.id });
     await prisma.user.update({ where: { id: user.id }, data: { activeSessionToken: token } });
     res.cookie("token", token, {
