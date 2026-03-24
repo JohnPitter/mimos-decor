@@ -245,8 +245,6 @@ export async function updateSale(id: string, data: {
   salePrice?: number;
   totalCost?: number;
   totalFees?: number;
-  netRevenue?: number;
-  profit?: number;
   discount?: number;
   customerName?: string;
   customerDocument?: string;
@@ -296,28 +294,15 @@ export async function updateSaleStatus(id: string, newStatus: DeliveryStatus, us
   const wasCancelled = sale.deliveryStatus === "CANCELLED";
   const isCancelling = newStatus === "CANCELLED";
 
-  const stockOps = [];
-  if (isCancelling && !wasCancelled) {
-    // Restore stock when cancelling
-    for (const item of sale.items) {
-      if (item.productId) {
-        stockOps.push(prisma.product.update({
-          where: { id: item.productId },
-          data: { quantity: { increment: item.quantity } },
-        }));
-      }
-    }
-  } else if (wasCancelled && !isCancelling) {
-    // Decrement stock when un-cancelling
-    for (const item of sale.items) {
-      if (item.productId) {
-        stockOps.push(prisma.product.update({
-          where: { id: item.productId },
-          data: { quantity: { decrement: item.quantity } },
-        }));
-      }
-    }
-  }
+  const stockDirection = isCancelling && !wasCancelled ? "increment"
+    : wasCancelled && !isCancelling ? "decrement"
+    : null;
+
+  const stockOps = stockDirection
+    ? sale.items.filter(i => i.productId).map(item =>
+        prisma.product.update({ where: { id: item.productId! }, data: { quantity: { [stockDirection]: item.quantity } } })
+      )
+    : [];
 
   const [updated] = await prisma.$transaction([
     prisma.sale.update({ where: { id }, data: { deliveryStatus: newStatus } }),

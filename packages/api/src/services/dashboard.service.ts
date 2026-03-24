@@ -3,8 +3,13 @@ import { prisma } from "../lib/prisma.js";
 const NOT_CANCELLED = { deliveryStatus: { not: "CANCELLED" as const } };
 
 function getNowInTimezone(tz: string) {
-  const nowStr = new Date().toLocaleString("en-US", { timeZone: tz });
-  return new Date(nowStr);
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  });
+  const parts = Object.fromEntries(fmt.formatToParts(new Date()).map(p => [p.type, p.value]));
+  return { year: Number(parts.year), month: Number(parts.month) - 1, day: Number(parts.day) };
 }
 
 export async function getDashboardData(params: { startDate?: string; endDate?: string; topN?: number }) {
@@ -14,9 +19,9 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
     if (settings?.timezone) tz = settings.timezone;
   } catch { /* table may not exist */ }
 
-  const now = getNowInTimezone(tz);
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const { year, month, day } = getNowInTimezone(tz);
+  const startOfDay = new Date(Date.UTC(year, month, day));
+  const startOfMonth = new Date(Date.UTC(year, month, 1));
   const topN = Math.min(Math.max(params.topN ?? 5, 1), 50);
 
   const dateFilter = params.startDate || params.endDate

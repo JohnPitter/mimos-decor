@@ -68,16 +68,16 @@ export function MaskedInput({ mask, value, onChange, placeholder, required, clas
 
   const displayValue = mask === "cpfcnpj" && strValue ? formatCpfCnpj(strValue) : strValue;
 
-  const inputMode = mask === "integer" || mask === "currency" || mask === "percentage"
-    ? "decimal" as const
-    : mask === "cpfcnpj"
-      ? "numeric" as const
+  const inputMode = mask === "integer" || mask === "cpfcnpj"
+    ? "numeric" as const
+    : mask === "currency" || mask === "percentage"
+      ? "decimal" as const
       : undefined;
 
   return (
     <input
       type="text"
-      inputMode={mask === "integer" ? "numeric" : inputMode}
+      inputMode={inputMode}
       value={displayValue}
       onChange={handleChange}
       placeholder={placeholder}

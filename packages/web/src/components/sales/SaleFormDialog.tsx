@@ -9,6 +9,7 @@ import {
   calcProductCost,
   formatBRL,
 } from "@mimos/shared";
+import { DELIVERY_STATUSES } from "@mimos/shared";
 import type { Product, GatewayId, ProductCosts } from "@mimos/shared";
 import { api } from "../../lib/api.js";
 import { useGatewayStore } from "../../stores/gateway.store.js";
@@ -254,7 +255,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
                 onChange={(e) => setDeliveryStatus(e.target.value)}
                 className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               >
-                {(["PENDING", "PREPARING", "IN_TRANSIT", "DELIVERED", "RETURNED", "CANCELLED"] as const).map((s) => (
+                {DELIVERY_STATUSES.map((s) => (
                   <option key={s} value={s}>{t(`deliveryStatus.${s}`)}</option>
                 ))}
               </select>

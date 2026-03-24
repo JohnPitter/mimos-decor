@@ -8,6 +8,8 @@ export type DeliveryStatus =
   | "RETURNED"
   | "CANCELLED";
 
+export const DELIVERY_STATUSES: DeliveryStatus[] = ["PENDING", "PREPARING", "IN_TRANSIT", "DELIVERED", "RETURNED", "CANCELLED"];
+
 export const DELIVERY_STATUS_LABELS: Record<DeliveryStatus, string> = {
   PENDING: "Pendente",
   PREPARING: "Preparando",

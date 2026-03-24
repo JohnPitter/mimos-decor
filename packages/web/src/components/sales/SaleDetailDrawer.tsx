@@ -7,6 +7,7 @@ import {
   formatBRL,
   DELIVERY_STATUS_COLORS,
 } from "@mimos/shared";
+import { DELIVERY_STATUSES } from "@mimos/shared";
 import type { Sale, DeliveryStatus, DeliveryStatusHistoryEntry } from "@mimos/shared";
 import { useSaleStore } from "../../stores/sale.store.js";
 import { useGatewayStore } from "../../stores/gateway.store.js";
@@ -40,14 +41,7 @@ const TIMELINE_DOT_MAP: Record<string, string> = {
   red: "bg-red-400",
 };
 
-const ALL_STATUSES: DeliveryStatus[] = [
-  "PENDING",
-  "PREPARING",
-  "IN_TRANSIT",
-  "DELIVERED",
-  "RETURNED",
-  "CANCELLED",
-];
+const ALL_STATUSES = DELIVERY_STATUSES;
 
 function getStatusBadgeClass(status: DeliveryStatus): string {
   const color = DELIVERY_STATUS_COLORS[status];
@@ -77,18 +71,7 @@ export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatu
       setLoadingHistory(true);
       setShowStatusDropdown(false);
       if (startInEditMode && allowSaleEditing) {
-        setEditForm({
-          customerName: sale.customerName ?? "",
-          customerDocument: sale.customerDocument ?? "",
-          customerState: sale.customerState ?? "",
-          customerGender: sale.customerGender ?? "",
-          shopeeUsername: sale.shopeeUsername ?? "",
-          trackingCode: sale.trackingCode ?? "",
-          salePrice: String(sale.salePrice),
-          totalCost: String(sale.totalCost),
-          totalFees: String(sale.totalFees),
-          discount: String(sale.discount),
-        });
+        setEditForm(buildEditForm());
         setEditing(true);
       } else {
         setEditing(false);
@@ -101,6 +84,19 @@ export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatu
   }, [sale, open, getSaleDetail]);
 
   if (!open || !sale) return null;
+
+  const buildEditForm = () => ({
+    customerName: sale.customerName ?? "",
+    customerDocument: sale.customerDocument ?? "",
+    customerState: sale.customerState ?? "",
+    customerGender: sale.customerGender ?? "",
+    shopeeUsername: sale.shopeeUsername ?? "",
+    trackingCode: sale.trackingCode ?? "",
+    salePrice: String(sale.salePrice),
+    totalCost: String(sale.totalCost),
+    totalFees: String(sale.totalFees),
+    discount: String(sale.discount),
+  });
 
   const handleStatusUpdate = async (newStatus: DeliveryStatus) => {
     setUpdatingStatus(true);
@@ -120,18 +116,7 @@ export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatu
   const availableStatuses = ALL_STATUSES.filter((s) => s !== sale.deliveryStatus);
 
   const startEditing = () => {
-    setEditForm({
-      customerName: sale.customerName ?? "",
-      customerDocument: sale.customerDocument ?? "",
-      customerState: sale.customerState ?? "",
-      customerGender: sale.customerGender ?? "",
-      shopeeUsername: sale.shopeeUsername ?? "",
-      trackingCode: sale.trackingCode ?? "",
-      salePrice: String(sale.salePrice),
-      totalCost: String(sale.totalCost),
-      totalFees: String(sale.totalFees),
-      discount: String(sale.discount),
-    });
+    setEditForm(buildEditForm());
     setEditing(true);
   };
 
@@ -353,7 +338,7 @@ export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatu
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.customerDocument")}</label>
-                  <input type="text" value={ef("customerDocument")} onChange={(e) => setEf("customerDocument", e.target.value)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                  <MaskedInput mask="cpfcnpj" value={ef("customerDocument")} onChange={(v) => setEf("customerDocument", v)} className="w-full px-2.5 py-2 border border-stroke rounded-lg text-[13px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">{t("sales.shopeeUsername")}</label>
