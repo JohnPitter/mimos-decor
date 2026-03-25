@@ -40,6 +40,9 @@ interface Props {
     deliveryStatus?: string;
     discount?: number;
     saleDate?: string;
+    overrideSalePrice?: number;
+    overrideShipping?: number;
+    overrideFees?: number;
   }) => void;
 }
 
@@ -212,6 +215,9 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
       deliveryStatus: deliveryStatus || undefined,
       discount: discount ? Number(discount) : undefined,
       saleDate: saleDate || undefined,
+      overrideSalePrice: overrideSubtotal ? Number(overrideSubtotal) : undefined,
+      overrideShipping: overrideShipping ? Number(overrideShipping) : undefined,
+      overrideFees: overrideFees ? Number(overrideFees) : undefined,
     });
   };
 

@@ -120,6 +120,9 @@ export async function createSale(data: {
   deliveryStatus?: DeliveryStatus;
   discount?: number;
   saleDate?: string;
+  overrideSalePrice?: number;
+  overrideShipping?: number;
+  overrideFees?: number;
 }, userId: string) {
   const marketplace = await resolveMarketplace(data.gateway);
   if (!data.items.length) throw new Error("A venda deve ter pelo menos um item");
@@ -173,11 +176,13 @@ export async function createSale(data: {
   }
 
   const discount = data.discount ?? 0;
-  const totalSalePrice = saleItems.reduce((sum, i) => sum + i.salePrice * i.quantity, 0);
+  const calcSalePrice = saleItems.reduce((sum, i) => sum + i.salePrice * i.quantity, 0);
   const totalCost = saleItems.reduce((sum, i) => sum + i.unitCost * i.quantity, 0);
-  const totalFees = saleItems.reduce((sum, i) => sum + i.totalFees, 0);
+  const calcFees = saleItems.reduce((sum, i) => sum + i.totalFees, 0);
+  const totalSalePrice = data.overrideSalePrice ?? calcSalePrice;
+  const totalFees = data.overrideFees ?? calcFees;
   const netRevenue = totalSalePrice - totalFees - discount;
-  const profit = saleItems.reduce((sum, i) => sum + i.profit, 0) - discount;
+  const profit = netRevenue - totalCost;
 
   const stockDecrements = data.items.map((item) =>
     prisma.product.update({
