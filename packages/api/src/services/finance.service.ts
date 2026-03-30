@@ -1,15 +1,15 @@
 import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
 import { logger } from "../lib/logger.js";
+import { getConfiguredTimezone, getStartOfDayUTC, getStartOfMonthUTC, getEndOfMonthUTC, getTodayBoundariesUTC, getTomorrowBoundariesUTC } from "../lib/timezone.js";
 import type { Prisma } from "@prisma/client";
 import crypto from "crypto";
 
-// Helper: auto-update PENDING -> OVERDUE for past due dates
 async function markOverdueEntries() {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
+  const tz = await getConfiguredTimezone();
+  const startOfDay = getStartOfDayUTC(tz);
   await prisma.financeEntry.updateMany({
-    where: { status: "PENDING", dueDate: { lt: now } },
+    where: { status: "PENDING", dueDate: { lt: startOfDay } },
     data: { status: "OVERDUE" },
   });
 }
@@ -54,9 +54,9 @@ export async function listEntries(params: {
 
 export async function getSummary() {
   await markOverdueEntries();
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  const tz = await getConfiguredTimezone();
+  const startOfMonth = getStartOfMonthUTC(tz);
+  const endOfMonth = getEndOfMonthUTC(tz);
 
   const [payable, receivable, overdue, paidThisMonth] = await Promise.all([
     prisma.financeEntry.aggregate({
@@ -89,18 +89,14 @@ export async function getSummary() {
 
 export async function getNotifications() {
   await markOverdueEntries();
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-  const tomorrowStart = new Date(todayStart);
-  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-  const tomorrowEnd = new Date(tomorrowStart);
-  tomorrowEnd.setHours(23, 59, 59);
+  const tz = await getConfiguredTimezone();
+  const today = getTodayBoundariesUTC(tz);
+  const tomorrow = getTomorrowBoundariesUTC(tz);
 
   const [overdueCount, dueToday, dueTomorrow] = await Promise.all([
     prisma.financeEntry.count({ where: { status: "OVERDUE" } }),
-    prisma.financeEntry.count({ where: { status: "PENDING", dueDate: { gte: todayStart, lte: todayEnd } } }),
-    prisma.financeEntry.count({ where: { status: "PENDING", dueDate: { gte: tomorrowStart, lte: tomorrowEnd } } }),
+    prisma.financeEntry.count({ where: { status: "PENDING", dueDate: { gte: today.start, lte: today.end } } }),
+    prisma.financeEntry.count({ where: { status: "PENDING", dueDate: { gte: tomorrow.start, lte: tomorrow.end } } }),
   ]);
 
   return { overdue: overdueCount, dueToday, dueTomorrow, total: overdueCount + dueToday };

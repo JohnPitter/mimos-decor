@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.js";
 import { logger } from "../lib/logger.js";
 import { prisma } from "../lib/prisma.js";
+import { invalidateTimezoneCache } from "../lib/timezone.js";
 
 export const appSettingsRouter = Router();
 appSettingsRouter.use(authMiddleware);
@@ -42,6 +43,7 @@ appSettingsRouter.put("/", async (req, res) => {
         ...(req.body.timezone !== undefined && { timezone: req.body.timezone }),
       },
     });
+    invalidateTimezoneCache();
     logger.info("App settings updated", "settings");
     res.json(settings);
   } catch (err) {
