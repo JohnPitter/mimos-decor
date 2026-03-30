@@ -12,7 +12,7 @@ import {
   DELIVERY_STATUS_COLORS,
 } from "@mimos/shared";
 import type { Sale, DeliveryStatus } from "@mimos/shared";
-import { Plus, Upload, ShoppingCart, Trash2, Pencil } from "lucide-react";
+import { Plus, Upload, ShoppingCart, Trash2, Pencil, Search } from "lucide-react";
 import { toast } from "sonner";
 import { ExportDropdown } from "../components/common/ExportDropdown.js";
 import { useSettingsStore } from "../stores/settings.store.js";
@@ -54,6 +54,7 @@ export default function Sales() {
   const theme = useSettingsStore((s) => s.theme);
   const appSettings = useSettingsStore((s) => s.appSettings);
   const fetchAppSettings = useSettingsStore((s) => s.fetchAppSettings);
+  const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<DeliveryStatus | null>(null);
   const [page, setPage] = useState(1);
   const [saleDialogOpen, setSaleDialogOpen] = useState(false);
@@ -66,10 +67,10 @@ export default function Sales() {
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
   const loadSales = useCallback(() => {
-    fetchSales({ status: activeTab ?? undefined, page });
-  }, [fetchSales, activeTab, page]);
+    fetchSales({ search: search || undefined, status: activeTab ?? undefined, page });
+  }, [fetchSales, search, activeTab, page]);
 
-  useEffect(() => { setPage(1); }, [activeTab]);
+  useEffect(() => { setPage(1); }, [search, activeTab]);
   useEffect(() => { loadSales(); }, [loadSales]);
   useEffect(() => { fetchAppSettings(); }, [fetchAppSettings]);
 
@@ -120,6 +121,17 @@ export default function Sales() {
             ))}
           </div>
 
+          <div className="relative flex-1 max-w-sm">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("sales.searchPlaceholder")}
+              className="w-full pl-9 pr-4 py-2.5 border border-stroke rounded-lg text-[14px] bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+            />
+          </div>
+
           <div className="flex items-center gap-2 sm:gap-3">
             <ExportDropdown
               onExcel={() => exportSalesXlsx(sales, getGatewayLabel, (s) => t(`deliveryStatus.${s}`), { primaryColor: theme.primary, title: t("reports.salesReport") })}
@@ -147,12 +159,11 @@ export default function Sales() {
               <thead>
                 <tr className="border-b border-stroke bg-page-bg">
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.shopeeUsername")}</th>
-                  <th className="text-center px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.quantity")}</th>
-                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.gateway")}</th>
+                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.date")}</th>
                   <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.salePrice")}</th>
                   <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.profit")}</th>
+                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.gateway")}</th>
                   <th className="text-center px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.status")}</th>
-                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.date")}</th>
                   <th className="px-3 py-3 w-12"></th>
                 </tr>
               </thead>
@@ -160,14 +171,14 @@ export default function Sales() {
                 {loading ? (
                   Array.from({ length: 8 }).map((_, i) => (
                     <tr key={i} className="border-b border-stroke/50">
-                      {Array.from({ length: 8 }).map((_, j) => (
+                      {Array.from({ length: 7 }).map((_, j) => (
                         <td key={j} className="px-4 py-3"><div className="h-4 bg-page-bg rounded animate-pulse" /></td>
                       ))}
                     </tr>
                   ))
                 ) : sales.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-16">
+                    <td colSpan={7} className="text-center py-16">
                       <ShoppingCart size={48} className="mx-auto text-text-muted/40 mb-3" />
                       <p className="text-text-muted text-[14px]">{t("common.noResults")}</p>
                     </td>
@@ -186,11 +197,8 @@ export default function Sales() {
                         </p>
                         {sale.customerName && <p className="text-[11px] text-text-muted">{sale.customerName}</p>}
                       </td>
-                      <td className="text-center px-3 py-3 text-[13px] font-semibold text-text-dark">
-                        {sale.items.reduce((sum, i) => sum + i.quantity, 0)}
-                      </td>
-                      <td className="px-3 py-3">
-                        <span className="text-[12px] font-semibold text-text-secondary">{getGatewayLabel(sale.gateway)}</span>
+                      <td className="text-right px-3 py-3 text-[12px] text-text-muted">
+                        {new Date(sale.saleDate ?? sale.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                       </td>
                       <td className="text-right px-3 py-3 text-[13px] font-semibold text-text-dark">
                         {formatBRL(sale.salePrice)}
@@ -200,13 +208,13 @@ export default function Sales() {
                           {formatBRL(sale.profit)}
                         </span>
                       </td>
+                      <td className="px-3 py-3">
+                        <span className="text-[12px] font-semibold text-text-secondary">{getGatewayLabel(sale.gateway)}</span>
+                      </td>
                       <td className="text-center px-3 py-3">
                         <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadgeClass(sale.deliveryStatus)}`}>
                           {t(`deliveryStatus.${sale.deliveryStatus}`)}
                         </span>
-                      </td>
-                      <td className="text-right px-3 py-3 text-[12px] text-text-muted">
-                        {new Date(sale.saleDate ?? sale.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex gap-1 justify-end">

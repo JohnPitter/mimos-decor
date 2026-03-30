@@ -54,6 +54,7 @@ function mapSaleItems(sale: { items: { product: { name: string } | null; product
 }
 
 export async function listSales(params: {
+  search?: string;
   status?: DeliveryStatus;
   gateway?: string;
   startDate?: string;
@@ -61,8 +62,14 @@ export async function listSales(params: {
   page?: number;
   limit?: number;
 }) {
-  const { status, gateway, startDate, endDate, page = 1, limit = 50 } = params;
+  const { search, status, gateway, startDate, endDate, page = 1, limit = 50 } = params;
   const where: Prisma.SaleWhereInput = {};
+  if (search) {
+    where.OR = [
+      { shopeeUsername: { contains: search, mode: "insensitive" } },
+      { customerName: { contains: search, mode: "insensitive" } },
+    ];
+  }
   if (status) where.deliveryStatus = status;
   if (gateway) where.gateway = gateway;
   if (startDate || endDate) {

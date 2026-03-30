@@ -24,6 +24,7 @@ interface SaleState {
   total: number;
   loading: boolean;
   fetchSales: (params?: {
+    search?: string;
     status?: DeliveryStatus;
     gateway?: GatewayId;
     startDate?: string;
@@ -51,6 +52,7 @@ export const useSaleStore = create<SaleState>((set) => ({
     set({ loading: true });
     try {
       const qs = new URLSearchParams();
+      if (params?.search) qs.set("search", params.search);
       if (params?.status) qs.set("status", params.status);
       if (params?.gateway) qs.set("gateway", params.gateway);
       if (params?.startDate) qs.set("startDate", params.startDate);
