@@ -159,12 +159,12 @@ export default function Sales() {
               <thead>
                 <tr className="border-b border-stroke bg-page-bg">
                   <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.shopeeUsername")}</th>
-                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.date")}</th>
-                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.salePrice")}</th>
-                  <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.profit")}</th>
-                  <th className="text-left px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.gateway")}</th>
-                  <th className="text-center px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.status")}</th>
-                  <th className="px-3 py-3 w-12"></th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.date")}</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.salePrice")}</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.profit")}</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.gateway")}</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.status")}</th>
+                  <th className="px-4 py-3 w-12"></th>
                 </tr>
               </thead>
               <tbody>
@@ -192,31 +192,31 @@ export default function Sales() {
                       style={{ animationDelay: `${index * 30}ms` }}
                     >
                       <td className="px-4 py-3">
-                        <p className="text-[14px] font-semibold text-text-dark">
+                        <p className="text-[13px] font-semibold text-text-dark">
                           {sale.shopeeUsername ?? "—"}
                         </p>
                         {sale.customerName && <p className="text-[11px] text-text-muted">{sale.customerName}</p>}
                       </td>
-                      <td className="text-right px-3 py-3 text-[12px] text-text-muted">
+                      <td className="px-4 py-3 text-[13px] text-text-dark">
                         {new Date(sale.saleDate ?? sale.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                       </td>
-                      <td className="text-right px-3 py-3 text-[13px] font-semibold text-text-dark">
+                      <td className="px-4 py-3 text-[13px] font-semibold text-text-dark">
                         {formatBRL(sale.salePrice)}
                       </td>
-                      <td className="text-right px-3 py-3">
+                      <td className="px-4 py-3">
                         <span className={`text-[13px] font-bold ${sale.profit >= 0 ? "text-green-600" : "text-red-500"}`}>
                           {formatBRL(sale.profit)}
                         </span>
                       </td>
-                      <td className="px-3 py-3">
-                        <span className="text-[12px] font-semibold text-text-secondary">{getGatewayLabel(sale.gateway)}</span>
+                      <td className="px-4 py-3">
+                        <span className="text-[13px] font-medium text-text-secondary">{getGatewayLabel(sale.gateway)}</span>
                       </td>
-                      <td className="text-center px-3 py-3">
+                      <td className="px-4 py-3">
                         <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadgeClass(sale.deliveryStatus)}`}>
                           {t(`deliveryStatus.${sale.deliveryStatus}`)}
                         </span>
                       </td>
-                      <td className="px-3 py-3">
+                      <td className="px-4 py-3">
                         <div className="flex gap-1 justify-end">
                           {appSettings.allowSaleEditing && (
                             <button
