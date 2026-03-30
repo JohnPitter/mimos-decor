@@ -289,6 +289,8 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               <div className="space-y-2">
                 {items.map((item, index) => {
                   const pricing = itemPricing[index];
+                  const selectedProduct = productMap.get(item.productId);
+                  const maxQty = selectedProduct?.quantity ?? 999;
                   return (
                     <div
                       key={item.key}
@@ -308,9 +310,10 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
                           <input
                             type="number"
                             min={1}
+                            max={maxQty}
                             value={item.quantity}
-                            onChange={(e) => updateItem(item.key, { quantity: Math.max(1, Number(e.target.value)) })}
-                            className="w-full px-2 sm:px-2.5 py-2 border border-stroke rounded-lg text-[13px] text-center bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                            onChange={(e) => updateItem(item.key, { quantity: Math.max(1, Math.min(maxQty, Number(e.target.value))) })}
+                            className={`w-full px-2 sm:px-2.5 py-2 border rounded-lg text-[13px] text-center bg-card-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all ${item.quantity > maxQty ? "border-red-400" : "border-stroke"}`}
                             placeholder="Qtd"
                           />
                         </div>
