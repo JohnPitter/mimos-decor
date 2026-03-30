@@ -205,10 +205,12 @@ export default function Dashboard() {
                       : "bg-white border-red-100"
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                    product.quantity === 0 ? "bg-red-200" : "bg-yellow-100"
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 overflow-hidden border ${
+                    product.quantity === 0 ? "border-red-300 bg-red-100" : "border-yellow-200 bg-yellow-50"
                   }`}>
-                    {product.quantity === 0 ? (
+                    {product.imageUrl ? (
+                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                    ) : product.quantity === 0 ? (
                       <AlertTriangle size={16} className="text-red-600" />
                     ) : (
                       <Package size={16} className="text-yellow-600" />

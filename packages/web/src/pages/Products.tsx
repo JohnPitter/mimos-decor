@@ -78,12 +78,16 @@ export default function Products() {
     if (editProduct) {
       await updateProduct(editProduct.id, data);
       setEditProduct(null);
-      loadProducts();
       return;
     }
     const created = await createProduct(data);
-    loadProducts();
     return created;
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    setEditProduct(null);
+    loadProducts();
   };
 
   const handleDeleteConfirm = async () => {
@@ -282,7 +286,7 @@ export default function Products() {
         )}
       </div>
 
-      <ProductFormDialog open={dialogOpen} product={editProduct} onClose={() => { setDialogOpen(false); setEditProduct(null); }} onSubmit={handleSubmit} />
+      <ProductFormDialog open={dialogOpen} product={editProduct} onClose={handleDialogClose} onSubmit={handleSubmit} />
       <ConfirmDialog
         open={!!deleteId}
         title={t("nav.deleteConfirmTitle")}

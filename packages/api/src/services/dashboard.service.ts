@@ -33,7 +33,9 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       }
     : {};
 
-  const [todaySales, monthSales, salesByGateway, salesByDay, topProducts, lowStockProducts, productStock] = await Promise.all([
+  const DELIVERED_ONLY = { deliveryStatus: "DELIVERED" as const };
+
+  const [todaySales, monthSales, deliveredProfit, salesByGateway, salesByDay, topProducts, lowStockProducts, productStock] = await Promise.all([
     prisma.sale.aggregate({
       where: { saleDate: { gte: startOfDay }, ...NOT_CANCELLED },
       _count: true,
@@ -43,6 +45,10 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
       where: { saleDate: { gte: startOfMonth }, ...NOT_CANCELLED, ...dateFilter },
       _count: true,
       _sum: { salePrice: true, profit: true, netRevenue: true },
+    }),
+    prisma.sale.aggregate({
+      where: { saleDate: { gte: startOfMonth }, ...DELIVERED_ONLY, ...dateFilter },
+      _sum: { profit: true },
     }),
     prisma.sale.groupBy({
       by: ["gateway"],
@@ -81,7 +87,7 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
     ` as Promise<{ productId: string; count: number; revenue: number }[]>,
     prisma.product.findMany({
       where: { quantity: { lte: 5 } },
-      select: { id: true, name: true, quantity: true, supplier: true },
+      select: { id: true, name: true, quantity: true, supplier: true, imageUrl: true },
       orderBy: { quantity: "asc" },
       take: 10,
     }),
@@ -102,7 +108,7 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
     totalSalesToday: todaySales._count,
     totalSalesMonth: monthSales._count,
     revenueMonth: monthSales._sum.salePrice ?? 0,
-    profitMonth: monthSales._sum.profit ?? 0,
+    profitMonth: deliveredProfit._sum.profit ?? 0,
     averageTicket: monthSales._count > 0 ? (monthSales._sum.salePrice ?? 0) / monthSales._count : 0,
     salesByGateway: salesByGateway.map((g) => ({
       gateway: g.gateway,

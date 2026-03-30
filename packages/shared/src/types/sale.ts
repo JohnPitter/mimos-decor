@@ -103,6 +103,7 @@ export interface LowStockProduct {
   name: string;
   quantity: number;
   supplier: string | null;
+  imageUrl: string | null;
 }
 
 export interface ProductStockItem {

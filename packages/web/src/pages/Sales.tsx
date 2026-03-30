@@ -146,7 +146,7 @@ export default function Sales() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-stroke bg-page-bg">
-                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.product")}</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.shopeeUsername")}</th>
                   <th className="text-center px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.quantity")}</th>
                   <th className="text-left px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.gateway")}</th>
                   <th className="text-right px-3 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("sales.salePrice")}</th>
@@ -182,9 +182,7 @@ export default function Sales() {
                     >
                       <td className="px-4 py-3">
                         <p className="text-[14px] font-semibold text-text-dark">
-                          {sale.items.length > 0
-                            ? sale.items[0].productName + (sale.items.length > 1 ? ` +${sale.items.length - 1}` : "")
-                            : "—"}
+                          {sale.shopeeUsername ?? "—"}
                         </p>
                         {sale.customerName && <p className="text-[11px] text-text-muted">{sale.customerName}</p>}
                       </td>
