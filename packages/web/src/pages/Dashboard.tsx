@@ -12,6 +12,7 @@ import {
   DollarSign,
   TrendingUp,
   Receipt,
+  Wallet,
   AlertTriangle,
   Package,
   ChevronDown,
@@ -61,6 +62,7 @@ export default function Dashboard() {
     { key: "totalSalesToday" as const, label: t("dashboard.salesToday"), icon: ShoppingCart, format: (v: number) => String(v) },
     { key: "totalSalesMonth" as const, label: t("dashboard.salesMonth"), icon: ShoppingCart, format: (v: number) => String(v) },
     { key: "revenueMonth" as const, label: t("dashboard.revenueMonth"), icon: DollarSign, format: formatBRL },
+    { key: "netRevenueMonth" as const, label: t("dashboard.netRevenueMonth"), icon: Wallet, format: formatBRL },
     { key: "profitMonth" as const, label: t("dashboard.profitMonth"), icon: TrendingUp, format: formatBRL },
     { key: "averageTicket" as const, label: t("dashboard.averageTicket"), icon: Receipt, format: formatBRL },
   ];
@@ -158,7 +160,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {STAT_CARDS.map((card, index) => (
             <div
               key={card.key}

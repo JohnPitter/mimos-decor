@@ -141,6 +141,7 @@ export const en = {
     salesToday: "Sales Today",
     salesMonth: "Sales This Month",
     revenueMonth: "Monthly Revenue",
+    netRevenueMonth: "Net Revenue Month",
     profitMonth: "Monthly Profit",
     averageTicket: "Avg. Ticket",
     salesByDay: "Sales by Day",

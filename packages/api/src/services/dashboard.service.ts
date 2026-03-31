@@ -93,6 +93,7 @@ export async function getDashboardData(params: { startDate?: string; endDate?: s
     totalSalesToday: todaySales._count,
     totalSalesMonth: monthSales._count,
     revenueMonth: monthSales._sum.salePrice ?? 0,
+    netRevenueMonth: monthSales._sum.netRevenue ?? 0,
     profitMonth: deliveredProfit._sum.profit ?? 0,
     averageTicket: monthSales._count > 0 ? (monthSales._sum.salePrice ?? 0) / monthSales._count : 0,
     salesByGateway: salesByGateway.map((g) => ({

@@ -116,6 +116,7 @@ export interface SaleDashboard {
   totalSalesToday: number;
   totalSalesMonth: number;
   revenueMonth: number;
+  netRevenueMonth: number;
   profitMonth: number;
   averageTicket: number;
   salesByGateway: { gateway: GatewayId; count: number; revenue: number }[];

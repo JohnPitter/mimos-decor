@@ -141,6 +141,7 @@ export const ptBR = {
     salesToday: "Vendas Hoje",
     salesMonth: "Vendas no Mês",
     revenueMonth: "Faturamento Mês",
+    netRevenueMonth: "Receita Líquida Mês",
     profitMonth: "Lucro Mês",
     averageTicket: "Ticket Médio",
     salesByDay: "Vendas por Dia",
