@@ -79,9 +79,18 @@ export async function listSales(params: {
     where.saleDate = {};
     if (startDate) where.saleDate.gte = new Date(startDate);
     if (endDate) where.saleDate.lte = new Date(endDate);
-  } else {
+  } else if (!status) {
     const tz = await getConfiguredTimezone();
-    where.saleDate = { gte: getStartOfMonthUTC(tz), lte: getEndOfMonthUTC(tz) };
+    const monthRange = { saleDate: { gte: getStartOfMonthUTC(tz), lte: getEndOfMonthUTC(tz) } };
+    const alwaysVisible: DeliveryStatus[] = ["PREPARING", "IN_TRANSIT"];
+    const statusFilter = where.deliveryStatus;
+    delete where.deliveryStatus;
+    where.AND = [
+      { OR: [
+        { ...monthRange, ...(statusFilter ? { deliveryStatus: statusFilter } : {}) },
+        { deliveryStatus: { in: alwaysVisible } },
+      ] },
+    ];
   }
 
   const [sales, total] = await Promise.all([
