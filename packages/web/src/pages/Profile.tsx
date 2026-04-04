@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { User, Mail, Shield, Calendar, Lock, Save, Check, AlertCircle } from "lucide-react";
+import { User, AtSign, Mail, Shield, Calendar, Lock, Save, Check, AlertCircle } from "lucide-react";
 import { Header } from "../components/layout/Header.js";
 import { useAuthStore } from "../stores/auth.store.js";
 import { api } from "../lib/api.js";
@@ -11,6 +11,7 @@ export default function Profile() {
   const { user, checkAuth } = useAuthStore();
 
   const [name, setName] = useState(user?.name ?? "");
+  const [username, setUsername] = useState(user?.username ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -35,6 +36,7 @@ export default function Profile() {
     try {
       const body: Record<string, string> = {};
       if (name !== user?.name) body.name = name;
+      if (username !== user?.username) body.username = username;
       if (email !== user?.email) body.email = email;
       if (newPassword) {
         body.currentPassword = currentPassword;
@@ -74,7 +76,8 @@ export default function Profile() {
             </div>
             <div>
               <h2 className="text-[20px] font-bold text-text-dark">{user.name}</h2>
-              <p className="text-[13px] text-text-muted">{user.email}</p>
+              <p className="text-[13px] text-text-muted">@{user.username}</p>
+              <p className="text-[12px] text-text-muted">{user.email}</p>
               <div className="flex items-center gap-2 mt-1">
                 <Shield size={12} className="text-primary" />
                 <span className="text-[12px] font-semibold text-primary">{user.isAdmin ? t("roles.ADMIN") : user.role?.name ?? t("users.noRole")}</span>
@@ -121,6 +124,22 @@ export default function Profile() {
                   className="w-full pl-10 pr-4 py-2.5 border border-stroke rounded-lg text-[14px] text-text-dark bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                 />
               </div>
+            </div>
+            <div>
+              <label className="block text-[12px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">
+                {t("profile.username")}
+              </label>
+              <div className="relative">
+                <AtSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""))}
+                  placeholder={t("profile.usernamePlaceholder")}
+                  className="w-full pl-10 pr-4 py-2.5 border border-stroke rounded-lg text-[14px] text-text-dark bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                />
+              </div>
+              <p className="text-[11px] text-text-muted mt-1">{t("profile.usernameHint")}</p>
             </div>
             <div>
               <label className="block text-[12px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">

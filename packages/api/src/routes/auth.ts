@@ -77,7 +77,7 @@ authRouter.get("/me", authMiddleware, async (req, res) => {
 authRouter.put("/profile", authMiddleware, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const { name, email, currentPassword, newPassword, themeColors } = req.body;
+    const { name, username, email, currentPassword, newPassword, themeColors } = req.body;
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
@@ -105,8 +105,26 @@ authRouter.put("/profile", authMiddleware, async (req, res) => {
       }
     }
 
+    if (username && username !== user.username) {
+      const trimmed = username.trim().toLowerCase();
+      if (trimmed.length < 3) {
+        res.status(400).json({ error: "Username deve ter pelo menos 3 caracteres" });
+        return;
+      }
+      if (!/^[a-z0-9._-]+$/.test(trimmed)) {
+        res.status(400).json({ error: "Username pode conter apenas letras minúsculas, números, pontos, hífens e underscores" });
+        return;
+      }
+      const exists = await prisma.user.findUnique({ where: { username: trimmed } });
+      if (exists) {
+        res.status(400).json({ error: "Username já está em uso" });
+        return;
+      }
+    }
+
     const updateData: Record<string, unknown> = {};
     if (name) updateData.name = name;
+    if (username) updateData.username = username.trim().toLowerCase();
     if (email) updateData.email = email;
     if (newPassword) updateData.password = await bcrypt.hash(newPassword, 10);
     if (themeColors !== undefined) updateData.themeColors = themeColors;

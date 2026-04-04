@@ -51,6 +51,7 @@ export interface UpdateUserInput {
 
 export interface UpdateProfileInput {
   name?: string;
+  username?: string;
   email?: string;
   currentPassword?: string;
   newPassword?: string;
