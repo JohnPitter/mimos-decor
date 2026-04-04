@@ -261,6 +261,24 @@ model Supply {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  purchases SupplyPurchase[]
+
   @@index([name])
   @@map("supplies")
+}
+
+model SupplyPurchase {
+  id        String   @id @default(cuid())
+  supplyId  String   @map("supply_id")
+  quantity  Int
+  totalCost Float    @map("total_cost")
+  supplier  String?
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  supply Supply @relation(fields: [supplyId], references: [id], onDelete: Cascade)
+
+  @@index([supplyId])
+  @@index([createdAt])
+  @@map("supply_purchases")
 }

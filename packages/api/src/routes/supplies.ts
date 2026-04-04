@@ -32,6 +32,22 @@ supplyRouter.post("/", async (req, res) => {
   }
 });
 
+supplyRouter.post("/:id/purchase", async (req, res) => {
+  try {
+    const purchase = await supplyService.registerPurchase(
+      { supplyId: req.params.id, ...req.body },
+      req.user!.id,
+    );
+    res.status(201).json(purchase);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg === "SUPPLY_NOT_FOUND") { res.status(404).json({ error: "Insumo não encontrado" }); return; }
+    if (msg === "CATEGORY_NOT_FOUND") { res.status(500).json({ error: "Categoria financeira não encontrada" }); return; }
+    logger.error("Register purchase error", "supply", { error: msg });
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
 supplyRouter.put("/:id", async (req, res) => {
   try {
     const supply = await supplyService.updateSupply(req.params.id, req.body);

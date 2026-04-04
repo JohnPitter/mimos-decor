@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { api } from "../lib/api.js";
-import type { Supply } from "@mimos/shared";
+import type { Supply, CreateSupplyPurchaseInput } from "@mimos/shared";
 
 interface SupplyState {
   supplies: Supply[];
@@ -10,6 +10,7 @@ interface SupplyState {
   createSupply: (data: Record<string, unknown>) => Promise<void>;
   updateSupply: (id: string, data: Record<string, unknown>) => Promise<void>;
   deleteSupply: (id: string) => Promise<void>;
+  registerPurchase: (supplyId: string, data: CreateSupplyPurchaseInput) => Promise<void>;
 }
 
 export const useSupplyStore = create<SupplyState>((set) => ({
@@ -37,5 +38,8 @@ export const useSupplyStore = create<SupplyState>((set) => ({
   },
   deleteSupply: async (id) => {
     await api.delete(`/supplies/${id}`);
+  },
+  registerPurchase: async (supplyId, data) => {
+    await api.post(`/supplies/${supplyId}/purchase`, data);
   },
 }));

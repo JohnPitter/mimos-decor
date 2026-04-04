@@ -30,3 +30,21 @@ export interface UpdateSupplyInput {
   supplier?: string;
   minStock?: number;
 }
+
+export interface SupplyPurchase {
+  id: string;
+  supplyId: string;
+  quantity: number;
+  totalCost: number;
+  supplier: string | null;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface CreateSupplyPurchaseInput {
+  quantity: number;
+  totalCost: number;
+  supplier?: string;
+  note?: string;
+  dueDate: string;
+}

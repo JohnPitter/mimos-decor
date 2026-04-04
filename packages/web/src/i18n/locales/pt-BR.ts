@@ -408,6 +408,13 @@ export const ptBR = {
     deleteConfirm: "Tem certeza que deseja excluir este insumo?",
     deleteSuccess: "Insumo excluído com sucesso",
     deleteError: "Erro ao excluir insumo",
+    registerPurchase: "Registrar Compra",
+    purchaseQuantity: "Quantidade",
+    purchaseTotalCost: "Custo Total",
+    purchaseDueDate: "Vencimento",
+    purchaseNote: "Observação",
+    purchaseSuccess: "Compra registrada com sucesso",
+    purchaseError: "Erro ao registrar compra",
   },
   admin: {
     title: "Administração",

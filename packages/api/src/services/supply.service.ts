@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { createAuditLog } from "../middleware/audit.js";
 import { logger } from "../lib/logger.js";
 import type { Prisma } from "@prisma/client";
 
@@ -67,4 +68,63 @@ export async function deleteSupply(id: string) {
   await prisma.supply.delete({ where: { id } });
   logger.info(`Supply deleted: ${old.name}`, "supply");
   return old;
+}
+
+export async function registerPurchase(data: {
+  supplyId: string;
+  quantity: number;
+  totalCost: number;
+  supplier?: string;
+  note?: string;
+  dueDate: string;
+}, userId: string) {
+  const result = await prisma.$transaction(async (tx) => {
+    const supply = await tx.supply.findUnique({ where: { id: data.supplyId } });
+    if (!supply) throw new Error("SUPPLY_NOT_FOUND");
+
+    const category = await tx.financeCategory.findFirst({
+      where: { name: "Fornecedores", type: "PAYABLE" },
+    });
+    if (!category) throw new Error("CATEGORY_NOT_FOUND");
+
+    const purchase = await tx.supplyPurchase.create({
+      data: {
+        supplyId: data.supplyId,
+        quantity: data.quantity,
+        totalCost: data.totalCost,
+        supplier: data.supplier ?? supply.supplier ?? null,
+        note: data.note ?? null,
+      },
+    });
+
+    await tx.supply.update({
+      where: { id: data.supplyId },
+      data: { quantity: { increment: data.quantity } },
+    });
+
+    const financeEntry = await tx.financeEntry.create({
+      data: {
+        type: "PAYABLE",
+        title: `Compra: ${supply.name}`,
+        description: data.note ?? null,
+        amount: data.totalCost,
+        categoryId: category.id,
+        dueDate: new Date(data.dueDate),
+        createdById: userId,
+      },
+    });
+
+    return { purchase, financeEntry, supplyName: supply.name };
+  });
+
+  await createAuditLog({
+    userId,
+    action: "CREATE",
+    entity: "FINANCE_ENTRY",
+    entityId: result.financeEntry.id,
+    newData: result.financeEntry as unknown as Record<string, unknown>,
+  });
+
+  logger.info(`Supply purchase registered: ${result.supplyName} x${data.quantity}`, "supply");
+  return result.purchase;
 }

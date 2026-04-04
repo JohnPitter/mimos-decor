@@ -6,7 +6,7 @@ import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
 import { useSupplyStore } from "../stores/supply.store.js";
 import { formatBRL } from "@mimos/shared";
 import type { Supply } from "@mimos/shared";
-import { Plus, Search, Pencil, Trash2, X, PackageOpen, AlertTriangle } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, X, PackageOpen, AlertTriangle, ShoppingCart } from "lucide-react";
 import { MaskedInput } from "../components/common/MaskedInput.js";
 
 const UNITS = ["un", "kg", "g", "L", "mL", "m", "cm", "pct", "cx", "rolo"];
@@ -150,14 +150,123 @@ function SupplyFormDialog({ open, supply, onClose, onSubmit }: {
   );
 }
 
+function PurchaseFormDialog({ open, supply, onClose, onSubmit }: {
+  open: boolean;
+  supply: Supply | null;
+  onClose: () => void;
+  onSubmit: (data: { quantity: number; totalCost: number; supplier?: string; note?: string; dueDate: string }) => Promise<void>;
+}) {
+  const { t } = useTranslation();
+  const [quantity, setQuantity] = useState("");
+  const [totalCost, setTotalCost] = useState("");
+  const [supplier, setSupplier] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (open && supply) {
+      setQuantity("");
+      setTotalCost("");
+      setSupplier(supply.supplier ?? "");
+      setDueDate(new Date().toISOString().slice(0, 10));
+      setNote("");
+    }
+  }, [open, supply]);
+
+  if (!open || !supply) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await onSubmit({
+        quantity: Number(quantity),
+        totalCost: Number(totalCost),
+        supplier: supplier || undefined,
+        note: note || undefined,
+        dueDate,
+      });
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="bg-card-bg rounded-2xl border border-stroke shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-scale-in mx-4 sm:mx-auto">
+        <div className="flex items-center justify-between p-6 border-b border-stroke">
+          <div>
+            <h2 className="text-[18px] font-bold text-text-dark">{t("supplies.registerPurchase")}</h2>
+            <p className="text-[13px] text-text-muted mt-0.5">{supply.name}</p>
+          </div>
+          <button onClick={onClose} className="text-text-muted hover:text-text-dark transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+                {t("supplies.purchaseQuantity")} <span className="text-red-400">*</span>
+              </label>
+              <MaskedInput mask="integer" value={quantity} onChange={setQuantity} required
+                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" />
+            </div>
+            <div>
+              <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+                {t("supplies.purchaseTotalCost")} <span className="text-red-400">*</span>
+              </label>
+              <MaskedInput mask="currency" value={totalCost} onChange={setTotalCost} required
+                className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+              {t("supplies.supplier")}
+            </label>
+            <input type="text" value={supplier} onChange={(e) => setSupplier(e.target.value)}
+              className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" />
+          </div>
+          <div>
+            <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+              {t("supplies.purchaseDueDate")} <span className="text-red-400">*</span>
+            </label>
+            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required
+              className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" />
+          </div>
+          <div>
+            <label className="block text-[12px] font-semibold text-text-secondary mb-1 uppercase tracking-wider">
+              {t("supplies.purchaseNote")}
+            </label>
+            <input type="text" value={note} onChange={(e) => setNote(e.target.value)}
+              className="w-full px-3 py-2.5 border border-stroke rounded-lg text-[14px] bg-page-bg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 border border-stroke rounded-lg text-[14px] font-medium text-text-secondary hover:bg-page-bg transition-colors">
+              {t("common.cancel")}
+            </button>
+            <button type="submit" disabled={submitting} className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-[14px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60">
+              {submitting ? t("common.loading") : t("supplies.registerPurchase")}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Supplies() {
   const { t } = useTranslation();
-  const { supplies, total, loading, fetchSupplies, createSupply, updateSupply, deleteSupply } = useSupplyStore();
+  const { supplies, total, loading, fetchSupplies, createSupply, updateSupply, deleteSupply, registerPurchase } = useSupplyStore();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editSupply, setEditSupply] = useState<Supply | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [purchaseSupply, setPurchaseSupply] = useState<Supply | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
@@ -188,6 +297,17 @@ export default function Supplies() {
       toast.error(err instanceof Error ? err.message : t("supplies.deleteError"));
     } finally {
       setDeleteId(null);
+    }
+  };
+
+  const handlePurchase = async (data: { quantity: number; totalCost: number; supplier?: string; note?: string; dueDate: string }) => {
+    if (!purchaseSupply) return;
+    try {
+      await registerPurchase(purchaseSupply.id, data);
+      toast.success(t("supplies.purchaseSuccess"));
+      loadSupplies();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("supplies.purchaseError"));
     }
   };
 
@@ -284,6 +404,9 @@ export default function Supplies() {
                       <td className="text-center px-3 py-3 text-[13px] text-text-muted">{supply.minStock}</td>
                       <td className="px-3 py-3">
                         <div className="flex gap-1 justify-end">
+                          <button onClick={() => setPurchaseSupply(supply)} className="p-1.5 rounded-lg text-text-muted hover:text-emerald-600 hover:bg-emerald-50 transition-all" title={t("supplies.registerPurchase")}>
+                            <ShoppingCart size={15} />
+                          </button>
                           <button onClick={() => { setEditSupply(supply); setDialogOpen(true); }} className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-rosa-light transition-all">
                             <Pencil size={15} />
                           </button>
@@ -314,6 +437,7 @@ export default function Supplies() {
       </div>
 
       <SupplyFormDialog open={dialogOpen} supply={editSupply} onClose={() => { setDialogOpen(false); setEditSupply(null); }} onSubmit={handleSubmit} />
+      <PurchaseFormDialog open={!!purchaseSupply} supply={purchaseSupply} onClose={() => setPurchaseSupply(null)} onSubmit={handlePurchase} />
       <ConfirmDialog
         open={!!deleteId}
         title={t("nav.deleteConfirmTitle")}

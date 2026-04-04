@@ -408,6 +408,13 @@ export const en = {
     deleteConfirm: "Are you sure you want to delete this supply?",
     deleteSuccess: "Supply deleted successfully",
     deleteError: "Error deleting supply",
+    registerPurchase: "Register Purchase",
+    purchaseQuantity: "Quantity",
+    purchaseTotalCost: "Total Cost",
+    purchaseDueDate: "Due Date",
+    purchaseNote: "Note",
+    purchaseSuccess: "Purchase registered successfully",
+    purchaseError: "Error registering purchase",
   },
   admin: {
     title: "Administration",
