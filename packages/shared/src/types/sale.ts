@@ -20,12 +20,12 @@ export const DELIVERY_STATUS_LABELS: Record<DeliveryStatus, string> = {
 };
 
 export const DELIVERY_STATUS_COLORS: Record<DeliveryStatus, string> = {
-  PENDING: "yellow",
-  PREPARING: "blue",
-  IN_TRANSIT: "indigo",
-  DELIVERED: "green",
-  RETURNED: "orange",
-  CANCELLED: "red",
+  PENDING: "amber",
+  PREPARING: "sky",
+  IN_TRANSIT: "violet",
+  DELIVERED: "emerald",
+  RETURNED: "rose",
+  CANCELLED: "slate",
 };
 
 export interface SaleItem {

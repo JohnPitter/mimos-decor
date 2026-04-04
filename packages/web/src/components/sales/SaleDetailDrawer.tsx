@@ -22,23 +22,21 @@ interface Props {
 }
 
 const STATUS_COLOR_MAP: Record<string, string> = {
-  yellow: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  blue: "bg-blue-100 text-blue-800 border-blue-200",
-  indigo: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  purple: "bg-purple-100 text-purple-800 border-purple-200",
-  green: "bg-green-100 text-green-800 border-green-200",
-  orange: "bg-orange-100 text-orange-800 border-orange-200",
-  red: "bg-red-100 text-red-800 border-red-200",
+  amber: "bg-amber-100 text-amber-800 border-amber-300",
+  sky: "bg-sky-100 text-sky-800 border-sky-300",
+  violet: "bg-violet-100 text-violet-800 border-violet-300",
+  emerald: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  rose: "bg-rose-100 text-rose-800 border-rose-300",
+  slate: "bg-slate-200 text-slate-700 border-slate-300",
 };
 
 const TIMELINE_DOT_MAP: Record<string, string> = {
-  yellow: "bg-yellow-400",
-  blue: "bg-blue-400",
-  indigo: "bg-indigo-400",
-  purple: "bg-purple-400",
-  green: "bg-green-400",
-  orange: "bg-orange-400",
-  red: "bg-red-400",
+  amber: "bg-amber-400",
+  sky: "bg-sky-400",
+  violet: "bg-violet-400",
+  emerald: "bg-emerald-400",
+  rose: "bg-rose-400",
+  slate: "bg-slate-400",
 };
 
 const ALL_STATUSES = DELIVERY_STATUSES;
