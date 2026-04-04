@@ -3,6 +3,8 @@ import multer from "multer";
 import { authMiddleware } from "../middleware/auth.js";
 import { logger } from "../lib/logger.js";
 import { prisma } from "../lib/prisma.js";
+import { DELIVERY_STATUSES } from "@mimos/shared";
+import type { DeliveryStatus } from "@mimos/shared";
 import * as saleService from "../services/sale.service.js";
 
 export const saleRouter = Router();
@@ -11,10 +13,13 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 
 saleRouter.get("/", async (req, res) => {
   try {
-    const { search, status, gateway, startDate, endDate, page, limit } = req.query;
+    const { search, status, excludeStatus, gateway, startDate, endDate, page, limit } = req.query;
+    const toDeliveryStatus = (v: unknown): DeliveryStatus | undefined =>
+      DELIVERY_STATUSES.includes(v as DeliveryStatus) ? (v as DeliveryStatus) : undefined;
     const result = await saleService.listSales({
       search: search as string,
-      status: status as any,
+      status: toDeliveryStatus(status),
+      excludeStatus: toDeliveryStatus(excludeStatus),
       gateway: gateway as string,
       startDate: startDate as string,
       endDate: endDate as string,

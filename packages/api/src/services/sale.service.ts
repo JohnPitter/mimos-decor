@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
 import { logger } from "../lib/logger.js";
+import { getConfiguredTimezone, getStartOfMonthUTC, getEndOfMonthUTC } from "../lib/timezone.js";
 import { MARKETPLACES, buildMarketplace, calcProductCost, calcIdealPrice } from "@mimos/shared";
 import type { Marketplace, CommissionTier, PixTier } from "@mimos/shared";
 import type { Prisma, DeliveryStatus } from "@prisma/client";
@@ -56,13 +57,14 @@ function mapSaleItems(sale: { items: { product: { name: string } | null; product
 export async function listSales(params: {
   search?: string;
   status?: DeliveryStatus;
+  excludeStatus?: DeliveryStatus;
   gateway?: string;
   startDate?: string;
   endDate?: string;
   page?: number;
   limit?: number;
 }) {
-  const { search, status, gateway, startDate, endDate, page = 1, limit = 50 } = params;
+  const { search, status, excludeStatus, gateway, startDate, endDate, page = 1, limit = 50 } = params;
   const where: Prisma.SaleWhereInput = {};
   if (search) {
     where.OR = [
@@ -71,11 +73,15 @@ export async function listSales(params: {
     ];
   }
   if (status) where.deliveryStatus = status;
+  else if (excludeStatus) where.deliveryStatus = { not: excludeStatus };
   if (gateway) where.gateway = gateway;
   if (startDate || endDate) {
     where.saleDate = {};
     if (startDate) where.saleDate.gte = new Date(startDate);
     if (endDate) where.saleDate.lte = new Date(endDate);
+  } else {
+    const tz = await getConfiguredTimezone();
+    where.saleDate = { gte: getStartOfMonthUTC(tz), lte: getEndOfMonthUTC(tz) };
   }
 
   const [sales, total] = await Promise.all([

@@ -20,13 +20,12 @@ import { exportSalesXlsx } from "../lib/export-xlsx.js";
 import { exportSalesPdf } from "../lib/export-pdf.js";
 
 const STATUS_BADGE_MAP: Record<string, string> = {
-  yellow: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  blue: "bg-blue-100 text-blue-800 border-blue-200",
-  indigo: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  purple: "bg-purple-100 text-purple-800 border-purple-200",
-  green: "bg-green-100 text-green-800 border-green-200",
-  orange: "bg-orange-100 text-orange-800 border-orange-200",
-  red: "bg-red-100 text-red-800 border-red-200",
+  amber: "bg-amber-100 text-amber-800 border-amber-300",
+  sky: "bg-sky-100 text-sky-800 border-sky-300",
+  violet: "bg-violet-100 text-violet-800 border-violet-300",
+  emerald: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  rose: "bg-rose-100 text-rose-800 border-rose-300",
+  slate: "bg-slate-200 text-slate-700 border-slate-300",
 };
 
 function getStatusBadgeClass(status: DeliveryStatus): string {
@@ -67,7 +66,12 @@ export default function Sales() {
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
   const loadSales = useCallback(() => {
-    fetchSales({ search: search || undefined, status: activeTab ?? undefined, page });
+    fetchSales({
+      search: search || undefined,
+      status: activeTab ?? undefined,
+      excludeStatus: activeTab ? undefined : ("DELIVERED" satisfies DeliveryStatus),
+      page,
+    });
   }, [fetchSales, search, activeTab, page]);
 
   useEffect(() => { setPage(1); }, [search, activeTab]);
