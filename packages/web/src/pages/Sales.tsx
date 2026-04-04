@@ -40,7 +40,6 @@ interface StatusTab {
 
 const TABS: StatusTab[] = [
   { labelKey: "all", status: null },
-  { labelKey: "PENDING", status: "PENDING" },
   { labelKey: "PREPARING", status: "PREPARING" },
   { labelKey: "IN_TRANSIT", status: "IN_TRANSIT" },
   { labelKey: "DELIVERED", status: "DELIVERED" },
@@ -69,7 +68,6 @@ export default function Sales() {
     fetchSales({
       search: search || undefined,
       status: activeTab ?? undefined,
-      excludeStatus: activeTab ? undefined : ("DELIVERED" satisfies DeliveryStatus),
       page,
     });
   }, [fetchSales, search, activeTab, page]);

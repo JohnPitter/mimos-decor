@@ -57,14 +57,13 @@ function mapSaleItems(sale: { items: { product: { name: string } | null; product
 export async function listSales(params: {
   search?: string;
   status?: DeliveryStatus;
-  excludeStatus?: DeliveryStatus;
   gateway?: string;
   startDate?: string;
   endDate?: string;
   page?: number;
   limit?: number;
 }) {
-  const { search, status, excludeStatus, gateway, startDate, endDate, page = 1, limit = 50 } = params;
+  const { search, status, gateway, startDate, endDate, page = 1, limit = 50 } = params;
   const where: Prisma.SaleWhereInput = {};
   if (search) {
     where.OR = [
@@ -72,23 +71,25 @@ export async function listSales(params: {
       { customerName: { contains: search, mode: "insensitive" } },
     ];
   }
-  if (status) where.deliveryStatus = status;
-  else if (excludeStatus) where.deliveryStatus = { not: excludeStatus };
   if (gateway) where.gateway = gateway;
   if (startDate || endDate) {
+    if (status) where.deliveryStatus = status;
     where.saleDate = {};
     if (startDate) where.saleDate.gte = new Date(startDate);
     if (endDate) where.saleDate.lte = new Date(endDate);
-  } else if (!status) {
+  } else if (status === "PREPARING" || status === "IN_TRANSIT") {
+    where.deliveryStatus = status;
+  } else if (status === "DELIVERED") {
+    const tz = await getConfiguredTimezone();
+    where.deliveryStatus = "DELIVERED";
+    where.saleDate = { gte: getStartOfMonthUTC(tz), lte: getEndOfMonthUTC(tz) };
+  } else {
     const tz = await getConfiguredTimezone();
     const monthRange = { saleDate: { gte: getStartOfMonthUTC(tz), lte: getEndOfMonthUTC(tz) } };
-    const alwaysVisible: DeliveryStatus[] = ["PREPARING", "IN_TRANSIT"];
-    const statusFilter = where.deliveryStatus;
-    delete where.deliveryStatus;
     where.AND = [
       { OR: [
-        { ...monthRange, ...(statusFilter ? { deliveryStatus: statusFilter } : {}) },
-        { deliveryStatus: { in: alwaysVisible } },
+        { deliveryStatus: { in: ["PREPARING" as DeliveryStatus, "IN_TRANSIT" as DeliveryStatus] } },
+        { deliveryStatus: "DELIVERED" as DeliveryStatus, ...monthRange },
       ] },
     ];
   }

@@ -13,13 +13,12 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 
 saleRouter.get("/", async (req, res) => {
   try {
-    const { search, status, excludeStatus, gateway, startDate, endDate, page, limit } = req.query;
+    const { search, status, gateway, startDate, endDate, page, limit } = req.query;
     const toDeliveryStatus = (v: unknown): DeliveryStatus | undefined =>
       DELIVERY_STATUSES.includes(v as DeliveryStatus) ? (v as DeliveryStatus) : undefined;
     const result = await saleService.listSales({
       search: search as string,
       status: toDeliveryStatus(status),
-      excludeStatus: toDeliveryStatus(excludeStatus),
       gateway: gateway as string,
       startDate: startDate as string,
       endDate: endDate as string,
