@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { X, Upload, ImageIcon } from "lucide-react";
 import { MaskedInput } from "../common/MaskedInput.js";
+import { ImageWithSkeleton } from "../common/ImageWithSkeleton.js";
 import { api } from "../../lib/api.js";
 import type { Product } from "@mimos/shared";
 
@@ -129,7 +130,7 @@ export function ProductFormDialog({ open, product, onClose, onSubmit }: Props) {
               onClick={() => fileRef.current?.click()}
             >
               {imagePreview ? (
-                <img src={imagePreview} alt="" className="w-full h-full object-cover" />
+                <ImageWithSkeleton src={imagePreview} alt="" className="w-full h-full object-cover" />
               ) : (
                 <ImageIcon size={24} className="text-text-muted" />
               )}

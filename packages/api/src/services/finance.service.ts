@@ -28,7 +28,7 @@ export async function listEntries(params: {
   const { search, type, status, categoryId, startDate, endDate, page = 1, limit = 20 } = params;
 
   const where: Prisma.FinanceEntryWhereInput = {};
-  if (search) where.title = { contains: search, mode: "insensitive" };
+  if (search) where.title = { contains: search.trim(), mode: "insensitive" };
   if (type) where.type = type as Prisma.EnumFinanceTypeFilter["equals"];
   if (status) where.status = status as Prisma.EnumFinanceStatusFilter["equals"];
   if (categoryId) where.categoryId = categoryId;
@@ -120,8 +120,8 @@ export async function createEntry(data: {
       dueDate.setMonth(dueDate.getMonth() + i);
       entries.push({
         type: data.type as "PAYABLE" | "RECEIVABLE",
-        title: data.title,
-        description: data.description ?? null,
+        title: data.title.trim(),
+        description: data.description?.trim() ?? null,
         amount: data.amount,
         categoryId: data.categoryId,
         dueDate,
@@ -144,8 +144,8 @@ export async function createEntry(data: {
     const entry = await prisma.financeEntry.create({
       data: {
         type: data.type as "PAYABLE" | "RECEIVABLE",
-        title: data.title,
-        description: data.description ?? null,
+        title: data.title.trim(),
+        description: data.description?.trim() ?? null,
         amount: data.amount,
         categoryId: data.categoryId,
         dueDate: new Date(data.dueDate),
@@ -176,8 +176,8 @@ export async function updateEntry(id: string, data: {
   if (!old) return null;
 
   const updateData: Prisma.FinanceEntryUpdateInput = {};
-  if (data.title !== undefined) updateData.title = data.title;
-  if (data.description !== undefined) updateData.description = data.description;
+  if (data.title !== undefined) updateData.title = data.title.trim();
+  if (data.description !== undefined) updateData.description = data.description?.trim();
   if (data.amount !== undefined) updateData.amount = data.amount;
   if (data.categoryId !== undefined) updateData.category = { connect: { id: data.categoryId } };
   if (data.dueDate !== undefined) updateData.dueDate = new Date(data.dueDate);
@@ -255,10 +255,10 @@ export async function createCategory(data: {
 }, userId: string) {
   const category = await prisma.financeCategory.create({
     data: {
-      name: data.name,
+      name: data.name.trim(),
       type: data.type as "PAYABLE" | "RECEIVABLE",
-      color: data.color,
-      icon: data.icon,
+      color: data.color.trim(),
+      icon: data.icon.trim(),
     },
   });
   await createAuditLog({
@@ -279,7 +279,11 @@ export async function updateCategory(id: string, data: {
 }, userId: string) {
   const old = await prisma.financeCategory.findUnique({ where: { id } });
   if (!old) return null;
-  const category = await prisma.financeCategory.update({ where: { id }, data });
+  const trimmed: typeof data = {};
+  if (data.name !== undefined) trimmed.name = data.name.trim();
+  if (data.color !== undefined) trimmed.color = data.color.trim();
+  if (data.icon !== undefined) trimmed.icon = data.icon.trim();
+  const category = await prisma.financeCategory.update({ where: { id }, data: trimmed });
   await createAuditLog({
     userId,
     action: "UPDATE",

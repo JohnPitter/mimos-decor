@@ -30,7 +30,8 @@ function buildUserResponse(user: Record<string, unknown> & { role?: { permission
 
 authRouter.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email: rawEmail, password } = req.body;
+    const email = rawEmail?.trim();
     if (!email || !password) {
       res.status(400).json({ error: "Email/usuário e senha são obrigatórios" });
       return;
@@ -123,9 +124,9 @@ authRouter.put("/profile", authMiddleware, async (req, res) => {
     }
 
     const updateData: Record<string, unknown> = {};
-    if (name) updateData.name = name;
+    if (name) updateData.name = name.trim();
     if (username) updateData.username = username.trim().toLowerCase();
-    if (email) updateData.email = email;
+    if (email) updateData.email = email.trim();
     if (newPassword) updateData.password = await bcrypt.hash(newPassword, 10);
     if (themeColors !== undefined) updateData.themeColors = themeColors;
 

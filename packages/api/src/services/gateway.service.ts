@@ -39,9 +39,9 @@ export async function createGateway(data: {
 
   return prisma.customGateway.create({
     data: {
-      slug: data.slug,
-      name: data.name,
-      color: data.color ?? "#6B5E5E",
+      slug: data.slug.trim(),
+      name: data.name.trim(),
+      color: data.color?.trim() ?? "#6B5E5E",
       tiers: serializeTiers(data.tiers) as unknown as Prisma.InputJsonValue,
       pixTiers: (data.pixTiers ?? []) as unknown as Prisma.InputJsonValue,
       extraFixed: data.extraFixed ?? 0,
@@ -60,8 +60,8 @@ export async function updateGateway(id: string, data: {
   if (!existing) return null;
 
   const updateData: Record<string, unknown> = {};
-  if (data.name !== undefined) updateData.name = data.name;
-  if (data.color !== undefined) updateData.color = data.color;
+  if (data.name !== undefined) updateData.name = data.name.trim();
+  if (data.color !== undefined) updateData.color = data.color.trim();
   if (data.tiers !== undefined) updateData.tiers = serializeTiers(data.tiers) as unknown as Prisma.InputJsonValue;
   if (data.pixTiers !== undefined) updateData.pixTiers = data.pixTiers as unknown as Prisma.InputJsonValue;
   if (data.extraFixed !== undefined) updateData.extraFixed = data.extraFixed;

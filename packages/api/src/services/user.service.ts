@@ -47,8 +47,8 @@ export async function createUser(
   const hashedPassword = await bcrypt.hash(data.password, 10);
   const user = await prisma.user.create({
     data: {
-      name: data.name,
-      email: data.email,
+      name: data.name.trim(),
+      email: data.email.trim(),
       username,
       password: hashedPassword,
       isAdmin: data.isAdmin ?? false,
@@ -70,8 +70,8 @@ export async function updateUser(
   const old = await prisma.user.findUnique({ where: { id }, omit: USER_OMIT, include: USER_INCLUDE });
   if (!old) return null;
   const updateData: Record<string, unknown> = {};
-  if (data.name !== undefined) updateData.name = data.name;
-  if (data.email !== undefined) updateData.email = data.email;
+  if (data.name !== undefined) updateData.name = data.name.trim();
+  if (data.email !== undefined) updateData.email = data.email.trim();
   if (data.isAdmin !== undefined) updateData.isAdmin = data.isAdmin;
   if (data.roleId !== undefined) updateData.roleId = data.roleId || null;
   if (data.permissionOverrides !== undefined) updateData.permissionOverrides = data.permissionOverrides;

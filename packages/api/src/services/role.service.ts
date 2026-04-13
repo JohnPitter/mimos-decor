@@ -8,14 +8,14 @@ export async function listRoles() {
 }
 
 export async function createRole(data: { name: string; permissions: string[] }) {
-  return prisma.role.create({ data: { name: data.name, permissions: data.permissions } });
+  return prisma.role.create({ data: { name: data.name.trim(), permissions: data.permissions } });
 }
 
 export async function updateRole(id: string, data: { name?: string; permissions?: string[] }) {
   const role = await prisma.role.findUnique({ where: { id } });
   if (!role) return null;
   const updateData: Record<string, unknown> = {};
-  if (data.name !== undefined) updateData.name = data.name;
+  if (data.name !== undefined) updateData.name = data.name.trim();
   if (data.permissions !== undefined) updateData.permissions = data.permissions;
   return prisma.role.update({ where: { id }, data: updateData });
 }

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Search, Package, ChevronDown } from "lucide-react";
+import { ImageWithSkeleton } from "../common/ImageWithSkeleton.js";
 import type { Product } from "@mimos/shared";
 
 interface Props {
@@ -73,7 +74,7 @@ export function ProductPicker({ products, value, onChange, disabledIds }: Props)
           <>
             <div className="w-7 h-7 rounded-md bg-page-bg border border-stroke/50 flex items-center justify-center overflow-hidden shrink-0">
               {selected.imageUrl ? (
-                <img src={selected.imageUrl} alt="" className="w-full h-full object-cover" />
+                <ImageWithSkeleton src={selected.imageUrl} alt="" className="w-full h-full object-cover" />
               ) : (
                 <Package size={14} className="text-text-muted" />
               )}
@@ -126,7 +127,7 @@ export function ProductPicker({ products, value, onChange, disabledIds }: Props)
                   >
                     <div className="w-8 h-8 rounded-lg bg-page-bg border border-stroke/50 flex items-center justify-center overflow-hidden shrink-0">
                       {p.imageUrl ? (
-                        <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />
+                        <ImageWithSkeleton src={p.imageUrl} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <Package size={14} className="text-text-muted" />
                       )}

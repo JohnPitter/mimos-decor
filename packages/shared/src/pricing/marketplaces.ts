@@ -55,35 +55,33 @@ function calcFromParams(salePrice: number, params: GatewayParams): FeeResult {
 export const BUILT_IN_PARAMS: Record<string, GatewayParams> = {
   SHOPEE_CNPJ: {
     tiers: [
+      { maxPrice: 7.99, pct: 0.50, fixed: 0 },
       { maxPrice: 79.99, pct: 0.20, fixed: 4 },
       { maxPrice: 99.99, pct: 0.14, fixed: 16 },
       { maxPrice: 199.99, pct: 0.14, fixed: 20 },
-      { maxPrice: 499.99, pct: 0.14, fixed: 26 },
-      { maxPrice: Infinity, pct: 0.14, fixed: 28 },
+      { maxPrice: Infinity, pct: 0.14, fixed: 26 },
     ],
     pixTiers: [
       { maxPrice: 79.99, pct: 0 },
       { maxPrice: 99.99, pct: 0.05 },
       { maxPrice: 199.99, pct: 0.05 },
-      { maxPrice: 499.99, pct: 0.05 },
-      { maxPrice: Infinity, pct: 0.08 },
+      { maxPrice: Infinity, pct: 0.05 },
     ],
     extraFixed: 0,
   },
   SHOPEE_CPF: {
     tiers: [
+      { maxPrice: 7.99, pct: 0.50, fixed: 0 },
       { maxPrice: 79.99, pct: 0.20, fixed: 4 },
       { maxPrice: 99.99, pct: 0.14, fixed: 16 },
       { maxPrice: 199.99, pct: 0.14, fixed: 20 },
-      { maxPrice: 499.99, pct: 0.14, fixed: 26 },
-      { maxPrice: Infinity, pct: 0.14, fixed: 28 },
+      { maxPrice: Infinity, pct: 0.14, fixed: 26 },
     ],
     pixTiers: [
       { maxPrice: 79.99, pct: 0 },
       { maxPrice: 99.99, pct: 0.05 },
       { maxPrice: 199.99, pct: 0.05 },
-      { maxPrice: 499.99, pct: 0.05 },
-      { maxPrice: Infinity, pct: 0.08 },
+      { maxPrice: Infinity, pct: 0.05 },
     ],
     extraFixed: 0,
   },

@@ -67,8 +67,8 @@ export async function listSales(params: {
   const where: Prisma.SaleWhereInput = {};
   if (search) {
     where.OR = [
-      { shopeeUsername: { contains: search, mode: "insensitive" } },
-      { customerName: { contains: search, mode: "insensitive" } },
+      { shopeeUsername: { contains: search.trim(), mode: "insensitive" } },
+      { customerName: { contains: search.trim(), mode: "insensitive" } },
     ];
   }
   if (gateway) where.gateway = gateway;
@@ -225,12 +225,12 @@ export async function createSale(data: {
         profit,
         discount,
         saleDate: data.saleDate ? new Date(data.saleDate) : new Date(),
-        customerName: data.customerName,
-        customerDocument: data.customerDocument,
-        customerState: data.customerState,
-        customerGender: data.customerGender,
-        shopeeUsername: data.shopeeUsername,
-        trackingCode: data.trackingCode,
+        customerName: data.customerName?.trim() || null,
+        customerDocument: data.customerDocument?.trim() || null,
+        customerState: data.customerState?.trim() || null,
+        customerGender: data.customerGender?.trim() || null,
+        shopeeUsername: data.shopeeUsername?.trim() || null,
+        trackingCode: data.trackingCode?.trim() || null,
         deliveryStatus: data.deliveryStatus ?? "PENDING",
         createdById: userId,
         items: {
@@ -300,12 +300,12 @@ export async function updateSale(id: string, data: {
   if (data.discount !== undefined) updateData.discount = data.discount;
   updateData.netRevenue = newNetRevenue;
   updateData.profit = newProfit;
-  if (data.customerName !== undefined) updateData.customerName = data.customerName || null;
-  if (data.customerDocument !== undefined) updateData.customerDocument = data.customerDocument || null;
-  if (data.customerState !== undefined) updateData.customerState = data.customerState || null;
-  if (data.customerGender !== undefined) updateData.customerGender = data.customerGender || null;
-  if (data.shopeeUsername !== undefined) updateData.shopeeUsername = data.shopeeUsername || null;
-  if (data.trackingCode !== undefined) updateData.trackingCode = data.trackingCode || null;
+  if (data.customerName !== undefined) updateData.customerName = data.customerName?.trim() || null;
+  if (data.customerDocument !== undefined) updateData.customerDocument = data.customerDocument?.trim() || null;
+  if (data.customerState !== undefined) updateData.customerState = data.customerState?.trim() || null;
+  if (data.customerGender !== undefined) updateData.customerGender = data.customerGender?.trim() || null;
+  if (data.shopeeUsername !== undefined) updateData.shopeeUsername = data.shopeeUsername?.trim() || null;
+  if (data.trackingCode !== undefined) updateData.trackingCode = data.trackingCode?.trim() || null;
   if (data.gateway !== undefined) updateData.gateway = data.gateway;
   if (data.saleDate !== undefined) updateData.saleDate = new Date(data.saleDate);
 

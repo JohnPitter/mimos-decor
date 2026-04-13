@@ -7,9 +7,10 @@ export async function listSupplies(params: { search?: string; page?: number; lim
   const { search, page = 1, limit = 20 } = params;
   const where: Prisma.SupplyWhereInput = {};
   if (search) {
+    const q = search.trim();
     where.OR = [
-      { name: { contains: search, mode: "insensitive" } },
-      { supplier: { contains: search, mode: "insensitive" } },
+      { name: { contains: q, mode: "insensitive" } },
+      { supplier: { contains: q, mode: "insensitive" } },
     ];
   }
   // lowStock filter is handled client-side for now
@@ -33,12 +34,12 @@ export async function createSupply(data: {
 }) {
   const supply = await prisma.supply.create({
     data: {
-      name: data.name,
-      description: data.description ?? null,
+      name: data.name.trim(),
+      description: data.description?.trim() ?? null,
       unitPrice: data.unitPrice,
       quantity: data.quantity ?? 0,
-      unit: data.unit ?? "un",
-      supplier: data.supplier ?? null,
+      unit: data.unit?.trim() ?? "un",
+      supplier: data.supplier?.trim() ?? null,
       minStock: data.minStock ?? 0,
     },
   });
@@ -57,7 +58,12 @@ export async function updateSupply(id: string, data: {
 }) {
   const old = await prisma.supply.findUnique({ where: { id } });
   if (!old) return null;
-  const supply = await prisma.supply.update({ where: { id }, data });
+  const trimmed: typeof data = { ...data };
+  if (trimmed.name) trimmed.name = trimmed.name.trim();
+  if (trimmed.description) trimmed.description = trimmed.description.trim();
+  if (trimmed.unit) trimmed.unit = trimmed.unit.trim();
+  if (trimmed.supplier) trimmed.supplier = trimmed.supplier.trim();
+  const supply = await prisma.supply.update({ where: { id }, data: trimmed });
   logger.info(`Supply updated: ${supply.name}`, "supply");
   return supply;
 }
@@ -92,8 +98,8 @@ export async function registerPurchase(data: {
         supplyId: data.supplyId,
         quantity: data.quantity,
         totalCost: data.totalCost,
-        supplier: data.supplier ?? supply.supplier ?? null,
-        note: data.note ?? null,
+        supplier: data.supplier?.trim() ?? supply.supplier ?? null,
+        note: data.note?.trim() ?? null,
       },
     });
 

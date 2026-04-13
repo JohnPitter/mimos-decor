@@ -6,7 +6,8 @@ export async function listProducts(params: { search?: string; page?: number; lim
   const { search, page = 1, limit = 50, stockFilter } = params;
   const where: Prisma.ProductWhereInput = {};
   if (search) {
-    where.OR = [{ name: { contains: search, mode: "insensitive" } }, { supplier: { contains: search, mode: "insensitive" } }];
+    const q = search.trim();
+    where.OR = [{ name: { contains: q, mode: "insensitive" } }, { supplier: { contains: q, mode: "insensitive" } }];
   }
   if (stockFilter === "outOfStock") {
     where.quantity = { lte: 0 };
@@ -27,6 +28,8 @@ export async function getProduct(id: string) {
 }
 
 export async function createProduct(data: Prisma.ProductCreateInput, userId: string) {
+  if (data.name) data.name = data.name.trim();
+  if (data.supplier && typeof data.supplier === "string") data.supplier = data.supplier.trim();
   const product = await prisma.product.create({ data });
   await createAuditLog({ userId, action: "CREATE", entity: "PRODUCT", entityId: product.id, newData: product as unknown as Record<string, unknown> });
   return product;
@@ -35,6 +38,8 @@ export async function createProduct(data: Prisma.ProductCreateInput, userId: str
 export async function updateProduct(id: string, data: Prisma.ProductUpdateInput, userId: string) {
   const old = await prisma.product.findUnique({ where: { id } });
   if (!old) return null;
+  if (data.name && typeof data.name === "string") data.name = data.name.trim();
+  if (data.supplier && typeof data.supplier === "string") data.supplier = data.supplier.trim();
   const product = await prisma.product.update({ where: { id }, data });
   await createAuditLog({ userId, action: "UPDATE", entity: "PRODUCT", entityId: id, oldData: old as unknown as Record<string, unknown>, newData: product as unknown as Record<string, unknown> });
   return product;

@@ -9,7 +9,7 @@ import { exportSalesXlsx, exportProductsXlsx, exportDashboardXlsx } from "../lib
 import { exportSalesPdf, exportProductsPdf, exportDashboardPdf } from "../lib/export-pdf.js";
 import { formatBRL } from "@mimos/shared";
 import type { Sale, Product, SaleDashboard } from "@mimos/shared";
-import { FileSpreadsheet, FileText, ShoppingCart, Package, LayoutDashboard, BarChart3, TrendingUp, Users, MapPin, Clock } from "lucide-react";
+import { FileSpreadsheet, FileText, ShoppingCart, Package, LayoutDashboard, BarChart3, TrendingUp, MapPin, Clock, ChevronDown, ChevronLeft, ChevronRight, List } from "lucide-react";
 import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -39,6 +39,9 @@ export default function Reports() {
   const [loading, setLoading] = useState<string | null>(null);
   const [sales, setSales] = useState<Sale[]>([]);
   const [insightsLoading, setInsightsLoading] = useState(false);
+  const [showSalesList, setShowSalesList] = useState(false);
+  const [salesPage, setSalesPage] = useState(1);
+  const SALES_PER_PAGE = 15;
 
   const tDeliveryStatus = (s: string) => t(`deliveryStatus.${s}`);
   const dayNames = i18n.language === "pt-BR" ? DAYS_PT : DAYS_EN;
@@ -78,6 +81,7 @@ export default function Reports() {
       try {
         const data = await fetchAllSales();
         setSales(data);
+        setSalesPage(1);
       } catch { /* ignore */ }
       setInsightsLoading(false);
     };
@@ -377,6 +381,116 @@ export default function Reports() {
             ))}
           </div>
         )}
+
+        {/* Sales List Toggle */}
+        {sales.length > 0 && !insightsLoading && (() => {
+          const totalPages = Math.ceil(sales.length / SALES_PER_PAGE);
+          const paged = sales.slice((salesPage - 1) * SALES_PER_PAGE, salesPage * SALES_PER_PAGE);
+          return (
+            <div className="bg-card-bg border border-stroke rounded-xl overflow-hidden animate-fade-in-up" style={{ animationDelay: "400ms" }}>
+              <button
+                onClick={() => { setShowSalesList(!showSalesList); setSalesPage(1); }}
+                className="w-full flex items-center justify-between px-5 py-4 hover:bg-page-bg transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
+                    <List size={18} className="text-blue-500" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-[14px] font-bold text-text-dark">{t("reports.salesList")}</h3>
+                    <p className="text-[12px] text-text-muted">{sales.length} {t("reports.salesLabel")} &middot; {t("reports.salesListDesc")}</p>
+                  </div>
+                </div>
+                <ChevronDown size={18} className={`text-text-muted transition-transform duration-200 ${showSalesList ? "rotate-180" : ""}`} />
+              </button>
+
+              {showSalesList && (
+                <div className="border-t border-stroke">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-stroke bg-page-bg/50">
+                          <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("reports.product")}</th>
+                          <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("reports.customer")}</th>
+                          <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("reports.channel")}</th>
+                          <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider text-right">{t("reports.qty")}</th>
+                          <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider text-right">{t("reports.saleValue")}</th>
+                          <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider text-right">{t("reports.cost")}</th>
+                          <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider text-right">{t("reports.fees")}</th>
+                          <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider text-right">{t("reports.profit")}</th>
+                          <th className="px-4 py-3 text-[11px] font-semibold text-text-muted uppercase tracking-wider">{t("reports.date")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paged.map((sale) => (
+                          <tr key={sale.id} className="border-b border-stroke/50 hover:bg-page-bg/50 transition-colors">
+                            <td className="px-4 py-3 text-[13px] text-text-dark">
+                              {sale.items.map((item) => item.productName).join(", ") || "—"}
+                            </td>
+                            <td className="px-4 py-3 text-[13px] text-text-secondary">{sale.customerName || sale.shopeeUsername || "—"}</td>
+                            <td className="px-4 py-3 text-[12px] text-text-secondary">{getGatewayLabel(sale.gateway)}</td>
+                            <td className="px-4 py-3 text-[13px] text-text-dark text-right">{sale.items.reduce((sum, i) => sum + i.quantity, 0)}</td>
+                            <td className="px-4 py-3 text-[13px] text-text-dark text-right font-medium">{formatBRL(sale.salePrice)}</td>
+                            <td className="px-4 py-3 text-[13px] text-text-secondary text-right">{formatBRL(sale.totalCost)}</td>
+                            <td className="px-4 py-3 text-[13px] text-text-secondary text-right">{formatBRL(sale.totalFees)}</td>
+                            <td className={`px-4 py-3 text-[13px] text-right font-semibold ${sale.profit >= 0 ? "text-green-600" : "text-red-500"}`}>{formatBRL(sale.profit)}</td>
+                            <td className="px-4 py-3 text-[12px] text-text-muted whitespace-nowrap">{new Date(sale.saleDate).toLocaleDateString(i18n.language)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between px-5 py-3 border-t border-stroke bg-page-bg/30">
+                      <p className="text-[12px] text-text-muted">
+                        {t("reports.page")} {salesPage} {t("reports.of")} {totalPages} &middot; {sales.length} {t("reports.salesLabel")}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setSalesPage((p) => Math.max(1, p - 1))}
+                          disabled={salesPage === 1}
+                          className="p-1.5 rounded-lg border border-stroke hover:bg-card-bg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <ChevronLeft size={16} className="text-text-muted" />
+                        </button>
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let page: number;
+                          if (totalPages <= 5) {
+                            page = i + 1;
+                          } else if (salesPage <= 3) {
+                            page = i + 1;
+                          } else if (salesPage >= totalPages - 2) {
+                            page = totalPages - 4 + i;
+                          } else {
+                            page = salesPage - 2 + i;
+                          }
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => setSalesPage(page)}
+                              className={`w-8 h-8 rounded-lg text-[12px] font-semibold transition-all ${salesPage === page ? "bg-primary text-white shadow-sm" : "text-text-muted hover:bg-card-bg border border-stroke"}`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        })}
+                        <button
+                          onClick={() => setSalesPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={salesPage === totalPages}
+                          className="p-1.5 rounded-lg border border-stroke hover:bg-card-bg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <ChevronRight size={16} className="text-text-muted" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Export Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

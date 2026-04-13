@@ -211,7 +211,7 @@ export default function Dashboard() {
                     product.quantity === 0 ? "border-red-300 bg-red-100" : "border-yellow-200 bg-yellow-50"
                   }`}>
                     {product.imageUrl ? (
-                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                      <ImageWithSkeleton src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                     ) : product.quantity === 0 ? (
                       <AlertTriangle size={16} className="text-red-600" />
                     ) : (

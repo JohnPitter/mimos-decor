@@ -216,7 +216,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
       customerDocument: customerDocument || undefined,
       customerState,
       customerGender,
-      shopeeUsername,
+      shopeeUsername: shopeeUsername.trim(),
       deliveryStatus: deliveryStatus || undefined,
       discount: discount ? Number(discount) : undefined,
       saleDate: saleDate || undefined,

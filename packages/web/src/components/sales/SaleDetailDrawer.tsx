@@ -126,7 +126,7 @@ export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatu
         customerDocument: editForm.customerDocument || undefined,
         customerState: editForm.customerState || undefined,
         customerGender: editForm.customerGender || undefined,
-        shopeeUsername: editForm.shopeeUsername || undefined,
+        shopeeUsername: editForm.shopeeUsername?.trim() || undefined,
         trackingCode: editForm.trackingCode || undefined,
         salePrice: Number(editForm.salePrice),
         totalCost: Number(editForm.totalCost),
