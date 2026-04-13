@@ -1,4 +1,6 @@
 import { useSettingsStore } from "../stores/settings.store.js";
+import { parseDateParts, toDateISO } from "@mimos/shared";
+import type { DateParts } from "@mimos/shared";
 
 /** Get the configured timezone from app settings */
 export function getTimezone(): string {
@@ -34,33 +36,9 @@ export function getNowDateTimeISO(): string {
   return fmt.format(new Date()).replace(" ", "T");
 }
 
-const partsCache = new Map<string, Intl.DateTimeFormat>();
-function getPartsFormatter(tz: string): Intl.DateTimeFormat {
-  let fmt = partsCache.get(tz);
-  if (!fmt) {
-    fmt = new Intl.DateTimeFormat("en-US", {
-      timeZone: tz,
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", weekday: "short", hour12: false,
-    });
-    partsCache.set(tz, fmt);
-  }
-  return fmt;
-}
-
-const DOW_MAP: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-
 /** Get date components (year, month, day, hour, dow) in the configured timezone */
-export function getDateParts(date: string | Date): { year: number; month: number; day: number; hour: number; dow: number } {
-  const fmt = getPartsFormatter(getTimezone());
-  const parts = Object.fromEntries(fmt.formatToParts(new Date(date)).map(p => [p.type, p.value]));
-  return {
-    year: Number(parts.year),
-    month: Number(parts.month) - 1,
-    day: Number(parts.day),
-    hour: Number(parts.hour) === 24 ? 0 : Number(parts.hour),
-    dow: DOW_MAP[parts.weekday] ?? 0,
-  };
+export function getDateParts(date: string | Date): DateParts {
+  return parseDateParts(new Date(date), getTimezone());
 }
 
 /** Get "now" components in the configured timezone */
@@ -71,18 +49,18 @@ export function getNow(): { year: number; month: number; day: number } {
 /** Get today's date as YYYY-MM-DD string in the configured timezone */
 export function getTodayISO(): string {
   const { year, month, day } = getNow();
-  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return toDateISO(year, month, day);
 }
 
 /** Get first day of current month as YYYY-MM-DD in the configured timezone */
 export function getFirstDayOfMonthISO(): string {
   const { year, month } = getNow();
-  return `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  return toDateISO(year, month, 1);
 }
 
 /** Get last day of current month as YYYY-MM-DD in the configured timezone */
 export function getLastDayOfMonthISO(): string {
   const { year, month } = getNow();
   const lastDay = new Date(year, month + 1, 0).getDate();
-  return `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+  return toDateISO(year, month, lastDay);
 }
