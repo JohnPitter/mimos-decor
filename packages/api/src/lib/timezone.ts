@@ -43,7 +43,6 @@ export function getNowInTimezone(tz: string): { year: number; month: number; day
  * E.g. midnight in America/Sao_Paulo (UTC-3) → 03:00 UTC.
  */
 function localToUTC(tz: string, year: number, month: number, day: number, hour = 0, minute = 0, second = 0): Date {
-  // Create a date in UTC with the local components, then adjust by the offset
   const guess = new Date(Date.UTC(year, month, day, hour, minute, second));
   const fmt = new Intl.DateTimeFormat("en-US", {
     timeZone: tz,
@@ -51,8 +50,9 @@ function localToUTC(tz: string, year: number, month: number, day: number, hour =
     hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
   });
   const parts = Object.fromEntries(fmt.formatToParts(guess).map(p => [p.type, p.value]));
-  const localH = Number(parts.hour) === 24 ? 0 : Number(parts.hour);
-  const offsetMs = (localH - hour) * 3600000 + (Number(parts.minute) - minute) * 60000;
+  const tzH = Number(parts.hour) === 24 ? 0 : Number(parts.hour);
+  const tzAsUTC = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), tzH, Number(parts.minute), Number(parts.second));
+  const offsetMs = tzAsUTC - guess.getTime();
   return new Date(guess.getTime() - offsetMs);
 }
 
