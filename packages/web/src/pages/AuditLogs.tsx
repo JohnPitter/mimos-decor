@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, ScrollText } from "lucide-react";
 import { Header } from "../components/layout/Header.js";
+import { formatDate, formatTime } from "../lib/timezone.js";
 import { useAuditStore } from "../stores/audit.store.js";
 import { useUserStore } from "../stores/user.store.js";
 import type { AuditAction, AuditEntity, AuditLog } from "@mimos/shared";
@@ -213,8 +214,8 @@ function LogEntry({ log, index, expanded, onToggle }: { log: AuditLog; index: nu
             <span className="text-text-muted"> #{log.entityId.slice(0, 8)}</span>
           </p>
           <p className="text-[12px] text-text-muted mt-0.5">
-            {new Date(log.createdAt).toLocaleDateString()}{" "}
-            {new Date(log.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+            {formatDate(log.createdAt, "pt-BR")}{" "}
+            {formatTime(log.createdAt, "pt-BR", { hour: "2-digit", minute: "2-digit" })}
           </p>
         </div>
         {hasDetails && (

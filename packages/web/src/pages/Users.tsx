@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, X, Users as UsersIcon, ShieldCheck } from "lucide
 import { Header } from "../components/layout/Header.js";
 import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
 import { useUserStore } from "../stores/user.store.js";
+import { formatDate } from "../lib/timezone.js";
 import { api } from "../lib/api.js";
 import { PERMISSION_GROUPS } from "@mimos/shared";
 import type { User, Role } from "@mimos/shared";
@@ -189,7 +190,7 @@ export default function Users() {
                       )}
                     </td>
                     <td className="px-5 py-3.5 text-[13px] text-text-muted">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {formatDate(user.createdAt, "pt-BR")}
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1">

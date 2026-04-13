@@ -38,33 +38,52 @@ export function getNowInTimezone(tz: string): { year: number; month: number; day
   };
 }
 
+/**
+ * Convert a local date/time in the given timezone to a UTC Date.
+ * E.g. midnight in America/Sao_Paulo (UTC-3) → 03:00 UTC.
+ */
+function localToUTC(tz: string, year: number, month: number, day: number, hour = 0, minute = 0, second = 0): Date {
+  // Create a date in UTC with the local components, then adjust by the offset
+  const guess = new Date(Date.UTC(year, month, day, hour, minute, second));
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  });
+  const parts = Object.fromEntries(fmt.formatToParts(guess).map(p => [p.type, p.value]));
+  const localH = Number(parts.hour) === 24 ? 0 : Number(parts.hour);
+  const offsetMs = (localH - hour) * 3600000 + (Number(parts.minute) - minute) * 60000;
+  return new Date(guess.getTime() - offsetMs);
+}
+
 export function getStartOfDayUTC(tz: string): Date {
   const { year, month, day } = getNowInTimezone(tz);
-  return new Date(Date.UTC(year, month, day));
+  return localToUTC(tz, year, month, day);
 }
 
 export function getStartOfMonthUTC(tz: string): Date {
   const { year, month } = getNowInTimezone(tz);
-  return new Date(Date.UTC(year, month, 1));
+  return localToUTC(tz, year, month, 1);
 }
 
 export function getEndOfMonthUTC(tz: string): Date {
   const { year, month } = getNowInTimezone(tz);
-  return new Date(Date.UTC(year, month + 1, 0, 23, 59, 59));
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  return localToUTC(tz, year, month, lastDay, 23, 59, 59);
 }
 
 export function getTodayBoundariesUTC(tz: string): { start: Date; end: Date } {
   const { year, month, day } = getNowInTimezone(tz);
   return {
-    start: new Date(Date.UTC(year, month, day)),
-    end: new Date(Date.UTC(year, month, day, 23, 59, 59)),
+    start: localToUTC(tz, year, month, day),
+    end: localToUTC(tz, year, month, day, 23, 59, 59),
   };
 }
 
 export function getTomorrowBoundariesUTC(tz: string): { start: Date; end: Date } {
   const { year, month, day } = getNowInTimezone(tz);
   return {
-    start: new Date(Date.UTC(year, month, day + 1)),
-    end: new Date(Date.UTC(year, month, day + 1, 23, 59, 59)),
+    start: localToUTC(tz, year, month, day + 1),
+    end: localToUTC(tz, year, month, day + 1, 23, 59, 59),
   };
 }

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { User, AtSign, Mail, Shield, Calendar, Lock, Save, Check, AlertCircle } from "lucide-react";
 import { Header } from "../components/layout/Header.js";
 import { useAuthStore } from "../stores/auth.store.js";
+import { formatDate } from "../lib/timezone.js";
 import { api } from "../lib/api.js";
 import type { User as UserType } from "@mimos/shared";
 
@@ -86,7 +87,7 @@ export default function Profile() {
           </div>
           <div className="flex items-center gap-2 text-[12px] text-text-muted">
             <Calendar size={12} />
-            <span>{t("profile.memberSince")} {new Date(user.createdAt).toLocaleDateString()}</span>
+            <span>{t("profile.memberSince")} {formatDate(user.createdAt, "pt-BR")}</span>
           </div>
         </div>
 

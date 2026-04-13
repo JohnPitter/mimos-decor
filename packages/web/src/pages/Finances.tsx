@@ -5,6 +5,7 @@ import { Header } from "../components/layout/Header.js";
 import { FinanceFormDialog } from "../components/finances/FinanceFormDialog.js";
 import { CategoryManagerDialog } from "../components/finances/CategoryManagerDialog.js";
 import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
+import { formatDate } from "../lib/timezone.js";
 import { useFinanceStore } from "../stores/finance.store.js";
 import { formatBRL } from "@mimos/shared";
 import type { FinanceEntry } from "@mimos/shared";
@@ -262,7 +263,7 @@ export default function Finances() {
                         {formatBRL(entry.amount)}
                       </td>
                       <td className="text-center px-3 py-3 text-[13px] text-text-dark">
-                        {new Date(entry.dueDate).toLocaleDateString("pt-BR")}
+                        {formatDate(entry.dueDate, "pt-BR")}
                       </td>
                       <td className="text-center px-3 py-3">
                         <span className={`px-2 py-1 rounded-full text-[11px] font-semibold ${statusColor(entry.status)}`}>

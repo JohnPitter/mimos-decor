@@ -2,6 +2,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatBRL } from "@mimos/shared";
 import type { Sale, Product, SaleDashboard } from "@mimos/shared";
+import { formatDate, formatDateTime } from "./timezone.js";
 
 function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace("#", "");
@@ -29,7 +30,7 @@ function addHeader(doc: jsPDF, title: string, primaryColor: string) {
   // Date
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  const dateStr = new Date().toLocaleDateString("pt-BR");
+  const dateStr = formatDate(new Date(), "pt-BR");
   doc.text(dateStr, pageWidth - 14 - doc.getTextWidth(dateStr), 14);
 
   // Brand line
@@ -73,7 +74,7 @@ export function exportSalesPdf(
     formatBRL(s.totalFees),
     formatBRL(s.profit),
     tDeliveryStatus(s.deliveryStatus),
-    new Date(s.saleDate ?? s.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }),
+    formatDateTime(s.saleDate ?? s.createdAt, "pt-BR", { dateStyle: "short", timeStyle: "short" }),
   ]);
 
   const [r, g, b] = hexToRgb(opts.primaryColor);
@@ -205,7 +206,7 @@ export function exportDashboardPdf(
     startY: currentY,
     head: [["Data", "Quantidade", "Faturamento"]],
     body: dashboard.salesByDay.map((d) => [
-      new Date(d.date).toLocaleDateString("pt-BR"),
+      formatDate(d.date, "pt-BR"),
       String(d.count),
       formatBRL(d.revenue),
     ]),

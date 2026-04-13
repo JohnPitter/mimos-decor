@@ -1,6 +1,7 @@
 import * as XLSX from "xlsx";
 import { formatBRL } from "@mimos/shared";
 import type { Sale, Product, SaleDashboard } from "@mimos/shared";
+import { formatDate, formatDateTime } from "./timezone.js";
 
 function hexToRGB(hex: string): { r: number; g: number; b: number } {
   const h = hex.replace("#", "");
@@ -93,10 +94,10 @@ export function exportSalesXlsx(
     formatBRL(s.totalFees),
     formatBRL(s.profit),
     tDeliveryStatus(s.deliveryStatus),
-    new Date(s.saleDate ?? s.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }),
+    formatDateTime(s.saleDate ?? s.createdAt, "pt-BR", { dateStyle: "short", timeStyle: "short" }),
   ]);
 
-  const titleRow = [opts.title, "", "", "", "", "", "", "", "", "", "", "", "", new Date().toLocaleDateString("pt-BR")];
+  const titleRow = [opts.title, "", "", "", "", "", "", "", "", "", "", "", "", formatDate(new Date(), "pt-BR")];
   const data = [titleRow, headers, ...rows];
 
   const ws = XLSX.utils.aoa_to_sheet(data);
@@ -137,7 +138,7 @@ export function exportProductsXlsx(
     p.taxRate,
   ]);
 
-  const titleRow = [opts.title, "", "", "", "", "", "", "", "", new Date().toLocaleDateString("pt-BR")];
+  const titleRow = [opts.title, "", "", "", "", "", "", "", "", formatDate(new Date(), "pt-BR")];
   const data = [titleRow, headers, ...rows];
 
   const ws = XLSX.utils.aoa_to_sheet(data);
@@ -174,7 +175,7 @@ export function exportDashboardXlsx(
 
   // Sheet 1: Resumo (KPIs)
   const kpiData = [
-    [opts.title, "", new Date().toLocaleDateString("pt-BR")],
+    [opts.title, "", formatDate(new Date(), "pt-BR")],
     [],
     ["Indicador", "Valor"],
     ["Vendas Hoje", dashboard.totalSalesToday],
@@ -192,7 +193,7 @@ export function exportDashboardXlsx(
   // Sheet 2: Vendas por Dia
   const dayHeaders = ["Data", "Quantidade", "Faturamento"];
   const dayRows = dashboard.salesByDay.map((d) => [
-    new Date(d.date).toLocaleDateString("pt-BR"),
+    formatDate(d.date, "pt-BR"),
     d.count,
     formatBRL(d.revenue),
   ]);

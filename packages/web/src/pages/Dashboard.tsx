@@ -5,8 +5,8 @@ import { ImageWithSkeleton } from "../components/common/ImageWithSkeleton.js";
 import { useDashboardStore } from "../stores/dashboard.store.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
 import { useSettingsStore } from "../stores/settings.store.js";
+import { getNow, formatDate } from "../lib/timezone.js";
 import { formatBRL } from "@mimos/shared";
-import { format } from "date-fns";
 import {
   ShoppingCart,
   DollarSign,
@@ -44,17 +44,18 @@ export default function Dashboard() {
   const getGatewayLabel = useGatewayStore((s) => s.getGatewayLabel);
   const theme = useSettingsStore((s) => s.theme);
 
-  const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const tzNow = getNow();
+  const [selectedMonth, setSelectedMonth] = useState(tzNow.month + 1);
+  const [selectedYear, setSelectedYear] = useState(tzNow.year);
   const [showFilter, setShowFilter] = useState(false);
   const [topN, setTopN] = useState(5);
 
-  const isCurrentMonth = selectedMonth === now.getMonth() + 1 && selectedYear === now.getFullYear();
+  const isCurrentMonth = selectedMonth === tzNow.month + 1 && selectedYear === tzNow.year;
 
   useEffect(() => {
-    const startDate = new Date(selectedYear, selectedMonth - 1, 1).toISOString();
-    const endDate = new Date(selectedYear, selectedMonth, 0, 23, 59, 59, 999).toISOString();
+    const startDate = new Date(Date.UTC(selectedYear, selectedMonth - 1, 1)).toISOString();
+    const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+    const endDate = new Date(Date.UTC(selectedYear, selectedMonth - 1, lastDay, 23, 59, 59, 999)).toISOString();
     fetchDashboard(startDate, endDate, topN);
   }, [fetchDashboard, selectedMonth, selectedYear, topN]);
 
@@ -67,13 +68,13 @@ export default function Dashboard() {
     { key: "averageTicket" as const, label: t("dashboard.averageTicket"), icon: Receipt, format: formatBRL },
   ];
 
-  const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i);
+  const years = Array.from({ length: 5 }, (_, i) => tzNow.year - i);
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
   const salesByDayFormatted = useMemo(() => {
     return (data?.salesByDay ?? []).map((d) => ({
       ...d,
-      label: format(new Date(d.date), "dd/MM"),
+      label: formatDate(d.date, "pt-BR", { day: "2-digit", month: "2-digit" }),
     }));
   }, [data?.salesByDay]);
 
@@ -135,7 +136,7 @@ export default function Dashboard() {
                 </div>
                 {!isCurrentMonth && (
                   <button
-                    onClick={() => { setSelectedMonth(now.getMonth() + 1); setSelectedYear(now.getFullYear()); }}
+                    onClick={() => { setSelectedMonth(tzNow.month + 1); setSelectedYear(tzNow.year); }}
                     className="text-[12px] text-primary font-semibold hover:underline"
                   >
                     {t("dashboard.currentMonth")}

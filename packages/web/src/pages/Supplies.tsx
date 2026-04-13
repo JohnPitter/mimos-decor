@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Header } from "../components/layout/Header.js";
 import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
+import { getTodayISO } from "../lib/timezone.js";
 import { useSupplyStore } from "../stores/supply.store.js";
 import { formatBRL } from "@mimos/shared";
 import type { Supply } from "@mimos/shared";
@@ -169,7 +170,7 @@ function PurchaseFormDialog({ open, supply, onClose, onSubmit }: {
       setQuantity("");
       setTotalCost("");
       setSupplier(supply.supplier ?? "");
-      setDueDate(new Date().toISOString().slice(0, 10));
+      setDueDate(getTodayISO());
       setNote("");
     }
   }, [open, supply]);

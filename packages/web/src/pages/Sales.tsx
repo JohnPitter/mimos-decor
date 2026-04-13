@@ -5,6 +5,7 @@ import { SaleFormDialog } from "../components/sales/SaleFormDialog.js";
 import { SaleDetailDrawer } from "../components/sales/SaleDetailDrawer.js";
 import { ImportCSVDialog } from "../components/sales/ImportCSVDialog.js";
 import { ConfirmDialog } from "../components/common/ConfirmDialog.js";
+import { formatDateTime } from "../lib/timezone.js";
 import { useSaleStore } from "../stores/sale.store.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
 import {
@@ -200,7 +201,7 @@ export default function Sales() {
                         {sale.customerName && <p className="text-[11px] text-text-muted">{sale.customerName}</p>}
                       </td>
                       <td className="px-4 py-3 text-[13px] text-text-dark">
-                        {new Date(sale.saleDate ?? sale.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                        {formatDateTime(sale.saleDate ?? sale.createdAt, "pt-BR", { dateStyle: "short", timeStyle: "short" })}
                       </td>
                       <td className="px-4 py-3 text-[13px] font-semibold text-text-dark">
                         {formatBRL(sale.salePrice)}

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { X, ChevronDown, Clock, ArrowRight, Pencil } from "lucide-react";
 import { MaskedInput } from "../common/MaskedInput.js";
+import { formatDateTime } from "../../lib/timezone.js";
 import {
   formatBRL,
   DELIVERY_STATUS_COLORS,
@@ -277,7 +278,7 @@ export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatu
                   {t("sales.date")}
                 </p>
                 <p className="text-[13px] font-medium text-text-secondary">
-                  {new Date(sale.saleDate ?? sale.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                  {formatDateTime(sale.saleDate ?? sale.createdAt, "pt-BR", { dateStyle: "short", timeStyle: "short" })}
                 </p>
               </div>
             </div>
@@ -464,7 +465,7 @@ export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatu
                         <div className="flex items-center gap-2 mt-1.5 text-[11px] text-text-muted">
                           <Clock size={11} />
                           <span>
-                            {new Date(entry.changedAt).toLocaleString()}
+                            {formatDateTime(entry.changedAt, "pt-BR", { dateStyle: "short", timeStyle: "short" })}
                           </span>
                           <span className="text-text-secondary font-medium">
                             {t("sales.by")} {entry.changedByName}

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Header } from "../components/layout/Header.js";
 import { useGatewayStore } from "../stores/gateway.store.js";
 import { useSettingsStore } from "../stores/settings.store.js";
+import { getFirstDayOfMonthISO, getLastDayOfMonthISO, getDateParts, formatDate, formatDateTime } from "../lib/timezone.js";
 import { api } from "../lib/api.js";
 import { exportSalesXlsx, exportProductsXlsx, exportDashboardXlsx } from "../lib/export-xlsx.js";
 import { exportSalesPdf, exportProductsPdf, exportDashboardPdf } from "../lib/export-pdf.js";
@@ -29,12 +30,8 @@ export default function Reports() {
   const getGatewayLabel = useGatewayStore((s) => s.getGatewayLabel);
   const allGateways = useGatewayStore((s) => s.getAllGateways)();
 
-  const now = new Date();
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-  const [startDate, setStartDate] = useState(firstDay.toISOString().split("T")[0]);
-  const [endDate, setEndDate] = useState(lastDay.toISOString().split("T")[0]);
+  const [startDate, setStartDate] = useState(getFirstDayOfMonthISO);
+  const [endDate, setEndDate] = useState(getLastDayOfMonthISO);
   const [gateway, setGateway] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
@@ -119,11 +116,12 @@ export default function Reports() {
       const gPrev = genderMap.get(gender) ?? { count: 0, revenue: 0 };
       genderMap.set(gender, { count: gPrev.count + 1, revenue: gPrev.revenue + sale.salePrice });
 
-      const hour = new Date(sale.saleDate).getHours();
+      const dateParts = getDateParts(sale.saleDate);
+      const hour = dateParts.hour;
       const hPrev = hourMap.get(hour) ?? { count: 0, revenue: 0 };
       hourMap.set(hour, { count: hPrev.count + 1, revenue: hPrev.revenue + sale.salePrice });
 
-      const dow = new Date(sale.saleDate).getDay();
+      const dow = dateParts.dow;
       const dPrev = dowMap.get(dow) ?? { count: 0, revenue: 0 };
       dowMap.set(dow, { count: dPrev.count + 1, revenue: dPrev.revenue + sale.salePrice });
 
@@ -486,7 +484,7 @@ function SalesListTable({ sales, salesPage, setSalesPage, getGatewayLabel }: {
                 <td className="px-4 py-3 text-[13px] text-text-secondary text-right">{formatBRL(sale.totalCost)}</td>
                 <td className="px-4 py-3 text-[13px] text-text-secondary text-right">{formatBRL(sale.totalFees)}</td>
                 <td className={`px-4 py-3 text-[13px] text-right font-semibold ${sale.profit >= 0 ? "text-green-600" : "text-red-500"}`}>{formatBRL(sale.profit)}</td>
-                <td className="px-4 py-3 text-[12px] text-text-muted whitespace-nowrap">{new Date(sale.saleDate).toLocaleDateString(i18n.language)}</td>
+                <td className="px-4 py-3 text-[12px] text-text-muted whitespace-nowrap">{formatDate(sale.saleDate, i18n.language)}</td>
               </tr>
             ))}
           </tbody>
