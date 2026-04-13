@@ -66,9 +66,10 @@ export async function listSales(params: {
   const { search, status, gateway, startDate, endDate, page = 1, limit = 50 } = params;
   const where: Prisma.SaleWhereInput = {};
   if (search) {
+    const q = search.trim();
     where.OR = [
-      { shopeeUsername: { contains: search.trim(), mode: "insensitive" } },
-      { customerName: { contains: search.trim(), mode: "insensitive" } },
+      { shopeeUsername: { contains: q, mode: "insensitive" } },
+      { customerName: { contains: q, mode: "insensitive" } },
     ];
   }
   if (gateway) where.gateway = gateway;
