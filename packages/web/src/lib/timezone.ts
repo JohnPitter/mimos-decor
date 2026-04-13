@@ -23,23 +23,43 @@ export function formatTime(date: string | Date, locale: string, options?: Intl.D
   return new Date(date).toLocaleTimeString(locale, { timeZone: tz, ...options });
 }
 
-/** Get date components (year, month, day, hour, dow) in the configured timezone */
-export function getDateParts(date: string | Date): { year: number; month: number; day: number; hour: number; dow: number } {
+/** Get current date+time as YYYY-MM-DDTHH:MM string in the configured timezone (for datetime-local inputs) */
+export function getNowDateTimeISO(): string {
   const tz = getTimezone();
-  const d = new Date(date);
-  const fmt = new Intl.DateTimeFormat("en-US", {
+  const fmt = new Intl.DateTimeFormat("sv-SE", {
     timeZone: tz,
     year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", weekday: "short", hour12: false,
+    hour: "2-digit", minute: "2-digit", hour12: false,
   });
-  const parts = Object.fromEntries(fmt.formatToParts(d).map(p => [p.type, p.value]));
-  const dowMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  return fmt.format(new Date()).replace(" ", "T");
+}
+
+const partsCache = new Map<string, Intl.DateTimeFormat>();
+function getPartsFormatter(tz: string): Intl.DateTimeFormat {
+  let fmt = partsCache.get(tz);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", weekday: "short", hour12: false,
+    });
+    partsCache.set(tz, fmt);
+  }
+  return fmt;
+}
+
+const DOW_MAP: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+
+/** Get date components (year, month, day, hour, dow) in the configured timezone */
+export function getDateParts(date: string | Date): { year: number; month: number; day: number; hour: number; dow: number } {
+  const fmt = getPartsFormatter(getTimezone());
+  const parts = Object.fromEntries(fmt.formatToParts(new Date(date)).map(p => [p.type, p.value]));
   return {
     year: Number(parts.year),
     month: Number(parts.month) - 1,
     day: Number(parts.day),
     hour: Number(parts.hour) === 24 ? 0 : Number(parts.hour),
-    dow: dowMap[parts.weekday] ?? 0,
+    dow: DOW_MAP[parts.weekday] ?? 0,
   };
 }
 

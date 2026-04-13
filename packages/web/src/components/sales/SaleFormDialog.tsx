@@ -13,16 +13,7 @@ import { DELIVERY_STATUSES } from "@mimos/shared";
 import type { Product, GatewayId, ProductCosts } from "@mimos/shared";
 import { api } from "../../lib/api.js";
 import { useGatewayStore } from "../../stores/gateway.store.js";
-import { useSettingsStore } from "../../stores/settings.store.js";
-
-function nowInTimezone(tz: string): string {
-  const fmt = new Intl.DateTimeFormat("sv-SE", {
-    timeZone: tz,
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", hour12: false,
-  });
-  return fmt.format(new Date()).replace(" ", "T");
-}
+import { getNowDateTimeISO } from "../../lib/timezone.js";
 
 const BR_STATES = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
@@ -73,7 +64,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   const { t } = useTranslation();
   const allGateways = useGatewayStore((s) => s.getAllGateways)();
   const getMarketplace = useGatewayStore((s) => s.getMarketplace);
-  const timezone = useSettingsStore((s) => s.appSettings.timezone);
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [gateway, setGateway] = useState<string>("SHOPEE_CNPJ");
@@ -88,7 +79,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   const [overrideSubtotal, setOverrideSubtotal] = useState("");
   const [overrideShipping, setOverrideShipping] = useState("");
   const [overrideFees, setOverrideFees] = useState("");
-  const [saleDate, setSaleDate] = useState(() => nowInTimezone(timezone));
+  const [saleDate, setSaleDate] = useState(() => getNowDateTimeISO());
 
   useEffect(() => {
     if (open) {
@@ -104,7 +95,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
       setOverrideSubtotal("");
       setOverrideShipping("");
       setOverrideFees("");
-      setSaleDate(nowInTimezone(timezone));
+      setSaleDate(getNowDateTimeISO());
       setLoadingProducts(true);
       api
         .get<{ products: Product[]; total: number }>("/products?limit=500")
