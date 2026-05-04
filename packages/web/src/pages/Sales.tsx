@@ -62,6 +62,8 @@ export default function Sales() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerEditMode, setDrawerEditMode] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [saleIdempotencyKey, setSaleIdempotencyKey] = useState(() => crypto.randomUUID());
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
@@ -78,9 +80,16 @@ export default function Sales() {
   useEffect(() => { fetchAppSettings(); }, [fetchAppSettings]);
 
   const handleCreateSale = async (data: Parameters<typeof createSale>[0]) => {
-    await createSale(data);
-    setSaleDialogOpen(false);
-    loadSales();
+    if (isCreating) return;
+    setIsCreating(true);
+    try {
+      await createSale(data, saleIdempotencyKey);
+      setSaleIdempotencyKey(crypto.randomUUID());
+      setSaleDialogOpen(false);
+      loadSales();
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleRowClick = (sale: Sale, editMode = false) => {
@@ -276,7 +285,7 @@ export default function Sales() {
         )}
       </div>
 
-      <SaleFormDialog open={saleDialogOpen} onClose={() => setSaleDialogOpen(false)} onSubmit={handleCreateSale} />
+      <SaleFormDialog open={saleDialogOpen} onClose={() => setSaleDialogOpen(false)} onSubmit={handleCreateSale} isSubmitting={isCreating} />
       <ImportCSVDialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} onImported={() => loadSales()} />
       <SaleDetailDrawer sale={selectedSale} open={drawerOpen} startInEditMode={drawerEditMode} onClose={() => { setDrawerOpen(false); setSelectedSale(null); setDrawerEditMode(false); }} onStatusUpdated={() => loadSales()} />
       <ConfirmDialog

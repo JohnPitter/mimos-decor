@@ -49,7 +49,8 @@ financeRouter.get("/notifications", async (_req, res) => {
 
 financeRouter.post("/", async (req, res) => {
   try {
-    const result = await financeService.createEntry(req.body, req.user!.id);
+    const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
+    const result = await financeService.createEntry(req.body, req.user!.id, idempotencyKey);
     logger.info("Finance entry created", "finance");
     res.status(201).json(result);
   } catch (err) {
@@ -119,7 +120,8 @@ financeCategoryRouter.get("/", async (_req, res) => {
 
 financeCategoryRouter.post("/", async (req, res) => {
   try {
-    const category = await financeService.createCategory(req.body, req.user!.id);
+    const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
+    const category = await financeService.createCategory(req.body, req.user!.id, idempotencyKey);
     res.status(201).json(category);
   } catch (err) {
     logger.error("Create finance category error", "finance", { error: String(err) });

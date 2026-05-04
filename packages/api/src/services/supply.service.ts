@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
 import { logger } from "../lib/logger.js";
+import { getCached, setCached } from "../lib/idempotency.js";
 import type { Prisma } from "@prisma/client";
 
 export async function listSupplies(params: { search?: string; page?: number; limit?: number }) {
@@ -31,7 +32,11 @@ export async function createSupply(data: {
   unit?: string;
   supplier?: string;
   minStock?: number;
-}) {
+}, idempotencyKey?: string) {
+  if (idempotencyKey) {
+    const cached = getCached<Awaited<ReturnType<typeof prisma.supply.create>>>("supply", idempotencyKey);
+    if (cached) return cached;
+  }
   const supply = await prisma.supply.create({
     data: {
       name: data.name.trim(),
@@ -44,6 +49,7 @@ export async function createSupply(data: {
     },
   });
   logger.info(`Supply created: ${supply.name}`, "supply");
+  if (idempotencyKey) setCached("supply", idempotencyKey, supply);
   return supply;
 }
 
@@ -83,7 +89,11 @@ export async function registerPurchase(data: {
   supplier?: string;
   note?: string;
   dueDate: string;
-}, userId: string) {
+}, userId: string, idempotencyKey?: string) {
+  if (idempotencyKey) {
+    const cached = getCached<Awaited<ReturnType<typeof prisma.supplyPurchase.create>>>(userId, idempotencyKey);
+    if (cached) return cached;
+  }
   const result = await prisma.$transaction(async (tx) => {
     const supply = await tx.supply.findUnique({ where: { id: data.supplyId } });
     if (!supply) throw new Error("SUPPLY_NOT_FOUND");
@@ -132,5 +142,6 @@ export async function registerPurchase(data: {
   });
 
   logger.info(`Supply purchase registered: ${result.supplyName} x${data.quantity}`, "supply");
+  if (idempotencyKey) setCached(userId, idempotencyKey, result.purchase);
   return result.purchase;
 }

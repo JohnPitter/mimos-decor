@@ -23,7 +23,8 @@ supplyRouter.get("/", async (req, res) => {
 
 supplyRouter.post("/", async (req, res) => {
   try {
-    const supply = await supplyService.createSupply(req.body);
+    const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
+    const supply = await supplyService.createSupply(req.body, idempotencyKey);
     logger.info(`Supply created: ${supply.name}`, "supply");
     res.status(201).json(supply);
   } catch (err) {
@@ -34,9 +35,11 @@ supplyRouter.post("/", async (req, res) => {
 
 supplyRouter.post("/:id/purchase", async (req, res) => {
   try {
+    const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
     const purchase = await supplyService.registerPurchase(
       { supplyId: req.params.id, ...req.body },
       req.user!.id,
+      idempotencyKey,
     );
     res.status(201).json(purchase);
   } catch (err) {

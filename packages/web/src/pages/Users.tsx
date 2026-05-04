@@ -32,6 +32,7 @@ export default function Users() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [userIdempotencyKey, setUserIdempotencyKey] = useState(() => crypto.randomUUID());
 
   useEffect(() => {
     fetchUsers(page);
@@ -97,7 +98,8 @@ export default function Users() {
           isAdmin: form.isAdmin,
           roleId: form.roleId || undefined,
           permissionOverrides: form.permissionOverrides,
-        });
+        }, userIdempotencyKey);
+        setUserIdempotencyKey(crypto.randomUUID());
       }
       setModalOpen(false);
     } catch (err) {

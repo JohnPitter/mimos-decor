@@ -268,6 +268,8 @@ export default function Supplies() {
   const [editSupply, setEditSupply] = useState<Supply | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [purchaseSupply, setPurchaseSupply] = useState<Supply | null>(null);
+  const [supplyIdempotencyKey, setSupplyIdempotencyKey] = useState(() => crypto.randomUUID());
+  const [purchaseIdempotencyKey, setPurchaseIdempotencyKey] = useState(() => crypto.randomUUID());
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
@@ -282,7 +284,8 @@ export default function Supplies() {
     if (editSupply) {
       await updateSupply(editSupply.id, data);
     } else {
-      await createSupply(data);
+      await createSupply(data, supplyIdempotencyKey);
+      setSupplyIdempotencyKey(crypto.randomUUID());
     }
     setEditSupply(null);
     loadSupplies();
@@ -304,7 +307,8 @@ export default function Supplies() {
   const handlePurchase = async (data: { quantity: number; totalCost: number; supplier?: string; note?: string; dueDate: string }) => {
     if (!purchaseSupply) return;
     try {
-      await registerPurchase(purchaseSupply.id, data);
+      await registerPurchase(purchaseSupply.id, data, purchaseIdempotencyKey);
+      setPurchaseIdempotencyKey(crypto.randomUUID());
       toast.success(t("supplies.purchaseSuccess"));
       loadSupplies();
     } catch (err) {

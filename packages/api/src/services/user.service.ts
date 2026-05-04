@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
+import { getCached, setCached } from "../lib/idempotency.js";
 import bcrypt from "bcryptjs";
 
 const USER_INCLUDE = {
@@ -40,7 +41,12 @@ async function generateUniqueUsername(email: string): Promise<string> {
 export async function createUser(
   data: { name: string; email: string; password: string; isAdmin?: boolean; roleId?: string; permissionOverrides?: string[] },
   adminId: string,
+  idempotencyKey?: string,
 ) {
+  if (idempotencyKey) {
+    const cached = getCached<ReturnType<typeof buildUserResponse>>(adminId, idempotencyKey);
+    if (cached) return cached;
+  }
   const exists = await prisma.user.findUnique({ where: { email: data.email } });
   if (exists) throw new Error("Email já cadastrado");
   const username = await generateUniqueUsername(data.email);
@@ -59,7 +65,9 @@ export async function createUser(
     include: USER_INCLUDE,
   });
   await createAuditLog({ userId: adminId, action: "CREATE", entity: "USER", entityId: user.id, newData: { name: user.name, email: user.email, isAdmin: user.isAdmin } });
-  return buildUserResponse(user);
+  const result = buildUserResponse(user);
+  if (idempotencyKey) setCached(adminId, idempotencyKey, result);
+  return result;
 }
 
 export async function updateUser(

@@ -45,7 +45,8 @@ saleRouter.get("/:id", async (req, res) => {
 
 saleRouter.post("/", async (req, res) => {
   try {
-    const sale = await saleService.createSale(req.body, req.user!.id);
+    const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
+    const sale = await saleService.createSale(req.body, req.user!.id, idempotencyKey);
     logger.info("Sale created", "sale", { saleId: sale.id });
     res.status(201).json(sale);
   } catch (err) {

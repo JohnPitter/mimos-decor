@@ -21,7 +21,8 @@ gatewayRouter.get("/", async (_req, res) => {
 // Create/Update/Delete require ADMIN
 gatewayRouter.post("/", requirePermission("gateways:manage"), async (req, res) => {
   try {
-    const gateway = await gatewayService.createGateway(req.body);
+    const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
+    const gateway = await gatewayService.createGateway(req.body, idempotencyKey);
     logger.info(`Gateway created: ${gateway.slug}`, "gateway");
     res.status(201).json(gateway);
   } catch (err) {

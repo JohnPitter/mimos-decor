@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { getCached, setCached } from "../lib/idempotency.js";
 import type { Prisma } from "@prisma/client";
 import { BUILT_IN_GATEWAYS } from "@mimos/shared";
 import type { BuiltInGatewayId, CommissionTier, PixTier } from "@mimos/shared";
@@ -18,7 +19,11 @@ export async function createGateway(data: {
   tiers: CommissionTier[];
   pixTiers?: PixTier[];
   extraFixed?: number;
-}) {
+}, idempotencyKey?: string) {
+  if (idempotencyKey) {
+    const cached = getCached<Awaited<ReturnType<typeof prisma.customGateway.create>>>("gateway", idempotencyKey);
+    if (cached) return cached;
+  }
   const slugRegex = /^[A-Z0-9_]+$/;
   if (!slugRegex.test(data.slug)) {
     throw new Error("Slug deve conter apenas letras maiúsculas, números e underscores");
@@ -37,7 +42,7 @@ export async function createGateway(data: {
     throw new Error("É necessário pelo menos uma faixa de comissão");
   }
 
-  return prisma.customGateway.create({
+  const gateway = await prisma.customGateway.create({
     data: {
       slug: data.slug.trim(),
       name: data.name.trim(),
@@ -47,6 +52,8 @@ export async function createGateway(data: {
       extraFixed: data.extraFixed ?? 0,
     },
   });
+  if (idempotencyKey) setCached("gateway", idempotencyKey, gateway);
+  return gateway;
 }
 
 export async function updateGateway(id: string, data: {

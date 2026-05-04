@@ -20,7 +20,8 @@ userRouter.get("/", async (req, res) => {
 
 userRouter.post("/", async (req, res) => {
   try {
-    const user = await userService.createUser(req.body, req.user!.id);
+    const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
+    const user = await userService.createUser(req.body, req.user!.id, idempotencyKey);
     logger.info(`User created: ${user.email}`, "user");
     res.status(201).json(user);
   } catch (err) {

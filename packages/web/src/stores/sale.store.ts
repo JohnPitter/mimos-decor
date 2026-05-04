@@ -36,7 +36,7 @@ interface SaleState {
     items: CreateSaleItemInput[];
     customerName?: string;
     customerDocument?: string;
-  }) => Promise<void>;
+  }, idempotencyKey?: string) => Promise<void>;
   deleteSale: (id: string) => Promise<void>;
   updateSale: (id: string, data: Record<string, unknown>) => Promise<void>;
   updateSaleStatus: (id: string, status: DeliveryStatus) => Promise<void>;
@@ -65,8 +65,9 @@ export const useSaleStore = create<SaleState>((set) => ({
       set({ loading: false });
     }
   },
-  createSale: async (data) => {
-    await api.post("/sales", data);
+  createSale: async (data, idempotencyKey) => {
+    const headers = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+    await api.post("/sales", data, headers);
   },
   deleteSale: async (id) => {
     await api.delete(`/sales/${id}`);

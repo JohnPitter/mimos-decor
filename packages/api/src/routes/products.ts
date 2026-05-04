@@ -37,7 +37,8 @@ productRouter.get("/:id", async (req, res) => {
 
 productRouter.post("/", async (req, res) => {
   try {
-    const product = await productService.createProduct(req.body, req.user!.id);
+    const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
+    const product = await productService.createProduct(req.body, req.user!.id, idempotencyKey);
     logger.info(`Product created: ${product.name}`, "product");
     res.status(201).json(product);
   } catch (err) {

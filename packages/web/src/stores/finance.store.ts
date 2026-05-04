@@ -21,12 +21,12 @@ interface FinanceState {
   fetchSummary: () => Promise<void>;
   fetchNotifications: () => Promise<FinanceNotifications | null>;
   fetchCategories: () => Promise<void>;
-  createEntry: (data: Record<string, unknown>) => Promise<void>;
+  createEntry: (data: Record<string, unknown>, idempotencyKey?: string) => Promise<void>;
   updateEntry: (id: string, data: Record<string, unknown>) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
   deleteRecurringGroup: (groupId: string) => Promise<void>;
   payEntry: (id: string) => Promise<void>;
-  createCategory: (data: Record<string, unknown>) => Promise<void>;
+  createCategory: (data: Record<string, unknown>, idempotencyKey?: string) => Promise<void>;
   updateCategory: (id: string, data: Record<string, unknown>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
 }
@@ -77,8 +77,9 @@ export const useFinanceStore = create<FinanceState>((set) => ({
       set({ categories });
     } catch { /* ignore */ }
   },
-  createEntry: async (data) => {
-    await api.post("/finances", data);
+  createEntry: async (data, idempotencyKey) => {
+    const headers = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+    await api.post("/finances", data, headers);
   },
   updateEntry: async (id, data) => {
     await api.put(`/finances/${id}`, data);
@@ -92,8 +93,9 @@ export const useFinanceStore = create<FinanceState>((set) => ({
   payEntry: async (id) => {
     await api.patch(`/finances/${id}/pay`);
   },
-  createCategory: async (data) => {
-    await api.post("/finance-categories", data);
+  createCategory: async (data, idempotencyKey) => {
+    const headers = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+    await api.post("/finance-categories", data, headers);
   },
   updateCategory: async (id, data) => {
     await api.put(`/finance-categories/${id}`, data);

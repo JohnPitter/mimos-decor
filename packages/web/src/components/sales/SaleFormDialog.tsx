@@ -30,6 +30,7 @@ interface ItemRow {
 interface Props {
   open: boolean;
   onClose: () => void;
+  isSubmitting?: boolean;
   onSubmit: (data: {
     gateway: string;
     items: { productId: string; quantity: number }[];
@@ -60,7 +61,7 @@ function buildCosts(product: Product): ProductCosts {
   };
 }
 
-export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
+export function SaleFormDialog({ open, onClose, onSubmit, isSubmitting = false }: Props) {
   const { t } = useTranslation();
   const allGateways = useGatewayStore((s) => s.getAllGateways)();
   const getMarketplace = useGatewayStore((s) => s.getMarketplace);
@@ -195,7 +196,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
   };
 
   const validItems = items.filter((i) => i.productId && i.quantity > 0);
-  const canSubmit = validItems.length > 0 && customerState && customerGender && shopeeUsername;
+  const canSubmit = validItems.length > 0 && customerState && customerGender && shopeeUsername && !isSubmitting;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -514,7 +515,7 @@ export function SaleFormDialog({ open, onClose, onSubmit }: Props) {
               disabled={!canSubmit}
               className="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-[14px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t("sales.newSale")}
+              {isSubmitting ? t("common.saving") + "..." : t("sales.newSale")}
             </button>
           </div>
         </form>

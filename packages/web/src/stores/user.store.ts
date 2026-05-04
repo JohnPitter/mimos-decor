@@ -7,7 +7,7 @@ interface UserState {
   total: number;
   loading: boolean;
   fetchUsers: (page?: number) => Promise<void>;
-  createUser: (data: CreateUserInput) => Promise<void>;
+  createUser: (data: CreateUserInput, idempotencyKey?: string) => Promise<void>;
   updateUser: (id: string, data: UpdateUserInput) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
 }
@@ -28,8 +28,9 @@ export const useUserStore = create<UserState>((set, get) => ({
     }
   },
 
-  createUser: async (data) => {
-    await api.post("/users", data);
+  createUser: async (data, idempotencyKey) => {
+    const headers = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+    await api.post("/users", data, headers);
     await get().fetchUsers();
   },
 

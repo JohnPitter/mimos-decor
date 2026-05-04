@@ -15,7 +15,7 @@ interface GatewayState {
   customGateways: CustomGateway[];
   loading: boolean;
   fetchGateways: () => Promise<void>;
-  createGateway: (data: Record<string, unknown>) => Promise<void>;
+  createGateway: (data: Record<string, unknown>, idempotencyKey?: string) => Promise<void>;
   updateGateway: (id: string, data: Record<string, unknown>) => Promise<void>;
   deleteGateway: (id: string) => Promise<void>;
   getAllGateways: () => GatewayInfo[];
@@ -46,8 +46,9 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
     }
   },
 
-  createGateway: async (data) => {
-    await api.post("/gateways", data);
+  createGateway: async (data, idempotencyKey) => {
+    const headers = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+    await api.post("/gateways", data, headers);
     await get().fetchGateways();
   },
 

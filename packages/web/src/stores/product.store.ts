@@ -7,7 +7,7 @@ interface ProductState {
   total: number;
   loading: boolean;
   fetchProducts: (params?: { search?: string; page?: number; stockFilter?: string }) => Promise<void>;
-  createProduct: (data: Partial<Product>) => Promise<Product>;
+  createProduct: (data: Partial<Product>, idempotencyKey?: string) => Promise<Product>;
   updateProduct: (id: string, data: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
 }
@@ -30,8 +30,9 @@ export const useProductStore = create<ProductState>((set) => ({
       set({ loading: false });
     }
   },
-  createProduct: async (data) => {
-    return api.post<Product>("/products", data);
+  createProduct: async (data, idempotencyKey) => {
+    const headers = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+    return api.post<Product>("/products", data, headers);
   },
   updateProduct: async (id, data) => {
     await api.put(`/products/${id}`, data);

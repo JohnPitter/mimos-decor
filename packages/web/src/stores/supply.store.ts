@@ -7,10 +7,10 @@ interface SupplyState {
   total: number;
   loading: boolean;
   fetchSupplies: (params?: { search?: string; page?: number }) => Promise<void>;
-  createSupply: (data: Record<string, unknown>) => Promise<void>;
+  createSupply: (data: Record<string, unknown>, idempotencyKey?: string) => Promise<void>;
   updateSupply: (id: string, data: Record<string, unknown>) => Promise<void>;
   deleteSupply: (id: string) => Promise<void>;
-  registerPurchase: (supplyId: string, data: CreateSupplyPurchaseInput) => Promise<void>;
+  registerPurchase: (supplyId: string, data: CreateSupplyPurchaseInput, idempotencyKey?: string) => Promise<void>;
 }
 
 export const useSupplyStore = create<SupplyState>((set) => ({
@@ -30,8 +30,9 @@ export const useSupplyStore = create<SupplyState>((set) => ({
       set({ loading: false });
     }
   },
-  createSupply: async (data) => {
-    await api.post("/supplies", data);
+  createSupply: async (data, idempotencyKey) => {
+    const headers = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+    await api.post("/supplies", data, headers);
   },
   updateSupply: async (id, data) => {
     await api.put(`/supplies/${id}`, data);
@@ -39,7 +40,8 @@ export const useSupplyStore = create<SupplyState>((set) => ({
   deleteSupply: async (id) => {
     await api.delete(`/supplies/${id}`);
   },
-  registerPurchase: async (supplyId, data) => {
-    await api.post(`/supplies/${supplyId}/purchase`, data);
+  registerPurchase: async (supplyId, data, idempotencyKey) => {
+    const headers = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined;
+    await api.post(`/supplies/${supplyId}/purchase`, data, headers);
   },
 }));

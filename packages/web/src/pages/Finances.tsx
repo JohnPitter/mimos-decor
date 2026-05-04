@@ -33,6 +33,9 @@ export default function Finances() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteGroupId, setDeleteGroupId] = useState<string | null>(null);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [entryIdempotencyKey, setEntryIdempotencyKey] = useState(() => crypto.randomUUID());
+  const [categoryIdempotencyKey, setCategoryIdempotencyKey] = useState(() => crypto.randomUUID());
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
@@ -51,14 +54,21 @@ export default function Finances() {
   useEffect(() => { setPage(1); }, [search, filterType, filterStatus, filterCategory]);
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    if (editEntry) {
-      await updateEntry(editEntry.id, data);
-    } else {
-      await createEntry(data);
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      if (editEntry) {
+        await updateEntry(editEntry.id, data);
+      } else {
+        await createEntry(data, entryIdempotencyKey);
+        setEntryIdempotencyKey(crypto.randomUUID());
+      }
+      setEditEntry(null);
+      loadEntries();
+      fetchSummary();
+    } finally {
+      setIsSubmitting(false);
     }
-    setEditEntry(null);
-    loadEntries();
-    fetchSummary();
   };
 
   const handleDeleteConfirm = async () => {
@@ -347,7 +357,10 @@ export default function Finances() {
         open={categoryDialogOpen}
         categories={categories}
         onClose={() => setCategoryDialogOpen(false)}
-        onCreate={createCategory}
+        onCreate={async (data) => {
+          await createCategory(data, categoryIdempotencyKey);
+          setCategoryIdempotencyKey(crypto.randomUUID());
+        }}
         onUpdate={updateCategory}
         onDelete={deleteCategory}
         onRefresh={fetchCategories}

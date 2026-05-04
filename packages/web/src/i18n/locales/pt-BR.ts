@@ -1,6 +1,7 @@
 export const ptBR = {
   common: {
     save: "Salvar",
+    saving: "Salvando",
     cancel: "Cancelar",
     delete: "Excluir",
     edit: "Editar",

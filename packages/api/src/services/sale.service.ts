@@ -6,6 +6,7 @@ import { MARKETPLACES, buildMarketplace, calcProductCost, calcIdealPrice } from 
 import type { Marketplace, CommissionTier, PixTier } from "@mimos/shared";
 import type { Prisma, DeliveryStatus } from "@prisma/client";
 import { parse } from "csv-parse/sync";
+import { getCached, setCached } from "../lib/idempotency.js";
 
 async function resolveMarketplace(gateway: string): Promise<Marketplace> {
   if (gateway === "PRESENCIAL") {
@@ -147,7 +148,15 @@ export async function createSale(data: {
   overrideSalePrice?: number;
   overrideShipping?: number;
   overrideFees?: number;
-}, userId: string) {
+}, userId: string, idempotencyKey?: string) {
+  if (idempotencyKey) {
+    const cached = getCached<Awaited<ReturnType<typeof prisma.sale.create>>>(userId, idempotencyKey);
+    if (cached) {
+      logger.info("Idempotent sale request — returning cached result", "sale", { idempotencyKey });
+      return cached;
+    }
+  }
+
   const marketplace = await resolveMarketplace(data.gateway);
   if (!data.items.length) throw new Error("A venda deve ter pelo menos um item");
 
@@ -243,6 +252,11 @@ export async function createSale(data: {
   ]);
 
   await createAuditLog({ userId, action: "CREATE", entity: "SALE", entityId: sale.id, newData: sale as unknown as Record<string, unknown> });
+
+  if (idempotencyKey) {
+    setCached(userId, idempotencyKey, sale);
+  }
+
   return sale;
 }
 

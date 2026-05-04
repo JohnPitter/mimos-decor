@@ -59,6 +59,8 @@ export default function Products() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [productIdempotencyKey, setProductIdempotencyKey] = useState(() => crypto.randomUUID());
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
@@ -75,13 +77,20 @@ export default function Products() {
   useEffect(() => { setPage(1); }, [search, stockFilter]);
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    if (editProduct) {
-      await updateProduct(editProduct.id, data);
-      setEditProduct(null);
-      return;
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      if (editProduct) {
+        await updateProduct(editProduct.id, data);
+        setEditProduct(null);
+        return;
+      }
+      const created = await createProduct(data, productIdempotencyKey);
+      setProductIdempotencyKey(crypto.randomUUID());
+      return created;
+    } finally {
+      setIsSubmitting(false);
     }
-    const created = await createProduct(data);
-    return created;
   };
 
   const handleDialogClose = () => {

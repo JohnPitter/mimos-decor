@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
+import { getCached, setCached } from "../lib/idempotency.js";
 import type { Prisma } from "@prisma/client";
 
 export async function listProducts(params: { search?: string; page?: number; limit?: number; stockFilter?: string }) {
@@ -27,11 +28,16 @@ export async function getProduct(id: string) {
   return prisma.product.findUnique({ where: { id } });
 }
 
-export async function createProduct(data: Prisma.ProductCreateInput, userId: string) {
+export async function createProduct(data: Prisma.ProductCreateInput, userId: string, idempotencyKey?: string) {
+  if (idempotencyKey) {
+    const cached = getCached<Awaited<ReturnType<typeof prisma.product.create>>>(userId, idempotencyKey);
+    if (cached) return cached;
+  }
   if (data.name) data.name = data.name.trim();
   if (data.supplier && typeof data.supplier === "string") data.supplier = data.supplier.trim();
   const product = await prisma.product.create({ data });
   await createAuditLog({ userId, action: "CREATE", entity: "PRODUCT", entityId: product.id, newData: product as unknown as Record<string, unknown> });
+  if (idempotencyKey) setCached(userId, idempotencyKey, product);
   return product;
 }
 

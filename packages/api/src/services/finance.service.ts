@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma.js";
 import { createAuditLog } from "../middleware/audit.js";
 import { logger } from "../lib/logger.js";
 import { getConfiguredTimezone, getStartOfDayUTC, getStartOfMonthUTC, getEndOfMonthUTC, getTodayBoundariesUTC, getTomorrowBoundariesUTC } from "../lib/timezone.js";
+import { getCached, setCached } from "../lib/idempotency.js";
 import type { Prisma } from "@prisma/client";
 import crypto from "crypto";
 
@@ -111,7 +112,11 @@ export async function createEntry(data: {
   dueDate: string;
   isRecurring?: boolean;
   recurringMonths?: number;
-}, userId: string) {
+}, userId: string, idempotencyKey?: string) {
+  if (idempotencyKey) {
+    const cached = getCached<unknown>(userId, idempotencyKey);
+    if (cached) return cached;
+  }
   if (data.isRecurring && data.recurringMonths && data.recurringMonths > 1) {
     const groupId = crypto.randomUUID();
     const entries = [];
@@ -139,6 +144,7 @@ export async function createEntry(data: {
       orderBy: { dueDate: "asc" },
     });
     logger.info(`Created ${result.count} recurring finance entries`, "finance");
+    if (idempotencyKey) setCached(userId, idempotencyKey, created);
     return created;
   } else {
     const entry = await prisma.financeEntry.create({
@@ -161,6 +167,7 @@ export async function createEntry(data: {
       newData: entry as unknown as Record<string, unknown>,
     });
     logger.info(`Finance entry created: ${entry.title}`, "finance");
+    if (idempotencyKey) setCached(userId, idempotencyKey, entry);
     return entry;
   }
 }
@@ -252,7 +259,11 @@ export async function createCategory(data: {
   type: string;
   color: string;
   icon: string;
-}, userId: string) {
+}, userId: string, idempotencyKey?: string) {
+  if (idempotencyKey) {
+    const cached = getCached<Awaited<ReturnType<typeof prisma.financeCategory.create>>>(userId, idempotencyKey);
+    if (cached) return cached;
+  }
   const category = await prisma.financeCategory.create({
     data: {
       name: data.name.trim(),
@@ -269,6 +280,7 @@ export async function createCategory(data: {
     newData: category as unknown as Record<string, unknown>,
   });
   logger.info(`Finance category created: ${category.name}`, "finance");
+  if (idempotencyKey) setCached(userId, idempotencyKey, category);
   return category;
 }
 

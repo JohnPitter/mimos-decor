@@ -23,6 +23,7 @@ export function CategoryManagerDialog({ open, categories, onClose, onCreate, onU
   const [name, setName] = useState("");
   const [type, setType] = useState<"PAYABLE" | "RECEIVABLE">("PAYABLE");
   const [color, setColor] = useState(COLORS[0]);
+  const [submitting, setSubmitting] = useState(false);
 
   if (!open) return null;
 
@@ -42,7 +43,8 @@ export function CategoryManagerDialog({ open, categories, onClose, onCreate, onU
   };
 
   const handleSave = async () => {
-    if (!name.trim()) return;
+    if (!name.trim() || submitting) return;
+    setSubmitting(true);
     try {
       if (editing) {
         await onUpdate(editing.id, { name, color });
@@ -55,6 +57,8 @@ export function CategoryManagerDialog({ open, categories, onClose, onCreate, onU
       toast.success(t("common.save"));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("finances.categoryError"));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -129,9 +133,10 @@ export function CategoryManagerDialog({ open, categories, onClose, onCreate, onU
                 </button>
                 <button
                   onClick={handleSave}
-                  className="flex-1 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-[13px] font-bold transition-all"
+                  disabled={submitting}
+                  className="flex-1 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-[13px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t("common.save")}
+                  {submitting ? t("common.saving") + "..." : t("common.save")}
                 </button>
               </div>
             </div>

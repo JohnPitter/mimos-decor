@@ -147,6 +147,7 @@ export default function Gateways() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<CustomGateway | null>(null);
+  const [gatewayIdempotencyKey, setGatewayIdempotencyKey] = useState(() => crypto.randomUUID());
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => { fetchGateways(); }, [fetchGateways]);
@@ -199,7 +200,8 @@ export default function Gateways() {
       if (editingGateway) {
         await updateGateway(editingGateway.id, payload);
       } else {
-        await createGateway({ ...payload, slug: form.slug });
+        await createGateway({ ...payload, slug: form.slug }, gatewayIdempotencyKey);
+        setGatewayIdempotencyKey(crypto.randomUUID());
       }
       setModalOpen(false);
     } catch (err) {
