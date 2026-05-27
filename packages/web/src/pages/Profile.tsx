@@ -21,6 +21,7 @@ export default function Profile() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleSave = async () => {
+    if (saving) return;
     setMessage(null);
 
     if (newPassword && newPassword !== confirmPassword) {

@@ -84,6 +84,7 @@ export default function Roles() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
     setError("");
     try {

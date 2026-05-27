@@ -52,6 +52,7 @@ export function FinanceFormDialog({ open, entry, categories, onClose, onSubmit }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
     try {
       await onSubmit({

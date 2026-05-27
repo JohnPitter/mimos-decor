@@ -98,6 +98,7 @@ export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatu
   });
 
   const handleStatusUpdate = async (newStatus: DeliveryStatus) => {
+    if (updatingStatus) return;
     setUpdatingStatus(true);
     try {
       await updateSaleStatus(sale.id, newStatus);
@@ -120,6 +121,7 @@ export function SaleDetailDrawer({ sale, open, startInEditMode, onClose, onStatu
   };
 
   const handleSaveEdit = async () => {
+    if (saving) return;
     setSaving(true);
     try {
       await updateSale(sale.id, {

@@ -36,6 +36,7 @@ export default function Finances() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [entryIdempotencyKey, setEntryIdempotencyKey] = useState(() => crypto.randomUUID());
   const [categoryIdempotencyKey, setCategoryIdempotencyKey] = useState(() => crypto.randomUUID());
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
@@ -91,6 +92,8 @@ export default function Finances() {
   };
 
   const handlePay = async (id: string) => {
+    if (payingId) return;
+    setPayingId(id);
     try {
       await payEntry(id);
       toast.success(t("finances.paidSuccess"));
@@ -98,6 +101,8 @@ export default function Finances() {
       fetchSummary();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("finances.payError"));
+    } finally {
+      setPayingId(null);
     }
   };
 
@@ -290,7 +295,8 @@ export default function Finances() {
                           {(entry.status === "PENDING" || entry.status === "OVERDUE") && (
                             <button
                               onClick={() => handlePay(entry.id)}
-                              className="p-1.5 rounded-lg text-text-muted hover:text-green-600 hover:bg-green-50 transition-all"
+                              disabled={payingId === entry.id}
+                              className="p-1.5 rounded-lg text-text-muted hover:text-green-600 hover:bg-green-50 transition-all disabled:opacity-50"
                               title={t("finances.markPaid")}
                             >
                               <Check size={15} />

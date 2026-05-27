@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
 
 interface Props {
@@ -12,7 +13,19 @@ interface Props {
 }
 
 export function ConfirmDialog({ open, title, message, confirmLabel = "Confirmar", cancelLabel = "Cancelar", variant = "danger", onConfirm, onCancel }: Props) {
+  const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => {
+    if (open) setConfirming(false);
+  }, [open]);
+
   if (!open) return null;
+
+  const handleConfirm = () => {
+    if (confirming) return;
+    setConfirming(true);
+    onConfirm();
+  };
 
   const btnClass = variant === "danger"
     ? "bg-red-500 hover:bg-red-600 text-white"
@@ -31,13 +44,15 @@ export function ConfirmDialog({ open, title, message, confirmLabel = "Confirmar"
         <div className="flex gap-3 p-4 pt-0">
           <button
             onClick={onCancel}
-            className="flex-1 py-2.5 border border-stroke rounded-lg text-[14px] font-medium text-text-muted hover:bg-page-bg transition-colors"
+            disabled={confirming}
+            className="flex-1 py-2.5 border border-stroke rounded-lg text-[14px] font-medium text-text-muted hover:bg-page-bg transition-colors disabled:opacity-50"
           >
             {cancelLabel}
           </button>
           <button
-            onClick={onConfirm}
-            className={`flex-1 py-2.5 rounded-lg text-[14px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] ${btnClass}`}
+            onClick={handleConfirm}
+            disabled={confirming}
+            className={`flex-1 py-2.5 rounded-lg text-[14px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 ${btnClass}`}
           >
             {confirmLabel}
           </button>
