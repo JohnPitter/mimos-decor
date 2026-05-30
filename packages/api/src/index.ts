@@ -30,7 +30,19 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.json());
+// Parse JSON bodies. Use a custom `type` predicate so the body is still parsed
+// when a reverse proxy strips the Content-Type header (otherwise Express 5 leaves
+// req.body undefined). Multipart/urlencoded form posts are left for their own
+// handlers (e.g. file uploads).
+app.use(
+  express.json({
+    type: (req) => {
+      const ct = req.headers["content-type"] || "";
+      if (/multipart\/form-data|application\/x-www-form-urlencoded/i.test(ct)) return false;
+      return true;
+    },
+  }),
+);
 app.use(cookieParser());
 app.use(morgan("short"));
 
